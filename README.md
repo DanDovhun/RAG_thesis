@@ -4,6 +4,9 @@ https://qdrant.tech/articles/neural-search-tutorial/
 https://qdrant.tech/articles/what-are-embeddings/
 
 # Setup
+## Get submodules
+After cloning the repositories and the submodules are empty run: `git submodule update --init`
+
 ## .env
 Setup a `.env` file containing these variables:
 ```
