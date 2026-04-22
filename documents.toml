@@ -1,0 +1,12 @@
+[project]
+"extensions" = [
+    ".md",
+    ".pdf",
+    ".docx"
+]
+
+"repositories" = [
+    "https://github.com/slovensko-digital/slovensko-sk-api",
+    "https://github.com/slovensko-digital/govbox-pro",
+    "https://github.com/slovensko-digital/navody.digital"
+]

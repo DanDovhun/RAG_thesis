@@ -1,0 +1,9 @@
+[submodule "slovensko-sk-api"]
+	path = slovensko-sk-api
+	url = https://github.com/slovensko-digital/slovensko-sk-api
+[submodule "govbox-pro"]
+	path = govbox-pro
+	url = https://github.com/slovensko-digital/govbox-pro
+[submodule "navody.digital"]
+	path = navody.digital
+	url = https://github.com/slovensko-digital/navody.digital

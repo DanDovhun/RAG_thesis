@@ -2,3 +2,7 @@ torch
 qdrant-client
 numpy
 sentence_transformers
+toml
+haystack-ai
+pgvector-haystack
+qdrant-haystack
