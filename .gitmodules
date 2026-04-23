@@ -7,3 +7,39 @@
 [submodule "navody.digital"]
 	path = navody.digital
 	url = https://github.com/slovensko-digital/navody.digital
+[submodule "navody-frontend"]
+	path = navody-frontend
+	url = git@github.com:slovensko-digital/navody-frontend.git
+[submodule "www.slovensko.wtf"]
+	path = www.slovensko.wtf
+	url = git@github.com:slovensko-digital/www.slovensko.wtf.git
+[submodule "slovensko-sk-login"]
+	path = slovensko-sk-login
+	url = git@github.com:slovensko-digital/slovensko-sk-login.git
+[submodule "sprava-o-stave-egovernmentu"]
+	path = sprava-o-stave-egovernmentu
+	url = git@github.com:slovensko-digital/sprava-o-stave-egovernmentu.git
+[submodule "poc-iam"]
+	path = poc-iam
+	url = git@github.com:slovensko-digital/poc-iam.git
+[submodule "avm-server"]
+	path = avm-server
+	url = git@github.com:slovensko-digital/avm-server.git
+[submodule "kramerius"]
+	path = kramerius
+	url = git@github.com:ceskaexpedice/kramerius.git
+[submodule "kramerius-web-client-v3"]
+	path = kramerius-web-client-v3
+	url = git@github.com:ceskaexpedice/kramerius-web-client-v3.git
+[submodule "kramerius-docker-compose"]
+	path = kramerius-docker-compose
+	url = git@github.com:ceskaexpedice/kramerius-docker-compose.git
+[submodule "alto-processing"]
+	path = alto-processing
+	url = git@github.com:ceskaexpedice/alto-processing.git
+[submodule "ASJournals"]
+	path = ASJournals
+	url = git@github.com:ceskaexpedice/ASJournals.git
+[submodule "altoEditorClient"]
+	path = altoEditorClient
+	url = git@github.com:ceskaexpedice/altoEditorClient.git
