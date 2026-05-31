@@ -18,10 +18,3 @@ services:
       POSTGRES_DB: vectordb
     volumes:
       - /media/daniel/1807-3D591/pgvector_storage:/var/lib/postgresql/data
-
-  ollama:
-    image: ollama/ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - /media/daniel/1807-3D591/ollama_storage:/root/.ollama
