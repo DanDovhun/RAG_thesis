@@ -6,3 +6,4 @@ toml
 haystack-ai
 pgvector-haystack
 qdrant-haystack
+ollama-haystack

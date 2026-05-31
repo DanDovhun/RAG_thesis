@@ -1,0 +1,104 @@
+# Embedder configuration for RAG Low-Resource Language thesis
+# Daniel Dovhun & Sadi Khan
+# Languages in scope: Czech (cs), Slovak (sk)
+# model_id values are HuggingFace repo slugs or OpenAI API identifiers.
+# Set enabled = false to skip a model in a given run.
+
+# ---------------------------------------------------------------------------
+# Dense embedders — language-specific
+# ---------------------------------------------------------------------------
+
+[[dense]]
+name        = "SlovakBERT"
+model_id    = "gerulata/slovakbert"
+language    = "sk"
+source      = "huggingface"
+enabled     = true
+notes       = "Monolingual Slovak BERT; Ulčar et al. (2021) — monolingual models outperform cross-lingual transfer when corpus is sufficient"
+
+[[dense]]
+name        = "czert-bert-base-cased"
+model_id    = "UWB-AIR/Czert-B-base-cased"
+language    = "cs"
+source      = "huggingface"
+enabled     = true
+notes       = "Monolingual Czech BERT"
+
+# ---------------------------------------------------------------------------
+# Dense embedders — cross-lingual baselines
+# ---------------------------------------------------------------------------
+
+[[dense]]
+name        = "xlm-roberta-base"
+model_id    = "FacebookAI/xlm-roberta-base"
+language    = "multilingual"
+source      = "huggingface"
+enabled     = true
+notes       = "Cross-lingual transfer baseline for cs/sk; Ulčar et al. (2021) — typologically similar language transfer outperforms English transfer"
+
+[[dense]]
+name        = "bert-base-multilingual-cased"
+model_id    = "google-bert/bert-base-multilingual-cased"
+language    = "multilingual"
+source      = "huggingface"
+enabled     = true
+notes       = "Multilingual BERT baseline"
+
+# ---------------------------------------------------------------------------
+# Dense embedders — English-centric, used on machine-translated docs
+# ---------------------------------------------------------------------------
+
+[[dense]]
+name        = "Qwen3-Embedding"
+model_id    = "Qwen/Qwen3-Embedding-0.6B"
+language    = "en"
+source      = "huggingface"
+enabled     = true
+notes       = "Applied to EN machine-translated versions of cs/sk documents"
+
+[[dense]]
+name        = "text-embedding-3-small"
+model_id    = "text-embedding-3-small"
+language    = "en"
+source      = "openai"
+enabled     = true
+notes       = "Applied to EN machine-translated versions of cs/sk documents"
+
+[[dense]]
+name        = "text-embedding-3-large"
+model_id    = "text-embedding-3-large"
+language    = "en"
+source      = "openai"
+enabled     = false
+notes       = "Larger OpenAI variant; enable if budget allows"
+
+# ---------------------------------------------------------------------------
+# Sparse vectorisers
+# ---------------------------------------------------------------------------
+
+[[sparse]]
+name        = "SPLADE-v3"
+model_id    = "naver/splade-v3"
+language    = "multilingual"
+source      = "huggingface"
+enabled     = true
+notes       = "Primary sparse vectoriser"
+
+[[sparse]]
+name        = "BM25"
+model_id    = "bm25"
+language    = "language-agnostic"
+source      = "haystack"
+enabled     = true
+notes       = "Lexical baseline; language-agnostic token matching"
+
+# ---------------------------------------------------------------------------
+# Machine translation gate
+# Documents translated to EN before being fed to Qwen / OpenAI embedders.
+# ---------------------------------------------------------------------------
+
+[translation]
+engine    = "Helsinki-NLP"
+languages = ["cs", "sk"]
+target    = "en"
+enabled   = true

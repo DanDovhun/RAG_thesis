@@ -27,3 +27,6 @@ pushd docker
 docker compose up -d
 popd
 ```
+
+### Installing HuggingFace embedders:
+`python3 download_models.py`

@@ -1,45 +1,45 @@
 [submodule "slovensko-sk-api"]
-	path = slovensko-sk-api
+	path = submodules/slovensko-sk-api
 	url = https://github.com/slovensko-digital/slovensko-sk-api
 [submodule "govbox-pro"]
-	path = govbox-pro
+	path = submodules/govbox-pro
 	url = https://github.com/slovensko-digital/govbox-pro
 [submodule "navody.digital"]
-	path = navody.digital
+	path = submodules/navody.digital
 	url = https://github.com/slovensko-digital/navody.digital
 [submodule "navody-frontend"]
-	path = navody-frontend
+	path = submodules/navody-frontend
 	url = git@github.com:slovensko-digital/navody-frontend.git
 [submodule "www.slovensko.wtf"]
-	path = www.slovensko.wtf
+	path = submodules/www.slovensko.wtf
 	url = git@github.com:slovensko-digital/www.slovensko.wtf.git
 [submodule "slovensko-sk-login"]
-	path = slovensko-sk-login
+	path = submodules/slovensko-sk-login
 	url = git@github.com:slovensko-digital/slovensko-sk-login.git
 [submodule "sprava-o-stave-egovernmentu"]
-	path = sprava-o-stave-egovernmentu
+	path = submodules/sprava-o-stave-egovernmentu
 	url = git@github.com:slovensko-digital/sprava-o-stave-egovernmentu.git
 [submodule "poc-iam"]
-	path = poc-iam
+	path = submodules/poc-iam
 	url = git@github.com:slovensko-digital/poc-iam.git
 [submodule "avm-server"]
-	path = avm-server
+	path = submodules/avm-server
 	url = git@github.com:slovensko-digital/avm-server.git
 [submodule "kramerius"]
-	path = kramerius
+	path = submodules/kramerius
 	url = git@github.com:ceskaexpedice/kramerius.git
-[submodule "kramerius-web-client-v3"]
-	path = kramerius-web-client-v3
-	url = git@github.com:ceskaexpedice/kramerius-web-client-v3.git
 [submodule "kramerius-docker-compose"]
-	path = kramerius-docker-compose
+	path = submodules/kramerius-docker-compose
 	url = git@github.com:ceskaexpedice/kramerius-docker-compose.git
 [submodule "alto-processing"]
-	path = alto-processing
+	path = submodules/alto-processing
 	url = git@github.com:ceskaexpedice/alto-processing.git
 [submodule "ASJournals"]
-	path = ASJournals
+	path = submodules/ASJournals
 	url = git@github.com:ceskaexpedice/ASJournals.git
 [submodule "altoEditorClient"]
-	path = altoEditorClient
+	path = submodules/altoEditorClient
 	url = git@github.com:ceskaexpedice/altoEditorClient.git
+[submodule "Data-selection-and-curation-methodology-for-RAG-LLM"]
+	path = Data-selection-and-curation-methodology-for-RAG-LLM
+	url = git@github.com:DanDovhun/Data-selection-and-curation-methodology-for-RAG-LLM.git
