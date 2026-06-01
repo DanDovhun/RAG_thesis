@@ -1,3 +1,4 @@
+import argparse
 import os
 import subprocess
 import uuid
@@ -22,7 +23,7 @@ from langdetect import DetectorFactory, LangDetectException, detect
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
 
-DetectorFactory.seed = 0  # deterministic language detection
+DetectorFactory.seed = 0
 
 QDRANT_URL = "http://localhost:6333"
 
@@ -43,12 +44,6 @@ dataset_dir = Path("submodules")
 
 CHUNK_SIZE = 300
 CHUNK_OVERLAP = 50
-
-# langdetect returns ISO 639-1 codes; map to the collection suffixes the user expects.
-# Chunks in any other language are skipped.
-LANG_SUFFIX: dict[str, str] = {"sk": "sk", "cs": "cz"}
-
-
 def load_model_configs(path: str = "embedder_config.toml") -> list[dict]:
     config = toml.load(path)
     models = []
@@ -62,6 +57,10 @@ def load_model_configs(path: str = "embedder_config.toml") -> list[dict]:
                 m["type"] = section
                 models.append(m)
     return models
+
+
+def slugify(name: str) -> str:
+    return name.lower().replace("-", "_").replace(" ", "_")
 
 
 def detect_language(text: str) -> str:
@@ -114,16 +113,21 @@ def get_file_metadata(filepath: Path) -> dict:
     return {"authors": authors, "created_at": created_at, "modified_at": modified_at}
 
 
+def _collection_name(submodule: str, coll_alias: str) -> str:
+    return f"{slugify(submodule)}_{coll_alias}"
+
+
+
 class RAGPipeline:
-    def __init__(self, model_configs: list[dict]):
+    def __init__(self, model_configs: list[dict], submodules: list[str]):
         self.model_configs = {cfg["name"]: cfg for cfg in model_configs}
         self.embedders: dict[str, SentenceTransformersDocumentEmbedder] = {}
-        self.qdrant_collections: dict[str, dict[str, str]] = {}  # model → {lang_suffix → collection}
         self.bm25_store: InMemoryDocumentStore | None = None
         self.qdrant = QdrantClient(url=QDRANT_URL)
         self.splitter = DocumentSplitter(
             split_by="word", split_length=CHUNK_SIZE, split_overlap=CHUNK_OVERLAP
         )
+        self._initialised_submodules: set[str] = set()
 
         for cfg in model_configs:
             self._setup_model(cfg)
@@ -137,30 +141,33 @@ class RAGPipeline:
             self.bm25_store = InMemoryDocumentStore()
             return
 
-        base = name.lower().replace(" ", "_").replace("-", "_")
-        dim = EMBEDDING_DIMS.get(model_id, 768)
+        embedder = SentenceTransformersDocumentEmbedder(model=model_id, trust_remote_code=True)
+        embedder.warm_up()
+        self.embedders[name] = embedder
 
-        existing = {c.name for c in self.qdrant.get_collections().collections}
-        lang_collections: dict[str, str] = {}
-        for suffix in LANG_SUFFIX.values():
-            coll = f"{base}_{suffix}"
-            if coll not in existing:
+    def _ensure_submodule_collections(self, submodule: str) -> None:
+        if submodule in self._initialised_submodules:
+            return
+        for cfg in self.model_configs.values():
+            if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
+                continue
+            coll = _collection_name(submodule, cfg["coll_alias"])
+            if not self.qdrant.collection_exists(coll):
+                dim = EMBEDDING_DIMS.get(cfg.get("model_id"), 768)
+                print(f"  creating collection {coll!r}")
                 self.qdrant.create_collection(
                     collection_name=coll,
                     vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
                 )
-            lang_collections[suffix] = coll
-        self.qdrant_collections[name] = lang_collections
-
-        embedder = SentenceTransformersDocumentEmbedder(model=model_id, trust_remote_code=True)
-        embedder.warm_up()
-        self.embedders[name] = embedder
+        self._initialised_submodules.add(submodule)
 
     def index_document(self, filepath: Path, model_name: str, file_meta: dict) -> None:
         filepath = Path(filepath)
         cfg = self.model_configs[model_name]
         file_ext = filepath.suffix.lower()
         abs_path = str(filepath.resolve())
+        submodule = filepath.relative_to(dataset_dir).parts[0]
+        self._ensure_submodule_collections(submodule)
 
         if file_ext == ".html":
             converter = HTMLToDocument()
@@ -179,19 +186,11 @@ class RAGPipeline:
 
         chunks = self.splitter.run(documents=docs)["documents"]
         total = len(chunks)
-
         embedded = self.embedders[model_name].run(documents=chunks)["documents"]
-        lang_collections = self.qdrant_collections[model_name]
+        collection = _collection_name(submodule, cfg["coll_alias"])
 
-        buckets: dict[str, list[PointStruct]] = {s: [] for s in lang_collections}
-        for i, chunk in enumerate(embedded):
-            if chunk.embedding is None:
-                continue
-            lang = detect_language(chunk.content or "")
-            lang_suffix = LANG_SUFFIX.get(lang)
-            if lang_suffix is None:
-                continue
-            buckets[lang_suffix].append(PointStruct(
+        points = [
+            PointStruct(
                 id=str(uuid.uuid4()),
                 vector=chunk.embedding,
                 payload={
@@ -201,22 +200,36 @@ class RAGPipeline:
                     "file_type": file_ext,
                     "chunk_index": i,
                     "chunk_count": total,
-                    "language": lang,
+                    "language": detect_language(chunk.content or ""),
                     "authors": file_meta["authors"],
                     "created_at": file_meta["created_at"],
                     "modified_at": file_meta["modified_at"],
                     "model_name": model_name,
                     "model_id": cfg.get("model_id"),
                 },
-            ))
+            )
+            for i, chunk in enumerate(embedded)
+            if chunk.embedding is not None
+        ]
 
-        for lang_suffix, points in buckets.items():
-            if points:
-                self.qdrant.upsert(collection_name=lang_collections[lang_suffix], points=points)
+        if points:
+            self.qdrant.upsert(collection_name=collection, points=points)
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--reset", action="store_true", help="Delete all Qdrant collections before indexing")
+args = parser.parse_args()
+
+submodules = [d.name for d in dataset_dir.iterdir() if d.is_dir()]
 model_configs = load_model_configs()
-rag = RAGPipeline(model_configs)
+
+if args.reset:
+    client = QdrantClient(url=QDRANT_URL)
+    for collection in client.get_collections().collections:
+        print(f"Deleting collection: {collection.name}")
+        client.delete_collection(collection.name)
+
+rag = RAGPipeline(model_configs, submodules)
 
 for filepath in dataset_dir.rglob("*"):
     if filepath.is_file() and (filepath.suffix in file_types or filepath.stem == "License"):

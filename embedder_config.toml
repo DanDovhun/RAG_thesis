@@ -10,6 +10,7 @@
 
 [[dense]]
 name        = "SlovakBERT"
+coll_alias  = "slovakbert"
 model_id    = "gerulata/slovakbert"
 language    = "sk"
 source      = "huggingface"
@@ -18,6 +19,7 @@ notes       = "Monolingual Slovak BERT; Ulčar et al. (2021) — monolingual mod
 
 [[dense]]
 name        = "czert-bert-base-cased"
+coll_alias  = "czert"
 model_id    = "UWB-AIR/Czert-B-base-cased"
 language    = "cs"
 source      = "huggingface"
@@ -30,6 +32,7 @@ notes       = "Monolingual Czech BERT"
 
 [[dense]]
 name        = "xlm-roberta-base"
+coll_alias  = "xlmr"
 model_id    = "FacebookAI/xlm-roberta-base"
 language    = "multilingual"
 source      = "huggingface"
@@ -38,6 +41,7 @@ notes       = "Cross-lingual transfer baseline for cs/sk; Ulčar et al. (2021) �
 
 [[dense]]
 name        = "bert-base-multilingual-cased"
+coll_alias  = "mbert"
 model_id    = "google-bert/bert-base-multilingual-cased"
 language    = "multilingual"
 source      = "huggingface"
@@ -50,6 +54,7 @@ notes       = "Multilingual BERT baseline"
 
 [[dense]]
 name        = "Qwen3-Embedding"
+coll_alias  = "qwen3"
 model_id    = "Qwen/Qwen3-Embedding-0.6B"
 language    = "en"
 source      = "huggingface"
@@ -58,6 +63,7 @@ notes       = "Applied to EN machine-translated versions of cs/sk documents"
 
 [[dense]]
 name        = "text-embedding-3-small"
+coll_alias  = "te3s"
 model_id    = "text-embedding-3-small"
 language    = "en"
 source      = "openai"
@@ -66,6 +72,7 @@ notes       = "Applied to EN machine-translated versions of cs/sk documents"
 
 [[dense]]
 name        = "text-embedding-3-large"
+coll_alias  = "te3l"
 model_id    = "text-embedding-3-large"
 language    = "en"
 source      = "openai"
@@ -78,6 +85,7 @@ notes       = "Larger OpenAI variant; enable if budget allows"
 
 # [[sparse]]
 # name        = "SPLADE-v3"
+# coll_alias  = "splade"
 # model_id    = "naver/splade-v3"
 # language    = "multilingual"
 # source      = "huggingface"
@@ -86,6 +94,7 @@ notes       = "Larger OpenAI variant; enable if budget allows"
 
 [[sparse]]
 name        = "BM25"
+coll_alias  = "bm25"
 model_id    = "bm25"
 language    = "language-agnostic"
 source      = "haystack"
