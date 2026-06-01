@@ -1,157 +1,227 @@
+import os
+import subprocess
+import uuid
+from datetime import datetime
 from pathlib import Path
 
-from haystack import Pipeline
-from haystack.components.builders import PromptBuilder
-from haystack.components.embedders import (
-    SentenceTransformersDocumentEmbedder,
-    SentenceTransformersTextEmbedder,
-)
-from haystack.components.joiners import DocumentJoiner
+import toml
+from dotenv import load_dotenv
+
+load_dotenv()
+
+MODELS_DIR = Path(os.environ.get("MODELS_DIR", "models"))
+MODELS_DIR.mkdir(exist_ok=True)
+os.environ["SENTENCE_TRANSFORMERS_HOME"] = str(MODELS_DIR.resolve())
+
 from haystack.components.converters import HTMLToDocument, PyPDFToDocument, TextFileToDocument
+from haystack.components.embedders import SentenceTransformersDocumentEmbedder
+from haystack.components.preprocessors import DocumentSplitter
 from haystack.components.writers import DocumentWriter
-from haystack_integrations.components.generators.ollama import OllamaGenerator
-from haystack_integrations.components.retrievers.pgvector import PgvectorEmbeddingRetriever
-from haystack_integrations.components.retrievers.qdrant import QdrantEmbeddingRetriever
-from haystack_integrations.document_stores.pgvector import PgvectorDocumentStore
-from haystack_integrations.document_stores.qdrant import QdrantDocumentStore
+from haystack.document_stores.in_memory import InMemoryDocumentStore
+from langdetect import DetectorFactory, LangDetectException, detect
+from qdrant_client import QdrantClient
+from qdrant_client.models import Distance, PointStruct, VectorParams
 
-PGVECTOR_CONN = "postgresql://postgres:postgres@localhost:5433/haystack"
-OLLAMA_URL = "http://localhost:11434"
-OLLAMA_MODEL = "llama3.2"  # swap for whichever model you have pulled
+DetectorFactory.seed = 0  # deterministic language detection
 
-PROMPT_TEMPLATE = """
-Given the following context documents, answer the question as accurately as possible.
-If the answer is not contained in the documents, say so explicitly.
+QDRANT_URL = "http://localhost:6333"
 
-Context:
-{% for doc in documents %}
-  {{ doc.content }}
-{% endfor %}
+EMBEDDING_DIMS = {
+    "gerulata/slovakbert": 768,
+    "UWB-AIR/Czert-B-base-cased": 768,
+    "FacebookAI/xlm-roberta-base": 768,
+    "google-bert/bert-base-multilingual-cased": 768,
+    "Qwen/Qwen3-Embedding-0.6B": 1024,
+    "naver/splade-v3": 768,
+}
 
-Question: {{ query }}
-Answer:
-"""
-
+file_types = {
+    ".md", ".pdf", ".yaml", ".html", ".txt", ".rb", ".java", ".json",
+    ".go", ".php", ".js", ".tx", ".cs", ".cshtml", ".csv", ".groovy", ".bat", ".sh",
+}
 dataset_dir = Path("submodules")
-file_types = [
-    ".md", ".pdf", ".yaml", ".html", ".txt", ".rb", ".java", ".json", ".go", ".php", ".js", ".tx", ".cs", ".cshtml", ".csv", ".groovy", ".bat", ".sh"
-]
+
+CHUNK_SIZE = 300
+CHUNK_OVERLAP = 50
+
+# langdetect returns ISO 639-1 codes; map to the collection suffixes the user expects.
+# Chunks in any other language are skipped.
+LANG_SUFFIX: dict[str, str] = {"sk": "sk", "cs": "cz"}
+
+
+def load_model_configs(path: str = "embedder_config.toml") -> list[dict]:
+    config = toml.load(path)
+    models = []
+    for section in ("dense", "sparse"):
+        for m in config.get(section, []):
+            if (
+                m.get("enabled", False)
+                and m.get("source") != "openai"
+                and "jade" not in m.get("name", "").lower()
+            ):
+                m["type"] = section
+                models.append(m)
+    return models
+
+
+def detect_language(text: str) -> str:
+    try:
+        return detect(text)
+    except LangDetectException:
+        return "unknown"
+
+
+def get_file_metadata(filepath: Path) -> dict:
+    """Return git authors, ISO-8601 created_at and modified_at; falls back to filesystem times."""
+    abs_path = filepath.resolve()
+    authors: list[str] = []
+    created_at: str | None = None
+    modified_at: str | None = None
+
+    root_r = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True, text=True, cwd=str(abs_path.parent),
+    )
+    if root_r.returncode == 0:
+        git_root = Path(root_r.stdout.strip())
+        rel = abs_path.relative_to(git_root)
+
+        r = subprocess.run(
+            ["git", "log", "--follow", "--format=%aN", "--", str(rel)],
+            capture_output=True, text=True, cwd=str(git_root),
+        )
+        authors = list(dict.fromkeys(l.strip() for l in r.stdout.splitlines() if l.strip()))
+
+        r = subprocess.run(
+            ["git", "log", "-1", "--format=%aI", "--", str(rel)],
+            capture_output=True, text=True, cwd=str(git_root),
+        )
+        modified_at = r.stdout.strip() or None
+
+        r = subprocess.run(
+            ["git", "log", "--follow", "--format=%aI", "--", str(rel)],
+            capture_output=True, text=True, cwd=str(git_root),
+        )
+        lines = [l.strip() for l in r.stdout.splitlines() if l.strip()]
+        created_at = lines[-1] if lines else None
+
+    stat = abs_path.stat()
+    if not modified_at:
+        modified_at = datetime.fromtimestamp(stat.st_mtime).isoformat()
+    if not created_at:
+        created_at = datetime.fromtimestamp(stat.st_ctime).isoformat()
+
+    return {"authors": authors, "created_at": created_at, "modified_at": modified_at}
+
 
 class RAGPipeline:
-    def __init__(self):
-        # --- Document stores ---
-        self.pgvector_store = PgvectorDocumentStore(
-            connection_string=PGVECTOR_CONN,
-            embedding_dimension=384,
-            vector_function="cosine_similarity",
-            recreate_table=False,
-        )
-        self.qdrant_store = QdrantDocumentStore(
-            url="http://localhost:6333",
-            index="documents",
-            embedding_dim=384,
-            similarity="cosine",
+    def __init__(self, model_configs: list[dict]):
+        self.model_configs = {cfg["name"]: cfg for cfg in model_configs}
+        self.embedders: dict[str, SentenceTransformersDocumentEmbedder] = {}
+        self.qdrant_collections: dict[str, dict[str, str]] = {}  # model → {lang_suffix → collection}
+        self.bm25_store: InMemoryDocumentStore | None = None
+        self.qdrant = QdrantClient(url=QDRANT_URL)
+        self.splitter = DocumentSplitter(
+            split_by="word", split_length=CHUNK_SIZE, split_overlap=CHUNK_OVERLAP
         )
 
-        # --- Indexing pipeline ---
-        self.indexing_pipeline = Pipeline()
-        self.indexing_pipeline.add_component(
-            "embedder", SentenceTransformersDocumentEmbedder()
-        )
-        self.indexing_pipeline.add_component(
-            "pgvector_writer", DocumentWriter(document_store=self.pgvector_store)
-        )
-        self.indexing_pipeline.add_component(
-            "qdrant_writer", DocumentWriter(document_store=self.qdrant_store)
-        )
-        self.indexing_pipeline.connect("embedder.documents", "pgvector_writer.documents")
-        self.indexing_pipeline.connect("embedder.documents", "qdrant_writer.documents")
+        for cfg in model_configs:
+            self._setup_model(cfg)
 
-        # --- Query + generation pipeline ---
-        self.query_pipeline = Pipeline()
-        self.query_pipeline.add_component(
-            "text_embedder", SentenceTransformersTextEmbedder()
-        )
-        self.query_pipeline.add_component(
-            "pgvector_retriever",
-            PgvectorEmbeddingRetriever(document_store=self.pgvector_store),
-        )
-        self.query_pipeline.add_component(
-            "qdrant_retriever",
-            QdrantEmbeddingRetriever(document_store=self.qdrant_store),
-        )
-        self.query_pipeline.add_component("joiner", DocumentJoiner())
-        self.query_pipeline.add_component(
-            "prompt_builder", PromptBuilder(template=PROMPT_TEMPLATE)
-        )
+    def _setup_model(self, cfg: dict) -> None:
+        name = cfg["name"]
+        source = cfg.get("source")
+        model_id = cfg.get("model_id")
 
-        # Embedder → retrievers
-        self.query_pipeline.connect(
-            "text_embedder.embedding", "pgvector_retriever.query_embedding"
-        )
-        self.query_pipeline.connect(
-            "text_embedder.embedding", "qdrant_retriever.query_embedding"
-        )
-        # Retrievers → joiner
-        self.query_pipeline.connect("pgvector_retriever.documents", "joiner.documents")
-        self.query_pipeline.connect("qdrant_retriever.documents", "joiner.documents")
-        self.query_pipeline.add_component(
-            "llm",
-            OllamaGenerator(model=OLLAMA_MODEL, url=OLLAMA_URL),
-        )
+        if source == "haystack" and model_id == "bm25":
+            self.bm25_store = InMemoryDocumentStore()
+            return
 
-        # Joiner → prompt builder → LLM
-        self.query_pipeline.connect("joiner.documents", "prompt_builder.documents")
-        self.query_pipeline.connect("prompt_builder.prompt", "llm.prompt")
+        base = name.lower().replace(" ", "_").replace("-", "_")
+        dim = EMBEDDING_DIMS.get(model_id, 768)
 
-    def index_document(self, filepath: Path) -> None:
+        existing = {c.name for c in self.qdrant.get_collections().collections}
+        lang_collections: dict[str, str] = {}
+        for suffix in LANG_SUFFIX.values():
+            coll = f"{base}_{suffix}"
+            if coll not in existing:
+                self.qdrant.create_collection(
+                    collection_name=coll,
+                    vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
+                )
+            lang_collections[suffix] = coll
+        self.qdrant_collections[name] = lang_collections
+
+        embedder = SentenceTransformersDocumentEmbedder(model=model_id, trust_remote_code=True)
+        embedder.warm_up()
+        self.embedders[name] = embedder
+
+    def index_document(self, filepath: Path, model_name: str, file_meta: dict) -> None:
         filepath = Path(filepath)
-        if filepath.suffix == ".html":
+        cfg = self.model_configs[model_name]
+        file_ext = filepath.suffix.lower()
+        abs_path = str(filepath.resolve())
+
+        if file_ext == ".html":
             converter = HTMLToDocument()
-        elif filepath.suffix == ".pdf":
+        elif file_ext == ".pdf":
             converter = PyPDFToDocument()
         else:
             converter = TextFileToDocument()
 
         docs = converter.run(sources=[filepath])["documents"]
-        if docs:
-            self.indexing_pipeline.run({"embedder": {"documents": docs}})
+        if not docs:
+            return
 
-    def query(self, question: str, ollama_model: str = OLLAMA_MODEL) -> str:
-        self.query_pipeline.get_component("llm").model = ollama_model
-        result = self.query_pipeline.run({
-            "text_embedder": {"text": question},
-            "prompt_builder": {"query": question},
-        })
-        replies = result["llm"]["replies"]
-        return replies[0] if replies else ""
+        if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
+            DocumentWriter(document_store=self.bm25_store).run(documents=docs)
+            return
 
-pipeline = RAGPipeline()
+        chunks = self.splitter.run(documents=docs)["documents"]
+        total = len(chunks)
 
-def iter_folders(dir):
-    extensions_found = []
-    dir = Path(dir)
+        embedded = self.embedders[model_name].run(documents=chunks)["documents"]
+        lang_collections = self.qdrant_collections[model_name]
 
-    for doc in dir.iterdir():
-        if doc.is_dir():
-            print(f"Entering {doc}")
-            extensions_found += iter_folders(doc)
+        buckets: dict[str, list[PointStruct]] = {s: [] for s in lang_collections}
+        for i, chunk in enumerate(embedded):
+            if chunk.embedding is None:
+                continue
+            lang = detect_language(chunk.content or "")
+            lang_suffix = LANG_SUFFIX.get(lang)
+            if lang_suffix is None:
+                continue
+            buckets[lang_suffix].append(PointStruct(
+                id=str(uuid.uuid4()),
+                vector=chunk.embedding,
+                payload={
+                    "content": chunk.content,
+                    "file_path": abs_path,
+                    "file_name": filepath.name,
+                    "file_type": file_ext,
+                    "chunk_index": i,
+                    "chunk_count": total,
+                    "language": lang,
+                    "authors": file_meta["authors"],
+                    "created_at": file_meta["created_at"],
+                    "modified_at": file_meta["modified_at"],
+                    "model_name": model_name,
+                    "model_id": cfg.get("model_id"),
+                },
+            ))
 
-        else:
-            print(f"Processing: {doc}")
-            
-    
-def read_files(start_doc: Path):
-    """
-    Function will be used later to add documents into the vector databases
-    """
-    extensions = []
-    start_doc = Path(start_doc)
+        for lang_suffix, points in buckets.items():
+            if points:
+                self.qdrant.upsert(collection_name=lang_collections[lang_suffix], points=points)
 
-    for doc in start_doc.rglob("*"):
-        extensions.append(doc.suffix) if doc.suffix not in extensions else None
-        print(f"{doc}: {doc.is_dir()}") if doc.suffix in file_types or doc.stem == "License" else None
 
-    print(extensions)
+model_configs = load_model_configs()
+rag = RAGPipeline(model_configs)
 
-exts = iter_folders(dataset_dir)
+for filepath in dataset_dir.rglob("*"):
+    if filepath.is_file() and (filepath.suffix in file_types or filepath.stem == "License"):
+        print(f"Indexing: {filepath}")
+        file_meta = get_file_metadata(filepath)
+        for model_name in rag.model_configs:
+            print(f"  Model: {model_name}")
+            rag.index_document(filepath, model_name, file_meta)

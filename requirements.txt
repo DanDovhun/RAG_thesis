@@ -3,7 +3,10 @@ qdrant-client
 numpy
 sentence_transformers
 toml
+python-dotenv
 haystack-ai
 pgvector-haystack
 qdrant-haystack
 ollama-haystack
+trafilatura
+langdetect

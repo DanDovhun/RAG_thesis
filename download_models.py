@@ -1,8 +1,17 @@
 """Pre-download all enabled HuggingFace embedding models from embedder_config.toml."""
 
+import os
 import sys
+from pathlib import Path
+
 import toml
+from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
+
+load_dotenv()
+
+MODELS_DIR = Path(os.environ.get("MODELS_DIR", "models"))
+MODELS_DIR.mkdir(exist_ok=True)
 
 config = toml.load("embedder_config.toml")
 
@@ -17,7 +26,7 @@ for m in hf_models:
     model_id = m["model_id"]
     print(f"Downloading {m['name']} ({model_id}) ...", flush=True)
     try:
-        SentenceTransformer(model_id, trust_remote_code=True)
+        SentenceTransformer(model_id, trust_remote_code=True, cache_folder=str(MODELS_DIR))
         print(f"  OK\n")
     except Exception as e:
         print(f"  FAILED: {e}\n")

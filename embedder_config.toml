@@ -76,13 +76,13 @@ notes       = "Larger OpenAI variant; enable if budget allows"
 # Sparse vectorisers
 # ---------------------------------------------------------------------------
 
-[[sparse]]
-name        = "SPLADE-v3"
-model_id    = "naver/splade-v3"
-language    = "multilingual"
-source      = "huggingface"
-enabled     = true
-notes       = "Primary sparse vectoriser"
+# [[sparse]]
+# name        = "SPLADE-v3"
+# model_id    = "naver/splade-v3"
+# language    = "multilingual"
+# source      = "huggingface"
+# enabled     = true
+# notes       = "Primary sparse vectoriser"
 
 [[sparse]]
 name        = "BM25"
