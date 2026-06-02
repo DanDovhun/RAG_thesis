@@ -14,11 +14,13 @@ MODELS_DIR = Path(os.environ.get("MODELS_DIR", "models"))
 MODELS_DIR.mkdir(exist_ok=True)
 os.environ["SENTENCE_TRANSFORMERS_HOME"] = str(MODELS_DIR.resolve())
 
+import torch
 from haystack.components.converters import HTMLToDocument, PyPDFToDocument, TextFileToDocument
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack.components.preprocessors import DocumentSplitter
 from haystack.components.writers import DocumentWriter
 from haystack.document_stores.in_memory import InMemoryDocumentStore
+from haystack.utils import ComponentDevice
 from langdetect import DetectorFactory, LangDetectException, detect
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
@@ -141,7 +143,8 @@ class RAGPipeline:
             self.bm25_store = InMemoryDocumentStore()
             return
 
-        embedder = SentenceTransformersDocumentEmbedder(model=model_id, trust_remote_code=True)
+        device = ComponentDevice.from_str("cuda:0" if torch.cuda.is_available() else "cpu")
+        embedder = SentenceTransformersDocumentEmbedder(model=model_id, trust_remote_code=True, device=device)
         embedder.warm_up()
         self.embedders[name] = embedder
 
@@ -177,14 +180,20 @@ class RAGPipeline:
             converter = TextFileToDocument()
 
         docs = converter.run(sources=[filepath])["documents"]
+        docs = [d for d in docs if d.content is not None]
         if not docs:
+            print(f"  Skipping {filepath}: no text content extracted")
             return
 
         if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
             DocumentWriter(document_store=self.bm25_store).run(documents=docs)
             return
 
-        chunks = self.splitter.run(documents=docs)["documents"]
+        try:
+            chunks = self.splitter.run(documents=docs)["documents"]
+        except ValueError as e:
+            print(f"  Skipping {filepath}: {e}")
+            return
         total = len(chunks)
         embedded = self.embedders[model_name].run(documents=chunks)["documents"]
         collection = _collection_name(submodule, cfg["coll_alias"])
