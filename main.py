@@ -1,14 +1,27 @@
 import argparse
+import csv
+import logging
 import os
 import subprocess
+import sys
+import time
 import uuid
 from datetime import datetime
 from pathlib import Path
+
+sys.stdout.reconfigure(line_buffering=True)
 
 import toml
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s  %(levelname)-8s  %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+log = logging.getLogger(__name__)
 
 MODELS_DIR = Path(os.environ.get("MODELS_DIR", "models"))
 MODELS_DIR.mkdir(exist_ok=True)
@@ -135,18 +148,27 @@ class RAGPipeline:
             self._setup_model(cfg)
 
     def _setup_model(self, cfg: dict) -> None:
-        name = cfg["name"]
-        source = cfg.get("source")
-        model_id = cfg.get("model_id")
-
-        if source == "haystack" and model_id == "bm25":
+        if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
             self.bm25_store = InMemoryDocumentStore()
-            return
 
+    def load_embedder(self, name: str) -> None:
+        cfg = self.model_configs[name]
+        if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
+            return
         device = ComponentDevice.from_str("cuda:0" if torch.cuda.is_available() else "cpu")
-        embedder = SentenceTransformersDocumentEmbedder(model=model_id, trust_remote_code=True, device=device)
+        embedder = SentenceTransformersDocumentEmbedder(
+            model=cfg["model_id"], trust_remote_code=True, device=device
+        )
         embedder.warm_up()
         self.embedders[name] = embedder
+
+    def unload_embedder(self, name: str) -> None:
+        embedder = self.embedders.pop(name, None)
+        if embedder is None:
+            return
+        del embedder
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
 
     def _ensure_submodule_collections(self, submodule: str) -> None:
         if submodule in self._initialised_submodules:
@@ -157,20 +179,24 @@ class RAGPipeline:
             coll = _collection_name(submodule, cfg["coll_alias"])
             if not self.qdrant.collection_exists(coll):
                 dim = EMBEDDING_DIMS.get(cfg.get("model_id"), 768)
-                print(f"  creating collection {coll!r}")
+                log.info("Creating collection %r", coll)
                 self.qdrant.create_collection(
                     collection_name=coll,
                     vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
                 )
         self._initialised_submodules.add(submodule)
 
-    def index_document(self, filepath: Path, model_name: str, file_meta: dict) -> None:
+    def index_document(self, filepath: Path, model_name: str, file_meta: dict) -> dict:
+        """Index one document with one model. Returns a metrics dict."""
         filepath = Path(filepath)
         cfg = self.model_configs[model_name]
         file_ext = filepath.suffix.lower()
         abs_path = str(filepath.resolve())
+        file_size = filepath.stat().st_size
         submodule = filepath.relative_to(dataset_dir).parts[0]
         self._ensure_submodule_collections(submodule)
+
+        t0 = time.perf_counter()
 
         if file_ext == ".html":
             converter = HTMLToDocument()
@@ -182,18 +208,22 @@ class RAGPipeline:
         docs = converter.run(sources=[filepath])["documents"]
         docs = [d for d in docs if d.content is not None]
         if not docs:
-            print(f"  Skipping {filepath}: no text content extracted")
-            return
+            elapsed = time.perf_counter() - t0
+            log.warning("[%s] Skipping %s — no text content extracted", model_name, filepath)
+            return {"status": "skipped", "reason": "no_content", "chunks": 0, "elapsed_s": elapsed, "file_size_bytes": file_size}
 
         if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
             DocumentWriter(document_store=self.bm25_store).run(documents=docs)
-            return
+            elapsed = time.perf_counter() - t0
+            return {"status": "bm25", "chunks": len(docs), "elapsed_s": elapsed, "file_size_bytes": file_size}
 
         try:
             chunks = self.splitter.run(documents=docs)["documents"]
         except ValueError as e:
-            print(f"  Skipping {filepath}: {e}")
-            return
+            elapsed = time.perf_counter() - t0
+            log.warning("[%s] Skipping %s — %s", model_name, filepath, e)
+            return {"status": "skipped", "reason": str(e), "chunks": 0, "elapsed_s": elapsed, "file_size_bytes": file_size}
+
         total = len(chunks)
         embedded = self.embedders[model_name].run(documents=chunks)["documents"]
         collection = _collection_name(submodule, cfg["coll_alias"])
@@ -224,6 +254,9 @@ class RAGPipeline:
         if points:
             self.qdrant.upsert(collection_name=collection, points=points)
 
+        elapsed = time.perf_counter() - t0
+        return {"status": "indexed", "chunks": total, "elapsed_s": elapsed, "file_size_bytes": file_size}
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--reset", action="store_true", help="Delete all Qdrant collections before indexing")
@@ -235,15 +268,58 @@ model_configs = load_model_configs()
 if args.reset:
     client = QdrantClient(url=QDRANT_URL)
     for collection in client.get_collections().collections:
-        print(f"Deleting collection: {collection.name}")
+        log.info("Deleting collection: %s", collection.name)
         client.delete_collection(collection.name)
 
 rag = RAGPipeline(model_configs, submodules)
 
-for filepath in dataset_dir.rglob("*"):
-    if filepath.is_file() and (filepath.suffix in file_types or filepath.stem == "License"):
-        print(f"Indexing: {filepath}")
-        file_meta = get_file_metadata(filepath)
-        for model_name in rag.model_configs:
-            print(f"  Model: {model_name}")
-            rag.index_document(filepath, model_name, file_meta)
+files = [
+    (filepath, get_file_metadata(filepath))
+    for filepath in dataset_dir.rglob("*")
+    if filepath.is_file() and (filepath.suffix in file_types or filepath.stem == "License")
+]
+
+log.info("Loaded %d files across %d submodules", len(files), len(submodules))
+
+run_start = datetime.now()
+log.info("Run started at %s", run_start.isoformat())
+
+metrics_rows: list[dict] = []
+
+for model_name in rag.model_configs:
+    log.info("=== Model: %s ===", model_name)
+    rag.load_embedder(model_name)
+    for filepath, file_meta in files:
+        log.info("[%s] Indexing: %s  (%.1f KB)", model_name, filepath, filepath.stat().st_size / 1024)
+        result = rag.index_document(filepath, model_name, file_meta)
+        log.info(
+            "[%s] %s → status=%s  chunks=%d  elapsed=%.3fs  size=%d B",
+            model_name, filepath.name, result["status"], result["chunks"],
+            result["elapsed_s"], result["file_size_bytes"],
+        )
+        metrics_rows.append({
+            "model_name": model_name,
+            "filepath": str(filepath),
+            "file_name": filepath.name,
+            "file_size_bytes": result["file_size_bytes"],
+            "status": result["status"],
+            "chunks": result["chunks"],
+            "elapsed_s": round(result["elapsed_s"], 4),
+        })
+    rag.unload_embedder(model_name)
+
+run_end = datetime.now()
+log.info("Run finished at %s  (total %.1fs)", run_end.isoformat(), (run_end - run_start).total_seconds())
+
+metrics_dir = Path("metrics")
+metrics_dir.mkdir(exist_ok=True)
+csv_path = metrics_dir / f"run_{run_start.strftime('%Y%m%d_%H%M%S')}.csv"
+
+fieldnames = ["run_start", "run_end", "model_name", "filepath", "file_name", "file_size_bytes", "status", "chunks", "elapsed_s"]
+with csv_path.open("w", newline="", encoding="utf-8") as fh:
+    writer = csv.DictWriter(fh, fieldnames=fieldnames)
+    writer.writeheader()
+    for row in metrics_rows:
+        writer.writerow({"run_start": run_start.isoformat(), "run_end": run_end.isoformat(), **row})
+
+log.info("Metrics saved to %s", csv_path)
