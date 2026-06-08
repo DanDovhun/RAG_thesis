@@ -10,3 +10,4 @@ qdrant-haystack
 ollama-haystack
 trafilatura
 langdetect
+deepl

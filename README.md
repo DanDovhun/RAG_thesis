@@ -13,6 +13,10 @@ Setup a `.env` file containing these variables:
 QDRANT_URL="http://localhost:6333"
 PGVECTOR_CONN = "postgresql://postgres:postgres@localhost:5433/haystack"
 POSTGRES_DB="vectordb"
+MODELS_DIR="models"
+QDRANT_STORAGE="/media/daniel/1807-3D59/qdrant_storage"    
+PGVECTOR_STORAGE="/media/daniel/1807-3D59/pgvector_storage"
+DEEPL_API_KEY="<API_KEY>"
 ```
 
 ## Python environment
@@ -20,12 +24,13 @@ To create a virtual environment and install dependencies run: `setup.bat` on Win
 
 To then activate the created virtual environment to use the script run `call .venv\Scripts\activate.bat` on Windows or `source .venv/bin/activate` on MacOS and Linux.
 
-### Starting PostgreSQL PGVector and Qdrant Docker Environments:
+## Local Dense Embedders:
+Please see [MODELS.md](docs/MODELS.md)
+
+### Starting Database Docker Containers
 Both `setup.sh` and `setup.bat` should already installed and launched both containers. In case you want to launch them without the entire setup process (e.g. you just restarted your computer) run:
 ```sh
-pushd docker
 docker compose up -d
-popd
 ```
 
 ### Installing HuggingFace embedders:
