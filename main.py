@@ -14,9 +14,11 @@ sys.stdout.reconfigure(line_buffering=True)
 import toml
 from dotenv import load_dotenv
 
+load_dotenv()
+
 date = datetime.now
-log_folder = Path(f"%v-%v-%v_%v:%v:%v", date.year, date.month, date.day, date.hour, date.minute, date.second)
-log_folder.mkdir(parents=True, exist_ok=True)
+#log_folder = Path(f"%v-%v-%v_%v:%v:%v", date.year, date.month, date.day, date.hour, date.minute, date.second)
+#log_folder.mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,7 +32,9 @@ MODELS_DIR = Path(os.environ.get("MODELS_DIR", "models"))
 MODELS_DIR.mkdir(exist_ok=True)
 os.environ["SENTENCE_TRANSFORMERS_HOME"] = str(MODELS_DIR.resolve())
 
+import deepl
 import torch
+from haystack import Document
 from haystack.components.converters import HTMLToDocument, PyPDFToDocument, TextFileToDocument
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack.components.preprocessors import DocumentSplitter
@@ -60,6 +64,13 @@ file_types = {
 }
 dataset_dir = Path("submodules")
 
+# Natural-language prose formats — translation candidates. Source code and
+# structured/tabular formats (.json, .yaml, .csv, .java, ...) are excluded
+# since machine-translating them would corrupt the content.
+PROSE_FILE_TYPES = {".md", ".pdf", ".html", ".txt"}
+
+DEEPL_TARGET_LANG_CODES = {"en": "en-US"}
+
 CHUNK_SIZE = 300
 CHUNK_OVERLAP = 50
 def load_model_configs(path: str = "embedder_config.toml") -> list[dict]:
@@ -77,6 +88,15 @@ def load_model_configs(path: str = "embedder_config.toml") -> list[dict]:
     return models
 
 
+def load_translation_config(path: str = "embedder_config.toml") -> dict:
+    return toml.load(path).get("translation", {})
+
+
+def is_prose_document(filepath: Path) -> bool:
+    """Whether a file holds natural-language prose worth machine-translating."""
+    return filepath.suffix.lower() in PROSE_FILE_TYPES or filepath.stem == "License"
+
+
 def slugify(name: str) -> str:
     return name.lower().replace("-", "_").replace(" ", "_")
 
@@ -88,6 +108,20 @@ def detect_language(text: str) -> str:
         return "unknown"
 
 
+_git_root_cache: dict[Path, Path | None] = {}
+
+
+def _git_root(directory: Path) -> Path | None:
+    """Resolve and cache the repo root for `directory` (one rev-parse per directory, not per file)."""
+    if directory not in _git_root_cache:
+        r = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, cwd=str(directory),
+        )
+        _git_root_cache[directory] = Path(r.stdout.strip()) if r.returncode == 0 else None
+    return _git_root_cache[directory]
+
+
 def get_file_metadata(filepath: Path) -> dict:
     """Return git authors, ISO-8601 created_at and modified_at; falls back to filesystem times."""
     abs_path = filepath.resolve()
@@ -95,32 +129,19 @@ def get_file_metadata(filepath: Path) -> dict:
     created_at: str | None = None
     modified_at: str | None = None
 
-    root_r = subprocess.run(
-        ["git", "rev-parse", "--show-toplevel"],
-        capture_output=True, text=True, cwd=str(abs_path.parent),
-    )
-    if root_r.returncode == 0:
-        git_root = Path(root_r.stdout.strip())
+    git_root = _git_root(abs_path.parent)
+    if git_root is not None:
         rel = abs_path.relative_to(git_root)
 
         r = subprocess.run(
-            ["git", "log", "--follow", "--format=%aN", "--", str(rel)],
+            ["git", "log", "--follow", "--format=%aN%x1f%aI", "--", str(rel)],
             capture_output=True, text=True, cwd=str(git_root),
         )
-        authors = list(dict.fromkeys(l.strip() for l in r.stdout.splitlines() if l.strip()))
-
-        r = subprocess.run(
-            ["git", "log", "-1", "--format=%aI", "--", str(rel)],
-            capture_output=True, text=True, cwd=str(git_root),
-        )
-        modified_at = r.stdout.strip() or None
-
-        r = subprocess.run(
-            ["git", "log", "--follow", "--format=%aI", "--", str(rel)],
-            capture_output=True, text=True, cwd=str(git_root),
-        )
-        lines = [l.strip() for l in r.stdout.splitlines() if l.strip()]
-        created_at = lines[-1] if lines else None
+        entries = [l.split("\x1f") for l in r.stdout.splitlines() if l.strip()]
+        authors = list(dict.fromkeys(name for name, _ in entries))
+        if entries:
+            modified_at = entries[0][1]
+            created_at = entries[-1][1]
 
     stat = abs_path.stat()
     if not modified_at:
@@ -137,7 +158,7 @@ def _collection_name(submodule: str, coll_alias: str) -> str:
 
 
 class RAGPipeline:
-    def __init__(self, model_configs: list[dict], submodules: list[str]):
+    def __init__(self, model_configs: list[dict], submodules: list[str], translation_config: dict | None = None):
         self.model_configs = {cfg["name"]: cfg for cfg in model_configs}
         self.embedders: dict[str, SentenceTransformersDocumentEmbedder] = {}
         self.bm25_store: InMemoryDocumentStore | None = None
@@ -146,6 +167,19 @@ class RAGPipeline:
             split_by="word", split_length=CHUNK_SIZE, split_overlap=CHUNK_OVERLAP
         )
         self._initialised_submodules: set[str] = set()
+        self._translation_cache: dict[Path, list[Document] | None] = {}
+
+        translation_config = translation_config or {}
+        self.translation_languages = set(translation_config.get("languages", []))
+        target = translation_config.get("target", "en")
+        self.translation_target_lang = DEEPL_TARGET_LANG_CODES.get(target, target.upper())
+        api_key = os.environ.get("DEEPL_API_KEY")
+        if translation_config.get("enabled") and api_key:
+            self.translator = deepl.Translator(api_key)
+        else:
+            self.translator = None
+            if translation_config.get("enabled"):
+                log.warning("Translation enabled in config but DEEPL_API_KEY is not set — skipping translation")
 
         for cfg in model_configs:
             self._setup_model(cfg)
@@ -173,21 +207,102 @@ class RAGPipeline:
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
+    def _ensure_collection(self, name: str, model_id: str | None) -> None:
+        if not self.qdrant.collection_exists(name):
+            dim = EMBEDDING_DIMS.get(model_id, 768)
+            log.info("Creating collection %r", name)
+            self.qdrant.create_collection(
+                collection_name=name,
+                vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
+            )
+
     def _ensure_submodule_collections(self, submodule: str) -> None:
         if submodule in self._initialised_submodules:
             return
         for cfg in self.model_configs.values():
             if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
                 continue
-            coll = _collection_name(submodule, cfg["coll_alias"])
-            if not self.qdrant.collection_exists(coll):
-                dim = EMBEDDING_DIMS.get(cfg.get("model_id"), 768)
-                log.info("Creating collection %r", coll)
-                self.qdrant.create_collection(
-                    collection_name=coll,
-                    vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
-                )
+            self._ensure_collection(_collection_name(submodule, cfg["coll_alias"]), cfg.get("model_id"))
         self._initialised_submodules.add(submodule)
+
+    def translate_document(self, docs: list[Document], source_lang: str) -> list[Document] | None:
+        """Translate prose document(s) from `source_lang` into English via DeepL.
+
+        Returns new Documents holding the translated content (meta preserved,
+        plus `source_language`), or None when translation isn't applicable —
+        translator unavailable, `source_lang` out of scope, or the API call fails.
+        """
+        if self.translator is None or source_lang not in self.translation_languages:
+            return None
+
+        translated = []
+        for doc in docs:
+            if not doc.content:
+                continue
+            try:
+                result = self.translator.translate_text(
+                    doc.content, source_lang=source_lang, target_lang=self.translation_target_lang
+                )
+            except deepl.DeepLException as e:
+                log.warning("Translation failed for %s: %s", doc.meta.get("file_path", "?"), e)
+                return None
+            translated.append(Document(content=result.text, meta={**doc.meta, "source_language": source_lang}))
+        return translated or None
+
+    def _index_translation(
+        self, filepath: Path, docs: list[Document], model_name: str, cfg: dict,
+        submodule: str, file_meta: dict, abs_path: str, file_ext: str,
+    ) -> None:
+        """Translate cs/sk prose documents to English and index them into a separate '<collection>_en'."""
+        if cfg.get("language") in self.translation_languages:
+            return  # don't run Czech/Slovak-specific embedders on machine-translated English text
+        if not is_prose_document(filepath):
+            return  # only translate natural-language prose, not source code / structured data
+
+        if filepath not in self._translation_cache:
+            source_lang = detect_language(" ".join(d.content for d in docs if d.content))
+            self._translation_cache[filepath] = self.translate_document(docs, source_lang)
+        translated = self._translation_cache[filepath]
+        if not translated:
+            return
+
+        try:
+            chunks = self.splitter.run(documents=translated)["documents"]
+        except ValueError as e:
+            log.warning("[%s] Skipping translated chunks for %s — %s", model_name, filepath, e)
+            return
+
+        embedded = self.embedders[model_name].run(documents=chunks)["documents"]
+        collection = f"{_collection_name(submodule, cfg['coll_alias'])}_en"
+        self._ensure_collection(collection, cfg.get("model_id"))
+
+        total = len(chunks)
+        points = [
+            PointStruct(
+                id=str(uuid.uuid4()),
+                vector=chunk.embedding,
+                payload={
+                    "content": chunk.content,
+                    "file_path": abs_path,
+                    "file_name": filepath.name,
+                    "file_type": file_ext,
+                    "chunk_index": i,
+                    "chunk_count": total,
+                    "language": "en",
+                    "source_language": chunk.meta.get("source_language"),
+                    "authors": file_meta["authors"],
+                    "created_at": file_meta["created_at"],
+                    "modified_at": file_meta["modified_at"],
+                    "model_name": model_name,
+                    "model_id": cfg.get("model_id"),
+                    "translated": True,
+                },
+            )
+            for i, chunk in enumerate(embedded)
+            if chunk.embedding is not None
+        ]
+        if points:
+            self.qdrant.upsert(collection_name=collection, points=points)
 
     def index_document(self, filepath: Path, model_name: str, file_meta: dict) -> dict:
         """Index one document with one model. Returns a metrics dict."""
@@ -257,72 +372,87 @@ class RAGPipeline:
         if points:
             self.qdrant.upsert(collection_name=collection, points=points)
 
+        self._index_translation(filepath, docs, model_name, cfg, submodule, file_meta, abs_path, file_ext)
+
         elapsed = time.perf_counter() - t0
         return {"status": "indexed", "chunks": total, "elapsed_s": elapsed, "file_size_bytes": file_size}
 
+def process_docs(args):
+    """Iterates through documents and sends them off to the function to be processed into a vector database"""
+    submodules = [d.name for d in dataset_dir.iterdir() if d.is_dir()]
+    model_configs = load_model_configs()
+    translation_config = load_translation_config()
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--reset", action="store_true", help="Delete all Qdrant collections before indexing")
-args = parser.parse_args()
+    if args.reset:
+        client = QdrantClient(url=QDRANT_URL)
+        for collection in client.get_collections().collections:
+            log.info("Deleting collection: %s", collection.name)
+            client.delete_collection(collection.name)
 
-submodules = [d.name for d in dataset_dir.iterdir() if d.is_dir()]
-model_configs = load_model_configs()
+    rag = RAGPipeline(model_configs, submodules, translation_config)
 
-if args.reset:
-    client = QdrantClient(url=QDRANT_URL)
-    for collection in client.get_collections().collections:
-        log.info("Deleting collection: %s", collection.name)
-        client.delete_collection(collection.name)
+    files = [
+        (filepath, get_file_metadata(filepath))
+        for filepath in dataset_dir.rglob("*")
+        if filepath.is_file() and (filepath.suffix in file_types or filepath.stem == "License")
+    ]
 
-rag = RAGPipeline(model_configs, submodules)
+    log.info("Loaded %d files across %d submodules", len(files), len(submodules))
 
-files = [
-    (filepath, get_file_metadata(filepath))
-    for filepath in dataset_dir.rglob("*")
-    if filepath.is_file() and (filepath.suffix in file_types or filepath.stem == "License")
-]
+    run_start = datetime.now()
+    log.info("Run started at %s", run_start.isoformat())
 
-log.info("Loaded %d files across %d submodules", len(files), len(submodules))
+    metrics_rows: list[dict] = []
 
-run_start = datetime.now()
-log.info("Run started at %s", run_start.isoformat())
+    for model_name in rag.model_configs:
+        log.info("=== Model: %s ===", model_name)
+        rag.load_embedder(model_name)
+        for filepath, file_meta in files:
+            log.info("[%s] Indexing: %s  (%.1f KB)", model_name, filepath, filepath.stat().st_size / 1024)
+            result = rag.index_document(filepath, model_name, file_meta)
+            log.info(
+                "[%s] %s → status=%s  chunks=%d  elapsed=%.3fs  size=%d B",
+                model_name, filepath.name, result["status"], result["chunks"],
+                result["elapsed_s"], result["file_size_bytes"],
+            )
+            metrics_rows.append({
+                "model_name": model_name,
+                "filepath": str(filepath),
+                "file_name": filepath.name,
+                "file_size_bytes": result["file_size_bytes"],
+                "status": result["status"],
+                "chunks": result["chunks"],
+                "elapsed_s": round(result["elapsed_s"], 4),
+            })
+        rag.unload_embedder(model_name)
 
-metrics_rows: list[dict] = []
+    run_end = datetime.now()
+    log.info("Run finished at %s  (total %.1fs)", run_end.isoformat(), (run_end - run_start).total_seconds())
 
-for model_name in rag.model_configs:
-    log.info("=== Model: %s ===", model_name)
-    rag.load_embedder(model_name)
-    for filepath, file_meta in files:
-        log.info("[%s] Indexing: %s  (%.1f KB)", model_name, filepath, filepath.stat().st_size / 1024)
-        result = rag.index_document(filepath, model_name, file_meta)
-        log.info(
-            "[%s] %s → status=%s  chunks=%d  elapsed=%.3fs  size=%d B",
-            model_name, filepath.name, result["status"], result["chunks"],
-            result["elapsed_s"], result["file_size_bytes"],
-        )
-        metrics_rows.append({
-            "model_name": model_name,
-            "filepath": str(filepath),
-            "file_name": filepath.name,
-            "file_size_bytes": result["file_size_bytes"],
-            "status": result["status"],
-            "chunks": result["chunks"],
-            "elapsed_s": round(result["elapsed_s"], 4),
-        })
-    rag.unload_embedder(model_name)
+    metrics_dir = Path("metrics")
+    metrics_dir.mkdir(exist_ok=True)
+    csv_path = metrics_dir / f"run_{run_start.strftime('%Y%m%d_%H%M%S')}.csv"
 
-run_end = datetime.now()
-log.info("Run finished at %s  (total %.1fs)", run_end.isoformat(), (run_end - run_start).total_seconds())
+    fieldnames = ["run_start", "run_end", "model_name", "filepath", "file_name", "file_size_bytes", "status", "chunks", "elapsed_s"]
+    with csv_path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in metrics_rows:
+            writer.writerow({"run_start": run_start.isoformat(), "run_end": run_end.isoformat(), **row})
 
-metrics_dir = Path("metrics")
-metrics_dir.mkdir(exist_ok=True)
-csv_path = metrics_dir / f"run_{run_start.strftime('%Y%m%d_%H%M%S')}.csv"
+    log.info("Metrics saved to %s", csv_path)
 
-fieldnames = ["run_start", "run_end", "model_name", "filepath", "file_name", "file_size_bytes", "status", "chunks", "elapsed_s"]
-with csv_path.open("w", newline="", encoding="utf-8") as fh:
-    writer = csv.DictWriter(fh, fieldnames=fieldnames)
-    writer.writeheader()
-    for row in metrics_rows:
-        writer.writerow({"run_start": run_start.isoformat(), "run_end": run_end.isoformat(), **row})
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--reset", action="store_true", help="Delete all Qdrant collections before indexing")
+    parser.add_argument("--translate", action="store_true", help="Translates documents to English")
+    args = parser.parse_args()
 
-log.info("Metrics saved to %s", csv_path)
+    if args.translate:
+        ...
+
+    else:
+        process_docs(args)
+
+if __name__ == "__main__":
+    main()
