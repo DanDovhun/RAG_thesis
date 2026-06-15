@@ -8,6 +8,7 @@ import time
 import uuid
 from datetime import datetime
 from pathlib import Path
+from qdrant_client.http.exceptions import UnexpectedResponse
 
 sys.stdout.reconfigure(line_buffering=True)
 
@@ -31,6 +32,11 @@ log = logging.getLogger(__name__)
 MODELS_DIR = Path(os.environ.get("MODELS_DIR", "models"))
 MODELS_DIR.mkdir(exist_ok=True)
 os.environ["SENTENCE_TRANSFORMERS_HOME"] = str(MODELS_DIR.resolve())
+
+# Models are pre-downloaded (see download_models.py) — skip the per-file HTTP
+# cache-validation calls to huggingface.co that otherwise slow down every load.
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 import deepl
 import torch
@@ -73,6 +79,11 @@ DEEPL_TARGET_LANG_CODES = {"en": "en-US"}
 
 CHUNK_SIZE = 300
 CHUNK_OVERLAP = 50
+
+def split(a, n):
+    k, m = divmod(len(a), n)
+    return list((a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n)))
+
 def load_model_configs(path: str = "embedder_config.toml") -> list[dict]:
     config = toml.load(path)
     models = []
@@ -305,6 +316,7 @@ class RAGPipeline:
             self.qdrant.upsert(collection_name=collection, points=points)
 
     def index_document(self, filepath: Path, model_name: str, file_meta: dict) -> dict:
+        log.info(f"Processing: {filepath}")
         """Index one document with one model. Returns a metrics dict."""
         filepath = Path(filepath)
         cfg = self.model_configs[model_name]
@@ -370,7 +382,19 @@ class RAGPipeline:
         ]
 
         if points:
-            self.qdrant.upsert(collection_name=collection, points=points)
+            try:
+                logging.info("Uploading to database")
+                self.qdrant.upsert(collection_name=collection, points=points)
+
+            except UnexpectedResponse as e:
+                logging.warning(e)
+                points = split(points, 10)
+                logging.info(f"Split points to {len(points)} of {len(points[0])}")
+                
+                for point in points:
+                    self.qdrant.upsert(collection_name=collection, points=point)
+
+            logging.info(f"Processed {filepath}")
 
         self._index_translation(filepath, docs, model_name, cfg, submodule, file_meta, abs_path, file_ext)
 

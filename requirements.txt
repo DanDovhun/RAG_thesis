@@ -11,3 +11,4 @@ ollama-haystack
 trafilatura
 langdetect
 deepl
+pypdf
