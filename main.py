@@ -6,6 +6,7 @@ import subprocess
 import sys
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from qdrant_client.http.exceptions import UnexpectedResponse
@@ -205,7 +206,8 @@ class RAGPipeline:
             return
         device = ComponentDevice.from_str("cuda:0" if torch.cuda.is_available() else "cpu")
         embedder = SentenceTransformersDocumentEmbedder(
-            model=cfg["model_id"], trust_remote_code=True, device=device
+            model=cfg["model_id"], trust_remote_code=True, device=device,
+            model_kwargs={"torch_dtype": torch.float16},
         )
         embedder.warm_up()
         self.embedders[name] = embedder
@@ -428,9 +430,17 @@ def process_docs(args):
 
     metrics_rows: list[dict] = []
 
-    for model_name in rag.model_configs:
+    model_names = list(rag.model_configs.keys())
+    executor = ThreadPoolExecutor(max_workers=1)
+    next_future = None
+
+    rag.load_embedder(model_names[0])
+
+    for i, model_name in enumerate(model_names):
+        if i + 1 < len(model_names):
+            next_future = executor.submit(rag.load_embedder, model_names[i + 1])
+
         log.info("=== Model: %s ===", model_name)
-        rag.load_embedder(model_name)
         for filepath, file_meta in files:
             log.info("[%s] Indexing: %s  (%.1f KB)", model_name, filepath, filepath.stat().st_size / 1024)
             result = rag.index_document(filepath, model_name, file_meta)
@@ -448,7 +458,14 @@ def process_docs(args):
                 "chunks": result["chunks"],
                 "elapsed_s": round(result["elapsed_s"], 4),
             })
+
         rag.unload_embedder(model_name)
+
+        if next_future is not None:
+            next_future.result()
+            next_future = None
+
+    executor.shutdown(wait=False)
 
     run_end = datetime.now()
     log.info("Run finished at %s  (total %.1fs)", run_end.isoformat(), (run_end - run_start).total_seconds())

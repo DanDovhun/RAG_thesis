@@ -14,8 +14,8 @@ QDRANT_URL="http://localhost:6333"
 PGVECTOR_CONN = "postgresql://postgres:postgres@localhost:5433/haystack"
 POSTGRES_DB="vectordb"
 MODELS_DIR="models"
-QDRANT_STORAGE="/media/daniel/1807-3D59/qdrant_storage"    
-PGVECTOR_STORAGE="/media/daniel/1807-3D59/pgvector_storage"
+QDRANT_STORAGE="/qdrant_storage"    
+PGVECTOR_STORAGE="/pgvector_storage"
 DEEPL_API_KEY="<API_KEY>"
 ```
 
