@@ -33,5 +33,11 @@ Both `setup.sh` and `setup.bat` should already installed and launched both conta
 docker compose up -d
 ```
 
+### Get submodules:
+Since `git clone` and `git pull` will only download files and folders directly lined to RAG_thesis repository and only nameplate folders for the submodule, run:
+```sh
+git submodule update --init --recursive
+```
+
 ### Installing HuggingFace embedders:
 `python3 download_models.py`
