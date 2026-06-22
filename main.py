@@ -174,21 +174,37 @@ def _collection_name(submodule: str, coll_alias: str) -> str:
 class OpenAIDocumentEmbedder:
     """Thin wrapper around the OpenAI Embeddings API with the same run() interface as Haystack embedders."""
 
-    # OpenAI limit is 300k tokens/request; 300-word chunks are ~400 tokens each,
-    # so cap at 500 documents (~200k tokens) to stay safely under the limit.
     _BATCH_SIZE = 500
+    # 8192 token limit × ~3 chars/token, with headroom for multi-byte chars
+    _MAX_CHARS_PER_DOC = 24_000
 
     def __init__(self, model_id: str, api_key: str) -> None:
         self.client = openai.OpenAI(api_key=api_key)
         self.model_id = model_id
 
+    @staticmethod
+    def _truncate(text: str, max_chars: int) -> str:
+        if len(text) <= max_chars:
+            return text
+        log.warning("Truncating document from %d to %d chars for OpenAI embedding", len(text), max_chars)
+        return text[:max_chars]
+
     def run(self, documents: list[Document]) -> dict:
-        texts = [d.content or "" for d in documents]
+        texts = [self._truncate(d.content or "", self._MAX_CHARS_PER_DOC) for d in documents]
         embeddings: list[list[float]] = []
-        for i in range(0, len(texts), self._BATCH_SIZE):
-            batch = texts[i : i + self._BATCH_SIZE]
-            response = self.client.embeddings.create(input=batch, model=self.model_id)
-            embeddings.extend(e.embedding for e in sorted(response.data, key=lambda x: x.index))
+        batch_size = self._BATCH_SIZE
+        i = 0
+        while i < len(texts):
+            batch = texts[i : i + batch_size]
+            try:
+                response = self.client.embeddings.create(input=batch, model=self.model_id)
+                embeddings.extend(e.embedding for e in sorted(response.data, key=lambda x: x.index))
+                i += batch_size
+            except openai.BadRequestError:
+                if batch_size == 1:
+                    raise
+                batch_size = max(1, batch_size // 2)
+                log.warning("OpenAI token limit hit — retrying with batch size %d", batch_size)
         for doc, emb in zip(documents, embeddings):
             doc.embedding = emb
         return {"documents": documents}
@@ -519,9 +535,9 @@ def process_docs(args):
                 })
                 count += 1
 
-            except torch.OutOfMemoryError as e:
-                print(f"Can't process {filepath}: {e}")
-                failed_files.append(filepath)
+            except (torch.OutOfMemoryError, openai.BadRequestError) as e:
+                log.warning("Can't process %s with %s: %s", filepath, model_name, e)
+                failed_files.append({"model_name": model_name, "filepath": str(filepath), "error": str(e)})
                 continue
 
         rag.unload_embedder(model_name)
@@ -546,7 +562,16 @@ def process_docs(args):
             writer.writerow({"run_start": run_start.isoformat(), "run_end": run_end.isoformat(), **row})
 
     log.info("Metrics saved to %s", csv_path)
-    log.info(f"Fail rate: {len(failed_files)} / {count} ({len(failed_files)/count})")
+
+    if failed_files:
+        failed_path = metrics_dir / f"failed_{run_start.strftime('%Y%m%d_%H%M%S')}.csv"
+        with failed_path.open("w", newline="", encoding="utf-8") as fh:
+            writer = csv.DictWriter(fh, fieldnames=["model_name", "filepath", "error"])
+            writer.writeheader()
+            writer.writerows(failed_files)
+        log.warning("%d file(s) failed — see %s", len(failed_files), failed_path)
+
+    log.info("Fail rate: %d / %d", len(failed_files), count)
 
 def main():
     parser = argparse.ArgumentParser()
