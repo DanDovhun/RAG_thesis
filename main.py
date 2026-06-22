@@ -1,12 +1,12 @@
 import argparse
 import csv
+import gc
 import logging
 import os
 import subprocess
 import sys
 import time
 import uuid
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 from qdrant_client.http.exceptions import UnexpectedResponse
@@ -40,6 +40,7 @@ os.environ["HF_HUB_OFFLINE"] = "1"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 import deepl
+import openai
 import torch
 from haystack import Document
 from haystack.components.converters import HTMLToDocument, PyPDFToDocument, TextFileToDocument
@@ -63,6 +64,8 @@ EMBEDDING_DIMS = {
     "google-bert/bert-base-multilingual-cased": 768,
     "Qwen/Qwen3-Embedding-0.6B": 1024,
     "naver/splade-v3": 768,
+    "text-embedding-3-small": 1536,
+    "text-embedding-3-large": 3072,
 }
 
 file_types = {
@@ -92,7 +95,6 @@ def load_model_configs(path: str = "embedder_config.toml") -> list[dict]:
         for m in config.get(section, []):
             if (
                 m.get("enabled", False)
-                and m.get("source") != "openai"
                 and "jade" not in m.get("name", "").lower()
             ):
                 m["type"] = section
@@ -169,6 +171,29 @@ def _collection_name(submodule: str, coll_alias: str) -> str:
 
 
 
+class OpenAIDocumentEmbedder:
+    """Thin wrapper around the OpenAI Embeddings API with the same run() interface as Haystack embedders."""
+
+    # OpenAI limit is 300k tokens/request; 300-word chunks are ~400 tokens each,
+    # so cap at 500 documents (~200k tokens) to stay safely under the limit.
+    _BATCH_SIZE = 500
+
+    def __init__(self, model_id: str, api_key: str) -> None:
+        self.client = openai.OpenAI(api_key=api_key)
+        self.model_id = model_id
+
+    def run(self, documents: list[Document]) -> dict:
+        texts = [d.content or "" for d in documents]
+        embeddings: list[list[float]] = []
+        for i in range(0, len(texts), self._BATCH_SIZE):
+            batch = texts[i : i + self._BATCH_SIZE]
+            response = self.client.embeddings.create(input=batch, model=self.model_id)
+            embeddings.extend(e.embedding for e in sorted(response.data, key=lambda x: x.index))
+        for doc, emb in zip(documents, embeddings):
+            doc.embedding = emb
+        return {"documents": documents}
+
+
 class RAGPipeline:
     def __init__(self, model_configs: list[dict], submodules: list[str], translation_config: dict | None = None):
         self.model_configs = {cfg["name"]: cfg for cfg in model_configs}
@@ -204,21 +229,52 @@ class RAGPipeline:
         cfg = self.model_configs[name]
         if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
             return
+        if cfg.get("source") == "openai":
+            api_key = os.environ.get("OPENAI_KEY") or os.environ.get("OPENAI_API_KEY")
+            if not api_key:
+                log.warning("OPENAI_KEY not set — skipping OpenAI embedder %s", name)
+                return
+            self.embedders[name] = OpenAIDocumentEmbedder(model_id=cfg["model_id"], api_key=api_key)
+            return
         device = ComponentDevice.from_str("cuda:0" if torch.cuda.is_available() else "cpu")
         embedder = SentenceTransformersDocumentEmbedder(
             model=cfg["model_id"], trust_remote_code=True, device=device,
             model_kwargs={"torch_dtype": torch.float16},
+            batch_size=cfg.get("batch_size", 32),
         )
         embedder.warm_up()
         self.embedders[name] = embedder
 
     def unload_embedder(self, name: str) -> None:
+        cfg = self.model_configs.get(name, {})
         embedder = self.embedders.pop(name, None)
         if embedder is None:
             return
         del embedder
-        if torch.cuda.is_available():
+        if cfg.get("source") != "openai" and torch.cuda.is_available():
+            gc.collect()
             torch.cuda.empty_cache()
+
+    def _embed_chunks(self, model_name: str, chunks: list[Document]) -> list[Document]:
+        """Embed chunks, halving the sub-batch on each OOM until it succeeds or reaches size 1."""
+        if not chunks:
+            return []
+        sub_batch_size = len(chunks)
+        while True:
+            try:
+                results = []
+                for i in range(0, len(chunks), sub_batch_size):
+                    results.extend(
+                        self.embedders[model_name].run(documents=chunks[i : i + sub_batch_size])["documents"]
+                    )
+                return results
+            except torch.OutOfMemoryError:
+                if sub_batch_size == 1:
+                    raise
+                gc.collect()
+                torch.cuda.empty_cache()
+                sub_batch_size = max(1, sub_batch_size // 2)
+                log.warning("[%s] OOM — retrying embedding with sub-batch size %d", model_name, sub_batch_size)
 
     def _ensure_collection(self, name: str, model_id: str | None) -> None:
         if not self.qdrant.collection_exists(name):
@@ -285,7 +341,7 @@ class RAGPipeline:
             log.warning("[%s] Skipping translated chunks for %s — %s", model_name, filepath, e)
             return
 
-        embedded = self.embedders[model_name].run(documents=chunks)["documents"]
+        embedded = self._embed_chunks(model_name, chunks)
         collection = f"{_collection_name(submodule, cfg['coll_alias'])}_en"
         self._ensure_collection(collection, cfg.get("model_id"))
 
@@ -349,6 +405,11 @@ class RAGPipeline:
             elapsed = time.perf_counter() - t0
             return {"status": "bm25", "chunks": len(docs), "elapsed_s": elapsed, "file_size_bytes": file_size}
 
+        if model_name not in self.embedders:
+            elapsed = time.perf_counter() - t0
+            log.warning("[%s] Skipping %s — embedder not loaded (check API key?)", model_name, filepath)
+            return {"status": "skipped", "reason": "embedder_not_loaded", "chunks": 0, "elapsed_s": elapsed, "file_size_bytes": file_size}
+
         try:
             chunks = self.splitter.run(documents=docs)["documents"]
         except ValueError as e:
@@ -357,7 +418,7 @@ class RAGPipeline:
             return {"status": "skipped", "reason": str(e), "chunks": 0, "elapsed_s": elapsed, "file_size_bytes": file_size}
 
         total = len(chunks)
-        embedded = self.embedders[model_name].run(documents=chunks)["documents"]
+        embedded = self._embed_chunks(model_name, chunks)
         collection = _collection_name(submodule, cfg["coll_alias"])
 
         points = [
@@ -404,6 +465,8 @@ class RAGPipeline:
         return {"status": "indexed", "chunks": total, "elapsed_s": elapsed, "file_size_bytes": file_size}
 
 def process_docs(args):
+    failed_files = []
+    count = 0
     """Iterates through documents and sends them off to the function to be processed into a vector database"""
     submodules = [d.name for d in dataset_dir.iterdir() if d.is_dir()]
     model_configs = load_model_configs()
@@ -431,41 +494,42 @@ def process_docs(args):
     metrics_rows: list[dict] = []
 
     model_names = list(rag.model_configs.keys())
-    executor = ThreadPoolExecutor(max_workers=1)
-    next_future = None
 
     rag.load_embedder(model_names[0])
 
     for i, model_name in enumerate(model_names):
-        if i + 1 < len(model_names):
-            next_future = executor.submit(rag.load_embedder, model_names[i + 1])
-
         log.info("=== Model: %s ===", model_name)
         for filepath, file_meta in files:
-            log.info("[%s] Indexing: %s  (%.1f KB)", model_name, filepath, filepath.stat().st_size / 1024)
-            result = rag.index_document(filepath, model_name, file_meta)
-            log.info(
-                "[%s] %s → status=%s  chunks=%d  elapsed=%.3fs  size=%d B",
-                model_name, filepath.name, result["status"], result["chunks"],
-                result["elapsed_s"], result["file_size_bytes"],
-            )
-            metrics_rows.append({
-                "model_name": model_name,
-                "filepath": str(filepath),
-                "file_name": filepath.name,
-                "file_size_bytes": result["file_size_bytes"],
-                "status": result["status"],
-                "chunks": result["chunks"],
-                "elapsed_s": round(result["elapsed_s"], 4),
-            })
+            try:
+                log.info("[%s] Indexing: %s  (%.1f KB)", model_name, filepath, filepath.stat().st_size / 1024)
+                result = rag.index_document(filepath, model_name, file_meta)
+                log.info(
+                    "[%s] %s → status=%s  chunks=%d  elapsed=%.3fs  size=%d B",
+                    model_name, filepath.name, result["status"], result["chunks"],
+                    result["elapsed_s"], result["file_size_bytes"],
+                )
+                metrics_rows.append({
+                    "model_name": model_name,
+                    "filepath": str(filepath),
+                    "file_name": filepath.name,
+                    "file_size_bytes": result["file_size_bytes"],
+                    "status": result["status"],
+                    "chunks": result["chunks"],
+                    "elapsed_s": round(result["elapsed_s"], 4),
+                })
+                count += 1
+
+            except torch.OutOfMemoryError as e:
+                print(f"Can't process {filepath}: {e}")
+                failed_files.append(filepath)
+                continue
 
         rag.unload_embedder(model_name)
 
-        if next_future is not None:
-            next_future.result()
-            next_future = None
-
-    executor.shutdown(wait=False)
+        # Load next model only after current is freed from GPU — two models
+        # simultaneously in VRAM exceeds the available 5.67 GiB.
+        if i + 1 < len(model_names):
+            rag.load_embedder(model_names[i + 1])
 
     run_end = datetime.now()
     log.info("Run finished at %s  (total %.1fs)", run_end.isoformat(), (run_end - run_start).total_seconds())
@@ -482,6 +546,7 @@ def process_docs(args):
             writer.writerow({"run_start": run_start.isoformat(), "run_end": run_end.isoformat(), **row})
 
     log.info("Metrics saved to %s", csv_path)
+    log.info(f"Fail rate: {len(failed_files)} / {count} ({len(failed_files)/count})")
 
 def main():
     parser = argparse.ArgumentParser()
@@ -489,11 +554,8 @@ def main():
     parser.add_argument("--translate", action="store_true", help="Translates documents to English")
     args = parser.parse_args()
 
-    if args.translate:
-        ...
 
-    else:
-        process_docs(args)
+    process_docs(args)
 
 if __name__ == "__main__":
     main()

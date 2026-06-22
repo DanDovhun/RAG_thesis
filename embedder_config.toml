@@ -59,6 +59,7 @@ model_id    = "Qwen/Qwen3-Embedding-0.6B"
 language    = "en"
 source      = "huggingface"
 enabled     = true
+batch_size  = 4
 notes       = "Applied to EN machine-translated versions of cs/sk documents"
 
 [[dense]]
@@ -70,14 +71,14 @@ source      = "openai"
 enabled     = true
 notes       = "Applied to EN machine-translated versions of cs/sk documents"
 
-[[dense]]
-name        = "text-embedding-3-large"
-coll_alias  = "te3l"
-model_id    = "text-embedding-3-large"
-language    = "en"
-source      = "openai"
-enabled     = false
-notes       = "Larger OpenAI variant; enable if budget allows"
+#[[dense]]
+#name        = "text-embedding-3-large"
+#coll_alias  = "te3l"
+#model_id    = "text-embedding-3-large"
+#language    = "en"
+#source      = "openai"
+#enabled     = false
+#notes       = "Larger OpenAI variant; enable if budget allows"
 
 # ---------------------------------------------------------------------------
 # Sparse vectorisers
