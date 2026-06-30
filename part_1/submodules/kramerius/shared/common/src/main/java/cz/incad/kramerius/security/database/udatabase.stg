@@ -1,0 +1,557 @@
+/**
+ * sablony pro databazi 
+ */
+group security;
+
+_in(column,params) ::=<<
+$if(params.(column))$ ($column$ in ($params.(column):{c| '$c$'};separator=","$)) $endif$  
+>>
+
+
+/** it takes all rights associated with user, groups filtered by action and criteriums **/
+findAllRightsWithGroupsAndCriteriums( userid, groupids,  action, criteriums) ::=<<
+select * from right_entity ent
+    left join rights_criterium_entity crit on (ent.rights_crit=crit.crit_id)
+    left join criterium_param_entity param on (crit.citeriumparam=param.crit_param_id)
+    left join labels_entity lbl on (crit.label_id=lbl.label_id)
+
+
+where (ent."user_id"=$userid$
+     $if(first(groupids))$ or ent."role" in ($groupids:{grp| '$grp$' };separator=","$ ) $endif$)
+     $if(criteriums)$  and "qname" in ($criteriums:{c|'$c$'};separator=","$) $endif$
+     and "action"='$action$'
+>>
+
+
+findAllRights( params) ::=<<
+select * from right_entity ent
+left join rights_criterium_entity crit on (ent.rights_crit=crit.crit_id) left join criterium_param_entity param on (crit.citeriumparam=param.crit_param_id) left join labels_entity lbl on (crit.label_id=lbl.label_id) left join  user_entity users on  (ent.user_id = users.user_id) left join  group_entity groups on  (ent.group_id = groups.group_id)
+$if(params.keys)$ where $params.keys:{p| $_in(column=p, params=params)$ };separator=" and "$ $endif$   
+>>
+
+/** hledani prav pro uzivatele */
+findRightFromWithGroups(user, groups, pids, action) ::=<<
+select * from right_entity ent
+    left join rights_criterium_entity crit on (ent.rights_crit=crit.crit_id)
+    left join criterium_param_entity param on (crit.citeriumparam=param.crit_param_id)
+    left join labels_entity lbl on (crit.label_id=lbl.label_id)
+
+
+where (ent."user_id"=$user$  
+    $if(first(groups))$ or ent."role" in ($groups:{grp| '$grp$' };separator=","$ ) $endif$ )
+     and uuid in ($pids:{pid|'$pid$'};separator=","$)
+     and "action"='$action$'
+>>
+
+
+
+/**  hledani vsech prav */
+findAllRightsFromWithGroups(pids, action) ::=<<
+    select * from right_entity ent
+        left join rights_criterium_entity crit on (ent.rights_crit=crit.crit_id)
+        left join criterium_param_entity param on (crit.citeriumparam=param.crit_param_id)
+        left join labels_entity lbl on (crit.label_id=lbl.label_id)
+
+
+
+    where uuid in ($pids:{pid|'$pid$'};separator=","$)
+     and "action"='$action$'
+>>
+
+
+/** hledani prav pro skupinu */
+findRightsForGroup(groups, pids, action) ::=<<
+select * from right_entity ent
+    left join rights_criterium_entity crit on (ent.rights_crit=crit.crit_id)
+    left join criterium_param_entity param on (crit.citeriumparam=param.crit_param_id)
+    left join labels_entity lbl on (crit.label_id=lbl.label_id)
+
+
+where   
+    $if(first(groups))$ ent."group" in ($groups:{grp| '$grp$' };separator=","$ ) $endif$
+     and uuid in ($pids:{pid|'$pid$'};separator=","$)
+     and "action"='$action$'
+>>
+
+/** hledani vsech uzivatelu (uzivatelu a skupin) pro konretni pid */
+findRightsUsersForPids(pids, action) ::=<<
+select * from right_entity ent
+where   
+     uuid in ($pids:{pid|'$pid$'};separator=","$)
+     and "action"='$action$'
+>>
+
+/** hledani prava dle id */
+findRightById() ::=<<
+select * from right_entity ent
+    left join rights_criterium_entity crit on (ent.rights_crit=crit.crit_id)
+    left join criterium_param_entity param on (crit.citeriumparam=param.crit_param_id)
+    left join labels_entity lbl on (crit.label_id=lbl.label_id)
+
+where ent.right_id=?
+>>
+
+/** hledani uzivatele dle jmena a hesla */
+findUser() ::= <<
+    select * from user_entity
+    where loginname=? and pswd=?
+>>
+
+/** hledani uzivatele dle user_id */
+findUserByUserId() ::= <<
+    select * from user_entity
+    where user_id=? 
+>>
+
+/** hledani skupiny dle group_id */
+findGroupByGroupId() ::= <<
+    select * from group_entity
+    where group_id=? 
+>>
+
+/** hledani skupiny dle prefixu */
+findGroupByPrefix() ::=<<
+    select * from group_entity 
+    where gname ilike ?
+>>
+
+/** hledani uzivatele dle prefixu */
+findUserByPrefix() ::=<<
+    select * from user_entity 
+    where loginname ilike ?
+>>
+
+/** vylistovani vsech uzivatelu dle prefixu */
+/** s limitem 20 zaznamu TODO: zmenit !! */
+findAllUsers(prefix) ::=<<
+    select * from user_entity 
+    $if(prefix)$
+    where loginname ilike ?
+    $endif$
+    order by loginname 
+>>
+
+/** vylistovani vsech skupin dle prefixu */
+/** s limitem 20 TODO: zmenit */
+findAllGroups(prefix) ::=<<
+    select * from group_entity 
+    $if(prefix)$
+    where gname ilike ?
+    $endif$
+    order by gname 
+>>
+
+
+/** vraci vsechny uzivatele */
+findAllUsersForGroups(grps, prefix) ::=<<
+    select * from user_entity 
+    where personal_admin_id in ($grps:{?};separator=","$) 
+    $if(prefix)$
+    and loginname ilike ?
+    $endif$
+>>
+
+
+/** najde vsechny skupiny ktere muze videt uzivatel figurujici v zadanych skupinach */
+findAllGroupsForGroups(grps, prefix) ::=<<
+    select * from group_entity 
+    where personal_admin_id in ($grps:{?};separator=","$)
+    and gname ilike ?
+    order by gname 
+>>
+
+/** najde vsechny uzivatele ktere muze videt uzivatel figurujici v zadanych skupinach */
+findUserByPrefixForGroups(grps) ::=<<
+    select * from group_users_mapping 
+    where personal_admin_id in ($grps;separator=","$) 
+    and loginname ilike ?
+    order by gname 
+>>
+
+/** najde podskupiny dle prefixu */
+findGroupByPrefixForGroups(grps) ::=<<
+    select * from group_entity 
+    where group_id in ($grps;separator=","$) 
+    and gname ilike ?
+>>
+
+/** najde vsechny podskupiny */
+findGroupsWhichAdministrate(grps) ::=<<
+    select * from group_entity 
+    where personal_admin_id in ($grps;separator=","$) 
+>>
+
+/** najde skupinu dle id */
+findAllGroupsByUserId() ::=<<
+    select * from user_group_mapping 
+    where user_id=?
+>>
+
+/** najde common user group */
+findCommonUsersGroup() ::=<<
+    select * from group_entity 
+    where gname='common_users'
+>>
+//authenticated_users
+/** najde common user group */
+findAuthenticatedUsersGroup() ::=<<
+    select * from group_entity
+    where gname='authenticated_users'
+>>
+
+/** najde skupinu k4_admins */
+findGlobalAdminsGroup() ::=<<
+    select * from group_entity 
+    where gname='k4_admins'
+>>
+
+findAllCriteriumParams() ::=<<
+    select * from criterium_param_entity order by crit_param_id; 
+>>
+
+findCriteriumParamsById() ::=<<
+    select * from criterium_param_entity 
+    where crit_param_id=?; 
+>>
+
+findCriteriumById() ::=<<
+    select * from rights_criterium_entity crit 
+    left join criterium_param_entity param on (crit.citeriumparam=param.crit_param_id)
+    where crit.crit_id=?; 
+>>
+
+findGroupByGname() ::=<<
+    select * from group_entity 
+    where gname=?; 
+>>
+
+findUserByLoginName() ::=<<
+    select * from user_entity 
+    where loginname=?; 
+>>
+
+/** vlozi nove kriterium param */
+insertRightCriteriumParams(params) ::=<<
+    insert into criterium_param_entity(crit_param_id,short_desc,long_desc, vals)
+    values(
+        nextval('crit_param_id_sequence'),
+        '$params.shortDescription$',
+        '$params.longDescription$',
+        '$params.objects:{object| $object$};separator=";"$'
+
+
+    )
+>>
+
+/** update kriterium param */
+updateRightCriteriumParams(params) ::=<<
+    UPDATE criterium_param_entity
+        SET  vals='$params.objects;separator=";"$', long_desc='$params.longDescription$', short_desc='$params.shortDescription$'
+     WHERE crit_param_id=$params.id$;
+>>
+
+/** vlozi nove kriterium */
+insertRightCriterium(criteriumWrapper, type) ::=<<
+    $if(criteriumWrapper.criteriumParams)$ 
+        insert into rights_criterium_entity(crit_id,qname, "type",citeriumparam, label_id)
+        values(nextval('crit_id_sequence'),
+            '$criteriumWrapper.rightCriterium.qName$',
+            $type$,
+            $criteriumWrapper.criteriumParams.id$
+            $if(criteriumWrapper.licenseAwareCriterium)$
+                $if(criteriumWrapper.license.id)$ , $criteriumWrapper.license.id$ $else$ , NULL $endif$
+                $else$ , NULL
+            $endif$)
+    $else$
+        insert into rights_criterium_entity(crit_id,qname,"type", label_id)
+        values(nextval('crit_id_sequence'),
+            '$criteriumWrapper.rightCriterium.qName$',
+            $type$
+            $if(criteriumWrapper.licenseAwareCriterium)$
+                $if(criteriumWrapper.license.id)$ , $criteriumWrapper.license.id$ $else$ , NULL $endif$
+                $else$ , NULL
+            $endif$)
+    $endif$
+>>
+
+
+/** update kriteria */
+updateRightCriterium(criteriumWrapper) ::=<<
+    UPDATE rights_criterium_entity
+        SET  qname='$criteriumWrapper.rightCriterium.qName$', 
+        citeriumparam=$if(criteriumWrapper.criteriumParams)$ $criteriumWrapper.criteriumParams.id$ $else$ NULL $endif$
+        label_id = $if(criteriumWrapper.licenseAwareCriterium)$ $criteriumWrapper.license.id$ $else$ NULL $endif$
+     WHERE crit_id=$criteriumWrapper.id$;
+>>
+
+
+/** smaze kriterium */
+deleteRightCriterium() ::=<<
+    DELETE from rights_criterium_entity
+    where crit_id=?
+>>
+
+/** smaze parametry kriteria */
+deleteRightCriteriumParams() ::=<<
+    DELETE from criterium_param_entity
+    where crit_param_id=?
+>>
+
+
+/** zjisti zavislost parametru na kriteriu */
+findCriteriumsDependsOnParams() ::=<<
+
+    select rce.crit_id as crit_id from rights_criterium_entity rce  
+        join criterium_param_entity cpe  
+            on cpe.crit_param_id = rce.citeriumparam 
+    where rce.citeriumparam = ?
+
+>>
+
+
+/** update existujiciho prava */
+updateRight(right, priority) ::=<<
+    UPDATE right_entity
+        SET uuid='$right.pid$', 
+            action='$right.action$', 
+            fixed_priority=$priority$,
+            rights_crit=$if(right.criteriumWrapper)$ $right.criteriumWrapper.id$ $else$ NULL $endif$,
+            group_id=$if(right.role)$ $right.role.id$ $else$ NULL $endif$,
+            role=$if(right.role)$ '$right.role.name$' $else$ NULL $endif$
+     WHERE right_id=$right.id$;
+>>
+
+/** vlozeni noveho prava */
+insertRight(right, priority) ::=<<
+    $if(right.criteriumWrapper)$ 
+        insert into right_entity(right_id,uuid,action,rights_crit,group_id, fixed_priority,role)
+        values(
+            nextval('right_id_sequence'),
+            '$right.pid$',
+            '$right.action$',
+            $right.criteriumWrapper.id$,
+             $right.role.id$,
+            $priority$,
+            '$right.role.name$'
+
+            )
+    $else$
+        insert into right_entity(right_id,uuid,action,group_id, fixed_priority,role)
+        values(
+            nextval('right_id_sequence'),
+            '$right.pid$',
+            '$right.action$',
+            $right.role.id$,
+            $priority$,
+             '$right.role.name$'
+            )
+    $endif$  
+>>
+
+/** maze pravo */
+deleteRight() ::=<<
+    DELETE from right_entity
+    where right_id=?
+>>
+
+/** update hesla */
+updatePassword() ::=<<
+    update user_entity 
+    set pswd=?
+    where user_id=? 
+>>
+
+/** update user */
+updateUser(user) ::=<<
+    update user_entity
+
+    set name='$user.firstName$',
+        loginname= '$user.loginname$',
+        surname= '$user.surname$',
+        email= '$user.email$',
+        update_timestamp = ?
+    where user_id= $user.id$
+>>
+
+
+
+
+
+
+/** aktivace uzivatele */
+activateUser() ::=<<
+    update user_entity 
+    set deactivated='f'
+    where loginname=? 
+>>
+
+/** najde vsechny uzivatele skupiny */
+findUsersForGivenGroup() ::=<<
+  select * from group_users_mapping 
+  where group_id = ?
+>>
+
+updateRole(role) ::=<<
+    $if(role.personalAdminDefined)$ 
+        update group_entity set 
+            gname='$role.name$', 
+            personal_admin_id=$role.personalAdminId$
+         where group_id=$role.id$
+    $else$
+        update group_entity set 
+            gname='$role.name$', 
+            personal_admin_id=NULL
+        where group_id=$role.id$
+    $endif$  
+>>
+
+deleteRole(role) ::=<< 
+delete from group_entity 
+   where group_id=$role.id$
+>>
+
+/** vlozi roli */
+insertRole(role) ::=<<
+    $if(role.personalAdminDefined)$ 
+    insert into group_entity(group_id,gname, personal_admin_id)
+        values(
+            nextval('group_id_sequence'),
+            '$role.name$',
+            $role.personalAdminId$
+    )
+    $else$
+    insert into group_entity(group_id,gname, personal_admin_id)
+        values(
+            nextval('group_id_sequence'),
+            '$role.name$',
+            NULL
+    )
+    $endif$  
+>>
+
+
+findUsedRoles() ::=<<
+    select distinct group_id from right_entity
+>>
+
+findUsedParams() ::=<<
+    select crp.crit_param_id from right_entity r 
+    join rights_criterium_entity cr on (r.rights_crit = cr.crit_id) 
+    join criterium_param_entity crp on (cr.citeriumparam= crp.crit_param_id)
+
+>>
+
+
+
+
+registerLoggedUser(user, userkey) ::=<<
+    insert into LOGGED_USERS 
+    values (
+        nextval('LOGGED_USERS_ID_SEQUENCE'),
+        CURRENT_TIMESTAMP,
+        '$userkey$',
+        '$user.loginname$',
+        '$user.firstName$',
+        '$user.surname$')
+>>
+
+
+
+registerLoggedUserUpdateRoles(loggeduserid, roleid) ::=<<
+    insert into LOGGED_USERS_2_ROLES
+        values( 
+            nextval('LOGGED_USERS_2_ROLES_ID_SEQUENCE'),
+            $loggeduserid$,
+            $roleid$)
+>>
+
+
+/** deletes user */
+deleteUser() ::=<<
+	delete from user_entity where user_id=?
+>>
+
+/** crates new user */
+insertPublicUser(user) ::=<<
+
+    insert into user_entity(user_id,name, surname,loginname,email,deactivated, update_timestamp)
+        values(
+            nextval('user_id_sequence'),
+            '$user.firstName$',
+            '$user.surname$',
+            '$user.loginname$',
+            '$user.email$','t',
+            ?)
+    
+>>
+
+
+findPublicRole() ::=<<
+    select * from group_entity where 
+    gname = ?
+>>
+
+
+/** vlozi public roli */
+insertPublicRole() ::=<<
+    insert into group_entity 
+        values( nextval('group_id_sequence'),  NULL,'public_users', -1, '')
+>>
+
+
+/** asociace role a uzivatele */
+insertRoleAssoc() ::=<<
+    insert into group_user_assoc 
+        values( nextval('group_user_assoc_id_sequence'), NULL,?,?)
+>>
+
+
+/** vyhleda vsechny objekty ktere pouzivaji dane parametry */
+select_object_using_param() ::=<<
+    select r.uuid as pid ,r.action  as action from right_entity r
+        join rights_criterium_entity c on (c.crit_id = r.rights_crit)
+        join criterium_param_entity p on (c.citeriumparam= p.crit_param_id)
+    where p.crit_param_id= ? 
+>>
+
+/** vyhleda vsechny objekty, ktere pouzivaji dany label */
+select_object_using_label() ::=<<
+    select r.uuid as pid ,r.action  as action from right_entity r
+        join rights_criterium_entity c on (c.crit_id = r.rights_crit)
+        left join  criterium_param_entity p on (c.citeriumparam= p.crit_param_id)
+        join labels_entity l on (c.label_id= l.label_id)
+    where l.label_id = ?
+>>
+
+/** associate role */
+associateRole() ::=<<
+	insert into 
+		group_user_assoc(group_user_assoc_id,user_id, group_id) 
+	values (
+        nextval('group_user_assoc_id_sequence'),
+        ?, /*user id*/
+        ? /*role id*/
+	)
+>>
+
+
+/** disassociate role */
+disassociateRole() ::=<<
+	delete from group_user_assoc where user_id=? and group_id=?
+>>
+
+/** disassociate role for all users */
+disassociateRoleForAllUsers() ::=<<
+    delete from group_user_assoc where group_id=?
+>>
+
+/** disassociate role for all active users */
+disassociateRoleForAllActiveUsers() ::=<<
+    delete from active_users_2_roles where role_id=?
+>>
+
+
+/** disassociate role for user*/
+disassociateUserRole() ::=<<
+	delete from group_user_assoc where user_id=?
+>>

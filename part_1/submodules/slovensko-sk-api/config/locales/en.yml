@@ -1,0 +1,26 @@
+en:
+  bad_request:
+    invalid: 'Invalid %{param}'
+    missing: 'No %{param}'
+    out_of_range: '%{param} out of range'
+    redundant: 'Redundant %{param}'
+  unpermitted_params: 'Unpermitted parameters: %{value}'
+  internal_server_error: 'Unknown error'
+  not_acceptable: 'Unacceptable Content-Type requested'
+  not_found: '%{resource} not found'
+  payload_too_large: 'Request payload limit exceeded'
+  request_timeout: 'Operation timeout exceeded'
+  conflict:
+    inactive_box: 'Box inactive'
+  service_unavailable:
+    connection_refused: 'ÚPVS connection refused'
+    unknown_error: 'Unknown failure'
+    ekr: 'EKR failure'
+    sts: 'STS failure'
+  too_many_requests: 'Request rate limit exceeded'
+  unauthorized: 'Bad credentials'
+  unprocessable_entity:
+    notification_report_already_confirmed: 'The notification report has already been confirmed'
+    authorize_non_notification_report: 'Cannot authorize non-notification report message'
+    received_as_being_saved_to_folder: 'Message should not be received as being saved to folder'
+  unsupported_media_type: 'Invalid Content-Type'

@@ -1,0 +1,1278 @@
+package org.kramerius;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.qbizm.kramerius.imptool.poc.convertor.BaseConvertor;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+
+import cz.incad.kramerius.fedora.RepoModule;
+import cz.incad.kramerius.service.FOXMLAppendLicenseService;
+import cz.incad.kramerius.service.SortingService;
+import cz.incad.kramerius.solr.SolrModule;
+import cz.incad.kramerius.statistics.NullStatisticsModule;
+import cz.incad.kramerius.utils.FedoraUtils;
+import cz.incad.kramerius.utils.IOUtils;
+import cz.incad.kramerius.utils.XMLUtils;
+import cz.incad.kramerius.utils.conf.KConfiguration;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.ceskaexpedice.akubra.AkubraRepository;
+import org.ceskaexpedice.akubra.RepositoryException;
+import org.ceskaexpedice.akubra.RepositoryNamespaces;
+import org.ceskaexpedice.akubra.pid.LexerException;
+import org.ceskaexpedice.akubra.processingindex.ProcessingIndex;
+import org.ceskaexpedice.fedoramodel.*;
+import org.ceskaexpedice.processplatform.api.annotations.ParameterName;
+import org.ceskaexpedice.processplatform.api.annotations.ProcessMethod;
+import org.ceskaexpedice.processplatform.api.context.PluginContext;
+import org.ceskaexpedice.processplatform.api.context.PluginContextHolder;
+import org.ceskaexpedice.processplatform.common.model.ScheduleSubProcess;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.kramerius.importer.ImporterCommons;
+import org.kramerius.importer.inventory.ImportInventory;
+import org.kramerius.importer.inventory.ImportInventoryFactory;
+import org.kramerius.importer.inventory.ImportInventoryItem;
+import org.kramerius.importer.inventory.ScheduleStrategy;
+import org.kramerius.utils.DigitalObjectUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.transform.*;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPathExpressionException;
+
+import java.io.*;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import cz.incad.kramerius.utils.*;
+
+
+import static cz.incad.kramerius.utils.XMLUtils.*;
+import static org.ceskaexpedice.akubra.RepositoryNamespaces.DC_NAMESPACE_URI;
+
+
+/**
+ * Import
+ */
+public class Import {
+
+    public static final String NON_KEYWORD = "-none-";
+
+
+    static ObjectFactory of;
+    static int counter = 0;
+    private static final Logger log = Logger.getLogger(Import.class.getName());
+
+    private static List<String> classicRootModels = null; //top-level models, not including convolutes
+    private static SortingService sortingService;
+    private static Map<String, List<String>> updateMap = new HashMap<String, List<String>>();
+
+    private static String imgTreePath = "";
+    private static String imgTreeUrl = "";
+
+    static {
+        classicRootModels = Arrays.asList(KConfiguration.getInstance().getPropertyList("fedora.topLevelModels"));
+        if (classicRootModels == null) {
+            classicRootModels = new ArrayList<>();
+        }
+        if (useImageServer() && KConfiguration.getInstance().getConfiguration().getBoolean("convert.imageServerDirectorySubfolders", false)) {
+            setImgTree(); //set imgTreePath and imgTreeUrl for export to imageserver
+        }
+    }
+
+    public static void importMain(
+            String importDirFromArgs,
+            Boolean startIndexerFromArgs,
+            String license,
+            String addCollection,
+            String scheduleStrategyS
+    ) throws IOException, SolrServerException {
+
+        log.info(String.format("Import directory %s, start indexer %b", importDirFromArgs, startIndexerFromArgs));
+        ScheduleStrategy indexationType = ScheduleStrategy.indexRoots;
+        if (startIndexerFromArgs) {
+            indexationType = ScheduleStrategy.fromArg(scheduleStrategyS);
+        }
+
+        Injector injector = Guice.createInjector(new SolrModule(), new RepoModule(), new NullStatisticsModule(), new ImportModule());
+        AkubraRepository akubraRepository = injector.getInstance(Key.get(AkubraRepository.class));
+        //SortingService sortingServiceLocal = injector.getInstance(SortingService.class);
+        SortingService sortingServiceLocal = null;
+        FOXMLAppendLicenseService foxmlService = injector.getInstance(FOXMLAppendLicenseService.class);
+
+        //priority: 1. args, 2. System property, 3. KConfiguration, 4. explicit defalut value
+        String importDirectory = KConfiguration.getInstance().getProperty("import.directory");
+        if (importDirFromArgs != null) {
+            importDirectory = importDirFromArgs;
+        } else if (System.getProperties().containsKey("import.directory")) {
+            importDirectory = System.getProperty("import.directory");
+        }
+
+        Boolean startIndexer = Boolean.valueOf(KConfiguration.getInstance().getConfiguration().getString("ingest.startIndexer", "true"));
+        if (startIndexerFromArgs) {
+            startIndexer = true;
+        } else if (System.getProperties().containsKey("ingest.startIndexer")) {
+            String sysProp = System.getProperty("ingest.startIndexer");
+            log.info("Starting indexer loaded from sys prop " + sysProp);
+            startIndexer = Boolean.valueOf(sysProp);
+        }
+
+        try {
+            if (license != null && !license.equals(NON_KEYWORD)) {
+
+                File importFolder = new File(importDirectory);
+                File importParentFolder = importFolder.getParentFile();
+                File licensesImportFile = new File(importParentFolder, importFolder.getName() + "-" + license);
+                licensesImportFile.mkdirs();
+                log.info(String.format("Copy data from  %s to %s", importFolder.getAbsolutePath(), licensesImportFile.getAbsolutePath()));
+                FileUtils.copyDirectory(importFolder, licensesImportFile);
+
+                log.info(String.format("Applying license %s", license));
+                try {
+                    foxmlService.appendLicense(licensesImportFile.getAbsolutePath(), license);
+                } catch (XPathExpressionException | ParserConfigurationException | SAXException | IOException |
+                         LexerException e) {
+                    LOGGER.log(Level.SEVERE, e.getMessage(), e);
+                }
+
+
+                PluginContext pluginContext = PluginContextHolder.getContext();
+                pluginContext.updateProcessName(String.format("Import FOXML z %s ", importDirectory));
+
+                log.info("import dir: " + licensesImportFile);
+                log.info("start indexer: " + startIndexer);
+                log.info("license : " + license);
+
+                Import.run(akubraRepository, akubraRepository.pi(), sortingServiceLocal, KConfiguration.getInstance().getProperty("ingest.url"), KConfiguration.getInstance().getProperty("ingest.user"), KConfiguration.getInstance().getProperty("ingest.password"), licensesImportFile.getAbsolutePath(), startIndexer, addCollection, indexationType);
+
+                log.info(String.format("Deleting import folder %s", licensesImportFile));
+                FileUtils.deleteDirectory(licensesImportFile);
+
+            } else {
+
+
+                PluginContext pluginContext = PluginContextHolder.getContext();
+                pluginContext.updateProcessName(String.format("Import FOXML z %s ", importDirectory));
+
+                log.info("import dir: " + importDirectory);
+                log.info("start indexer: " + startIndexer);
+
+                Import.run(akubraRepository, akubraRepository.pi(), sortingServiceLocal, KConfiguration.getInstance().getProperty("ingest.url"), KConfiguration.getInstance().getProperty("ingest.user"), KConfiguration.getInstance().getProperty("ingest.password"), importDirectory, startIndexer, addCollection, indexationType);
+            }
+        } finally {
+            akubraRepository.shutdown();
+        }
+    }
+
+
+    public static void run(AkubraRepository akubraRepository, ProcessingIndex feeder, SortingService sortingServiceParam, final String url, final String user, final String pwd, String importRoot, ScheduleStrategy strategy) throws IOException, SolrServerException {
+        run(akubraRepository, feeder, sortingServiceParam, url, user, pwd, importRoot, true, null, strategy);
+    }
+
+    public static void run(AkubraRepository akubraRepository, ProcessingIndex feeder, SortingService sortingServiceParam, final String url, final String user, final String pwd, String importRoot, boolean startIndexer, String addcollections, ScheduleStrategy strategy) throws IOException, SolrServerException {
+        log.info("INGEST - url:" + url + " user:" + user + " importRoot:" + importRoot + " " + "startIndexer:" + startIndexer + " addcollections:" + addcollections + " strategy:" + strategy);
+        sortingService = sortingServiceParam;
+        // system property 
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()){
+
+            String jwtToken = null;
+            if (StringUtils.isAnyString(addcollections)) {
+                try{
+                    jwtToken = fetchJwtToken(httpClient);
+                    LOGGER.info("JWT Token successfully obtained.");
+                } catch(Exception e){
+                    LOGGER.log(Level.SEVERE, e.getMessage(), e);
+                    LOGGER.info("JWT Token failed to obtain.");
+                }
+            } else {
+                LOGGER.info("addCollections parameter is empty string. No need to obtain jwt token.");
+            }
+
+            String skipIngest = System.getProperties().containsKey("ingest.skip") ? System.getProperty("ingest.skip") : KConfiguration.getInstance().getConfiguration().getString("ingest.skip", "false");
+            if (Boolean.valueOf(skipIngest)) {
+                log.info("INGEST CONFIGURED TO BE SKIPPED, RETURNING");
+                return;
+            }
+
+            boolean updateExisting = Boolean.valueOf(System.getProperties().containsKey("ingest.updateExisting") ? System.getProperty("ingest.updateExisting") : KConfiguration.getInstance().getConfiguration().getString("ingest.updateExisting", "false"));
+            log.info("INGEST updateExisting: " + updateExisting);
+
+
+            long start = System.currentTimeMillis();
+
+            File importFile = new File(importRoot);
+            if (!importFile.exists()) {
+                log.severe("Import root folder or control file doesn't exist: " + importFile.getAbsolutePath());
+                throw new RuntimeException("Import root folder or control file doesn't exist: " + importFile.getAbsolutePath());
+            }
+
+            initialize(user, pwd);
+
+            // prozkoumani importni slozky
+            ImportInventoryFactory factory = new ImportInventoryFactory(ImporterCommons.unmarshaller, ImporterCommons.marshallingLock, akubraRepository.pi());
+            ImportInventory importInventory = factory.createIndexMap(importFile, ImportInventoryItem.TypeOfInstance.ONLY_METADATA);
+            LOGGER.info("- PRINT INVENTORY - ");
+            importInventory.printInventory();
+
+            Set<TitlePidTuple> convolutes = new HashSet<TitlePidTuple>();
+            Set<TitlePidTuple> collections = new HashSet<TitlePidTuple>();
+
+            Set<String> sortRelations = new HashSet<String>();
+            if (importFile.isDirectory()) {
+                visitAllDirsAndFiles(akubraRepository, importFile, importInventory, convolutes, collections, sortRelations, updateExisting);
+            } else {
+                //
+                BufferedReader reader = null;
+                try {
+                    reader = new BufferedReader(new FileReader(importFile));
+                } catch (FileNotFoundException e) {
+                    log.severe("Import file list " + importFile + " not found: " + e);
+                    throw new RuntimeException(e);
+                }
+                try {
+                    for (String line; (line = reader.readLine()) != null; ) {
+                        if ("".equals(line)) {
+                            continue;
+                        }
+                        File importItem = new File(line);
+                        if (!importItem.exists()) {
+                            log.severe("Import folder doesn't exist: " + importItem.getAbsolutePath());
+                            continue;
+                        }
+                        if (!importItem.isDirectory()) {
+                            log.severe("Import item is not a folder: " + importItem.getAbsolutePath());
+                            continue;
+                        }
+                        log.info("Importing " + importItem.getAbsolutePath());
+                        visitAllDirsAndFiles(akubraRepository, importItem, importInventory, convolutes, collections, sortRelations, updateExisting);
+                    }
+                    reader.close();
+                } catch (IOException e) {
+                    log.severe("Exception reading import list file: " + e);
+                    throw new RuntimeException(e);
+                }
+            }
+            log.info("FINISHED INGESTION IN " + ((System.currentTimeMillis() - start) / 1000.0) + "s, processed " + counter + " files");
+
+            String startSortProperty = System.getProperties().containsKey("ingest.sortRelations") ? System.getProperty("ingest.sortRelations") : KConfiguration.getInstance().getConfiguration().getString("ingest.sortRelations", "true");
+            if (Boolean.valueOf(startSortProperty)) {
+
+
+                if (sortRelations.isEmpty()) {
+                    log.info("NO MERGED OBJECTS FOR RELATIONS SORTING FOUND.");
+                } else {
+                    if (sortingService != null) {
+                        for (String sortPid : sortRelations) {
+                            sortingService.sortRelations(sortPid, false);
+                        }
+                        log.info("ALL MERGED OBJECTS RELATIONS SORTED.");
+                    } else {
+                        log.warning("NO SORTING SERVICE FOUND.");
+                    }
+                }
+            } else {
+                log.info("RELATIONS SORTING DISABLED.");
+            }
+
+            if (startIndexer) {
+
+                List<String> addCollectionList = new ArrayList<>();
+                if (StringUtils.isAnyString(addcollections)) {
+                    Arrays.stream(addcollections.split(";")).forEach(addCollectionList::add);
+                    for (String pid : addCollectionList) {
+                        if (!pid.trim().equals(NON_KEYWORD)) {
+                            addCollection(akubraRepository, httpClient, jwtToken, pid, importInventory, collections);
+                        }
+                    }
+                }
+
+
+                if (collections.isEmpty()) {
+                    log.info("NO COLLECTIONS FOR INDEXING FOUND.");
+                } else {
+                    try {
+                        String waitIndexerProperty = System.getProperties().containsKey("ingest.startIndexer.wait") ? System.getProperty("ingest.startIndexer.wait") : KConfiguration.getInstance().getConfiguration().getString("ingest.startIndexer.wait", "1000");
+                        // should wait
+                        log.info("Waiting for soft commit :" + waitIndexerProperty + " s");
+                        Thread.sleep(Integer.parseInt(waitIndexerProperty));
+
+                        for (TitlePidTuple col : collections) {
+
+                            Map<String, String> payload = new HashMap<>();
+                            payload.put("pid", col.pid);
+                            payload.put("title", col.title);
+                            payload.put("type", "object");
+                            payload.put("ignoreInconsistentObjects", "true");
+
+                            ScheduleSubProcess subProcess = new ScheduleSubProcess("new_indexer_index_object", payload);
+                            PluginContext pluginContext = PluginContextHolder.getContext();
+                            pluginContext.scheduleSubProcess(subProcess);
+
+                        }
+                        log.info("ALL COLLECTIONS SCHEDULED FOR INDEXING.");
+                    } catch (Exception e) {
+                        log.log(Level.WARNING, e.getMessage(), e);
+                    }
+                }
+
+
+                if (convolutes.isEmpty()) {
+                    log.info("NO CONVOLUTES FOR INDEXING FOUND.");
+                } else {
+                    try {
+                        String waitIndexerProperty = System.getProperties().containsKey("ingest.startIndexer.wait") ? System.getProperty("ingest.startIndexer.wait") : KConfiguration.getInstance().getConfiguration().getString("ingest.startIndexer.wait", "1000");
+                        // should wait
+                        log.info("Waiting for soft commit :" + waitIndexerProperty + " s");
+                        Thread.sleep(Integer.parseInt(waitIndexerProperty));
+
+                        for (TitlePidTuple convolute : convolutes) {
+
+                            Map<String, String> payload = new HashMap<>();
+                            payload.put("pid", convolute.pid);
+                            payload.put("title", convolute.title);
+                            payload.put("type", "object");
+                            payload.put("ignoreInconsistentObjects", "true");
+
+
+//                            //TODO: cleanup
+//                            public static void scheduleIndexation(String pid, String title, boolean includingDescendants, String parentProcessAuthToken) {
+//                                JSONObject data = new JSONObject();
+//                                data.put("defid", "new_indexer_index_object");
+//                                JSONObject params = new JSONObject();
+//                                params.put("type", includingDescendants ? "TREE_AND_FOSTER_TREES" : "OBJECT");
+//                                params.put("pid", pid);
+//                                params.put("title", title);
+//                                params.put("ignoreInconsistentObjects", true);
+//                                data.put("params", params);
+//                                schedule(data.toString(), parentProcessAuthToken);
+//                            }
+//
+//                            //TODO: cleanup
+//                            public static void scheduleIndexation(List<String> pidlist, String title, boolean includingDescendants, String parentProcessAuthToken) {
+//                                JSONObject data = new JSONObject();
+//                                data.put("defid", "new_indexer_index_object");
+//                                JSONObject params = new JSONObject();
+//                                params.put("type", includingDescendants ? "TREE_AND_FOSTER_TREES" : "OBJECT");
+//
+//                                JSONArray jsonArray = new JSONArray();
+//                                pidlist.stream().forEach(jsonArray::add);
+//
+//                                params.put("pidlist", jsonArray);
+//                                params.put("title", title);
+//                                params.put("ignoreInconsistentObjects", true);
+//                                data.put("params", params);
+//                                schedule(data.toString(), parentProcessAuthToken);
+//                            }
+//
+//                            //TODO: cleanup
+//                            public static void scheduleIndexation(File pidListFile, String title, boolean includingDescendants, String parentProcessAuthToken) {
+//                                JSONObject data = new JSONObject();
+//                                data.put("defid", "new_indexer_index_object");
+//                                JSONObject params = new JSONObject();
+//                                params.put("type", includingDescendants ? "TREE_AND_FOSTER_TREES" : "OBJECT");
+//
+//                                params.put("pidlist_file", pidListFile.getAbsolutePath());
+//                                params.put("title", title);
+//                                params.put("ignoreInconsistentObjects", true);
+//                                data.put("params", params);
+//                                schedule(data.toString(), parentProcessAuthToken);
+//                            }
+
+
+
+                            ScheduleSubProcess subProcess = new ScheduleSubProcess("new_indexer_index_object", payload);
+                            PluginContext pluginContext = PluginContextHolder.getContext();
+                            pluginContext.scheduleSubProcess(subProcess);
+
+                            //ProcessScheduler.scheduleIndexation(convolute.pid, convolute.title, false, authToken);
+                        }
+                        log.info("ALL CONVOLUTES SCHEDULED FOR INDEXING.");
+                    } catch (Exception e) {
+                        log.log(Level.WARNING, e.getMessage(), e);
+                    }
+                }
+
+                if (importInventory.getIndexationPlanItems().isEmpty()) {
+                    log.info("NO ROOT OBJECTS FOR INDEXING FOUND.");
+                } else {
+                    try {
+                        String waitIndexerProperty = System.getProperties().containsKey("ingest.startIndexer.wait") ? System.getProperty("ingest.startIndexer.wait") : KConfiguration.getInstance().getConfiguration().getString("ingest.startIndexer.wait", "1000");
+                        // should wait
+                        log.info("Waiting for soft commit :" + waitIndexerProperty + " s");
+                        Thread.sleep(Integer.parseInt(waitIndexerProperty));
+                        for (ImportInventoryItem scheduleItem : strategy.scheduleItems(importInventory)) {
+                            ImportInventoryItem.TypeOfSchedule schedule = scheduleItem.getIndexationPlanType();
+
+                            Map<String, String> payload = new HashMap<>();
+                            payload.put("pid", scheduleItem.getPid());
+                            payload.put("title", scheduleItem.getTitle());
+                            payload.put("type", schedule == ImportInventoryItem.TypeOfSchedule.TREE ? "tree" : "object");
+                            payload.put("ignoreInconsistentObjects", "true");
+
+                            ScheduleSubProcess subProcess = new ScheduleSubProcess("new_indexer_index_object", payload);
+                            PluginContext pluginContext = PluginContextHolder.getContext();
+                            pluginContext.scheduleSubProcess(subProcess);
+
+                            //ProcessScheduler.scheduleIndexation(scheduleItem.getPid(), scheduleItem.getTitle(), schedule == ImportInventoryItem.TypeOfSchedule.TREE , authToken);
+                        }
+                        log.info("ALL ROOT OBJECTS SCHEDULED FOR INDEXING.");
+                    } catch (Exception e) {
+                        log.log(Level.WARNING, e.getMessage(), e);
+                    }
+                }
+            } else {
+                log.info("AUTO INDEXING DISABLED.");
+            }
+        } finally {
+            if (feeder != null) {
+                feeder.commit();
+            }
+        }
+
+    }
+
+    public static void initialize(final String user, final String pwd) {
+        Authenticator.setDefault(new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(user, pwd.toCharArray());
+            }
+        });
+        of = new ObjectFactory();
+    }
+
+    private static void visitAllDirsAndFiles(AkubraRepository akubraRepository, File importFile, ImportInventory importInventory,
+                                             Set<TitlePidTuple> convolutes,
+                                             Set<TitlePidTuple> collections,
+                                             Set<String> sortRelations, boolean updateExisting) {
+        if (importFile == null) {
+            return;
+        }
+        if (importFile.isDirectory()) {
+
+            File[] children = importFile.listFiles();
+
+            for (File f : children) {
+                if ("update.list".equalsIgnoreCase(f.getName())) {
+                    log.info("File update.list detected in folder " + importFile);
+                    parseUpdateList(f);
+                }
+            }
+
+            if (children.length > 1 && children[0].isDirectory()) {//Issue 36
+                Arrays.sort(children);
+            }
+            for (int i = 0; i < children.length; i++) {
+                visitAllDirsAndFiles(akubraRepository, children[i], importInventory, convolutes, collections, sortRelations, updateExisting);
+            }
+        } else {
+            DigitalObject dobj = null;
+            try {
+                if (!importFile.getName().toLowerCase().endsWith(".xml")) {
+                    return;
+                }
+                // must be syncrhonized
+                synchronized (ImporterCommons.marshallingLock) {
+                    Object obj = ImporterCommons.unmarshaller.unmarshal(importFile);
+                    dobj = (DigitalObject) obj;
+                }
+            } catch (Exception e) {
+                //Issue #1194
+                log.info("Skipping file " + importFile.getName() + " - not an FOXML object. (" + e + ")");
+                return;
+            }
+            try {
+                // update map - move to separate method
+                if (updateMap.containsKey(dobj.getPID())) {
+                    log.info("Updating datastreams " + updateMap.get(dobj.getPID()) + " in object " + dobj.getPID());
+                    List<DatastreamType> importedDatastreams = dobj.getDatastream();
+                    List<String> datastreamsToUpdate = updateMap.get(dobj.getPID());
+                    for (String dsName : datastreamsToUpdate) {
+                        for (DatastreamType ds : importedDatastreams) {
+                            if (dsName.equalsIgnoreCase(ds.getID())) {
+                                log.info("Updating datastream " + ds.getID());
+                                DatastreamVersionType dsversion = ds.getDatastreamVersion().get(0);
+                                if (dsversion.getXmlContent() != null) {
+                                    Element element = dsversion.getXmlContent().getAny().get(0);
+                                    if (dsName.equals(FedoraUtils.DC_STREAM)) {
+                                        String rights = DCUtils.rightsFromDC(element);
+                                        if (rights != null) {
+                                            Element elm = findElement(element, "rights", DC_NAMESPACE_URI);
+                                            if (elm == null) {
+                                                elm = element.getOwnerDocument().createElementNS(DC_NAMESPACE_URI, "rights");
+                                                element.appendChild(elm);
+                                            }
+                                            elm.setTextContent(rights);
+                                        }
+                                    }
+
+
+                                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                                    Source xmlSource = new DOMSource(element);
+                                    Result outputTarget = new StreamResult(outputStream);
+                                    try {
+                                        TransformerFactory.newInstance().newTransformer().transform(xmlSource, outputTarget);
+                                    } catch (TransformerException e) {
+                                        throw new RuntimeException(e);
+                                    }
+
+                                    final DigitalObject transactionDigitalObject = dobj;
+
+
+                                    String mimeType = akubraRepository.getDatastreamMetadata(transactionDigitalObject.getPID(), ds.getID()).getMimetype();
+                                    akubraRepository.updateXMLDatastream(transactionDigitalObject.getPID(), ds.getID(), mimeType, new ByteArrayInputStream(outputStream.toByteArray()));
+                                } else if (dsversion.getBinaryContent() != null) {
+                                    throw new RuntimeException("Update of managed binary datastream content is not supported.");
+                                } else if (dsversion.getContentLocation() != null) {
+
+                                    final DigitalObject transactionDigitalObject = dobj;
+                                    String mimeType = akubraRepository.getDatastreamMetadata(transactionDigitalObject.getPID(), ds.getID()).getMimetype();
+                                    akubraRepository.updateExternalDatastream(transactionDigitalObject.getPID(), ds.getID(), dsversion.getContentLocation().getREF(), mimeType);
+                                }
+                            }
+                        }
+                    }
+                    if (importInventory != null) {
+                        importInventory.addIndexationPlanItem(new ImportInventoryItem(importFile, dobj.getPID(), dobj.getPID(), new ArrayList<>(), false));
+                        TitlePidTuple npt = new TitlePidTuple("", dobj.getPID());
+                        //classicRoots.add(npt);
+                        log.info("Added updated object for indexing:" + dobj.getPID());
+                        //NOTE: inefficient for updated convolutes, everyting new/changed inside it will be indexed twice
+                    }
+                } else {
+                    final DigitalObject transactionDigitalObject = dobj;
+                    ingest(akubraRepository, importFile, sortRelations, importInventory, updateExisting);
+                    checkModelIsConvoluteOrCollection(importFile, transactionDigitalObject, convolutes, collections, importInventory);
+                }
+            } catch (Throwable t) {
+                log.severe("Error when ingesting PID: " + dobj.getPID() + ", " + t.getMessage());
+                throw new RuntimeException(t);
+            }
+        }
+    }
+
+    private static void parseUpdateList(File listFile) {
+        BufferedReader reader = null;
+        try {
+            reader = new BufferedReader(new FileReader(listFile));
+        } catch (FileNotFoundException e) {
+            log.severe("update.list file " + listFile + " not found: " + e);
+            throw new RuntimeException(e);
+        }
+        try {
+            for (String line; (line = reader.readLine()) != null; ) {
+                if ("".equals(line.trim()) || line.trim().startsWith("#")) {
+                    continue;
+                }
+                String[] lineItems = line.split(" ");
+                if (lineItems.length < 2) {
+                    continue;
+                }
+                List<String> streams = new ArrayList<String>(lineItems.length - 1);
+                for (int i = 0; i < lineItems.length - 1; i++) {
+                    if (!"".equals(lineItems[i + 1])) {
+                        streams.add(lineItems[i + 1]);
+                    }
+                }
+                updateMap.put(lineItems[0], streams);
+            }
+            reader.close();
+        } catch (IOException e) {
+            log.severe("Exception reading update.list file: " + e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void ingest(AkubraRepository akubraRepository, InputStream is, String filename, Set<String> sortRelations, ImportInventory importInventory, boolean updateExisting) throws IOException, RepositoryException, JAXBException, LexerException, TransformerException {
+        long start = System.currentTimeMillis();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        IOUtils.copyStreams(is, bos);
+        byte[] bytes = bos.toByteArray();
+        DigitalObject obj = null;
+        try {
+            synchronized (ImporterCommons.marshallingLock) {
+                obj = (DigitalObject) ImporterCommons.unmarshaller.unmarshal(new ByteArrayInputStream(bytes));
+            }
+        } catch (Exception e) {
+            // Issue #1194
+            log.info("Skipping file " + filename + " - not an FOXML object.");
+            return;
+        }
+        if (useImageServer()) {
+            convertForImageServer(obj);
+        }
+        String pid = obj.getPID();
+        DigitalObject finalObj = obj;
+        akubraRepository.doWithLock(pid, () -> {
+            try {
+                //TODO: Read again
+                akubraRepository.ingest(finalObj);
+            } catch (RepositoryException sfex) {
+                if (objectExists(akubraRepository, pid)) {
+                    if (updateExisting) {
+                        log.info("Replacing existing object " + pid);
+                        try {
+                            akubraRepository.delete(pid, true, false);
+                            log.info("purged old object " + pid);
+                        } catch (Exception ex) {
+                            log.severe("Cannot purge object " + pid + ", skipping: " + ex);
+                            throw new RuntimeException(ex);
+                        }
+                        try {
+                            if (finalObj != null) {
+                                akubraRepository.ingest(finalObj);
+                            }
+                            log.info("Ingested new object " + pid);
+                        } catch (RepositoryException rsfex) {
+                            log.severe("Replace ingest SOAP fault:" + rsfex);
+                            throw new RuntimeException(rsfex);
+                        }
+                        /*
+                        if (indexationPlan != null) {
+                            // pokud replace, pak muselo byt jiz v adresari, nespoustet  !!
+                            indexationPlan.addIndexationPlanItem(new IndexationPlanItem(pid, pid, new ArrayList<>(), false));
+                            log.info("Added replaced object for indexing:" + pid);
+                        }*/
+                    } else {
+                        log.info("Merging with existing object " + pid);
+                        if (merge(akubraRepository, bytes)) {
+                            if (sortRelations != null) {
+                                sortRelations.add(pid);
+                                log.info("Added merged object for sorting relations:" + pid);
+                            }
+                            /**
+                             if (indexationPlan != null) {
+                             indexationPlan.addIndexationPlanItem(new IndexationPlanItem(pid, pid, new ArrayList<>(), false));
+                             log.info("Added merged object for indexing:" + pid);
+                             }*/
+                        }
+                    }
+                } else {
+                    log.severe("Ingest fault:" + sfex);
+                    throw new RuntimeException(sfex);
+                }
+            }
+            return null;
+        });
+
+        counter++;
+        log.info("Ingested:" + pid + " in " + (System.currentTimeMillis() - start) + "ms, count:" + counter);
+    }
+
+    public static void ingest(AkubraRepository repo, File file, Set<String> sortRelations, ImportInventory importInventory, boolean updateExisting) {
+        try (FileInputStream is = new FileInputStream(file)) {
+            ingest(repo, is, file.getName(), sortRelations, importInventory, updateExisting);
+        } catch (Exception ex) {
+            log.log(Level.SEVERE, "Ingestion error ", ex);
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private static boolean merge(AkubraRepository repo, byte[] ingestedBytes) throws RepositoryException {
+        List<RDFTuple> ingested = readRDF(ingestedBytes);
+        if (ingested.isEmpty()) {
+            return false;
+        }
+        String pid = ingested.get(0).subject.substring("info:fedora/".length());
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try {
+            DigitalObject existingObject = repo.get(pid).asDigitalObject();
+            if (existingObject == null) {
+                throw new IllegalStateException("Cannot merge object: " + pid + " - object not in repository");
+            }
+            if (!repo.re().exists(pid)) {
+                throw new IllegalStateException("Cannot merge object: " + pid + " - object does not have RELS-EXT stream");
+            }
+            IOUtils.copyStreams(repo.re().get(pid).asInputStream(), bos);
+        } catch (Exception e) {
+            log.log(Level.SEVERE, "Cannot copy foxml streams in merge for pid '" + pid + "'", e);
+            throw new RuntimeException(e);
+        }
+        byte[] existingBytes = bos.toByteArray();
+        List<RDFTuple> existing = readRDF(existingBytes);
+        ingested.removeAll(existing);
+
+        boolean touched = false;
+        for (RDFTuple t : ingested) {
+            if (t.object != null) {
+                try {
+                    if (t.literal) {
+                        repo.re().addLiteral(pid, t.predicate, t.namespace, t.object);
+                    } else {
+                        repo.re().addRelation(pid, t.predicate, t.namespace, t.object);
+                    }
+                    //port.addRelationship(t.subject.substring("info:fedora/".length()), t.predicate, t.object, t.literal, null);
+                    touched = true;
+                } catch (Exception ex) {
+                    log.log(Level.SEVERE, "WARNING - could not add relationship:" + t + "(" + ex + ")", ex);
+                }
+            }
+        }
+        return touched;
+    }
+
+    public static boolean useImageServer() {
+        boolean useImageServer = System.getProperties().containsKey("convert.useImageServer")
+                ? Boolean.valueOf(System.getProperty("convert.useImageServer")) :
+                KConfiguration.getInstance().getConfiguration().getBoolean("convert.useImageServer", false);
+        return useImageServer;
+    }
+
+    public static void setImgTree() {
+        Calendar now = Calendar.getInstance();
+        int intyear = now.get(Calendar.YEAR);
+        int intmonth = now.get(Calendar.MONTH) + 1;
+        int intday = now.get(Calendar.DAY_OF_MONTH);
+        String year = String.format("%04d", intyear);
+        String month = String.format("%02d", intmonth);
+        String day = String.format("%02d", intday);
+        imgTreePath = System.getProperty("file.separator") + year + System.getProperty("file.separator") + month + System.getProperty("file.separator") + day;
+        imgTreeUrl = "/" + year + "/" + month + "/" + day;
+
+    }
+
+    public static String getImgTreePath() {
+        return imgTreePath;
+    }
+
+    public static String getImgTreeUrl() {
+        return imgTreeUrl;
+    }
+
+    private static void convertForImageServer(DigitalObject obj) {
+        for (DatastreamType ds : obj.getDatastream()) {
+            if ("IMG_FULL".equals(ds.getID()) && "M".equals(ds.getCONTROLGROUP())) {
+                List<DatastreamVersionType> versions = ds.getDatastreamVersion();
+                if (versions != null) {
+                    DatastreamVersionType ver = versions.get(versions.size() - 1);
+                    if ("image/jp2".equals(ver.getMIMETYPE())) {
+                        byte[] binaryContent = ver.getBinaryContent();
+                        String filename = obj.getPID().replace("uuid:", "") + ".jp2";
+                        convertFullStream(binaryContent, filename, obj, ds, ver);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void convertFullStream(byte[] img, String filename, DigitalObject obj, DatastreamType stream, DatastreamVersionType version) {
+        try {
+            stream.setCONTROLGROUP("E");
+            stream.setVERSIONABLE(false);
+            stream.setSTATE(StateType.A);
+            version.setCREATED(BaseConvertor.getCurrentXMLGregorianCalendar());
+
+            String externalImagesDirectory = KConfiguration.getInstance().getConfiguration().getString("convert.imageServerDirectory");
+            String binaryDirectory = externalImagesDirectory + getImgTreePath();
+            File dir = IOUtils.checkDirectory(binaryDirectory);
+            // Write file to imageserver directory
+            File target = new File(dir, filename);
+            Files.write(target.toPath(), img);
+            ContentLocationType cl = new ContentLocationType();
+            String tilesPrefix = KConfiguration.getInstance().getConfiguration().getString("convert.imageServerTilesURLPrefix") + getImgTreeUrl();
+            String imagesPrefix = KConfiguration.getInstance().getConfiguration().getString("convert.imageServerImagesURLPrefix") + getImgTreeUrl();
+            String suffix = KConfiguration.getInstance().getConfiguration().getString("convert.imageServerSuffix.big");
+
+            if (KConfiguration.getInstance().getConfiguration().getBoolean("convert.imageServerSuffix.removeFilenameExtensions", false)) {
+                String pageFileNameWithoutExtension = FilenameUtils.removeExtension(filename);
+                cl.setREF(imagesPrefix + "/" + PathEncoder.encPath(pageFileNameWithoutExtension) + suffix);
+
+                //Adjust RELS-EXT
+                String suffixTiles = KConfiguration.getInstance().getConfiguration().getString("convert.imageServerSuffix.tiles");
+                adjustRELSEXT(obj, tilesPrefix + "/" + PathEncoder.encPath(pageFileNameWithoutExtension) + suffixTiles);
+            } else {
+                cl.setREF(imagesPrefix + "/" + PathEncoder.encPath(filename) + suffix);
+
+                //Adjust RELS-EXT
+                String suffixTiles = KConfiguration.getInstance().getConfiguration().getString("convert.imageServerSuffix.tiles");
+                adjustRELSEXT(obj, tilesPrefix + "/" + PathEncoder.encPath(filename) + suffixTiles);
+            }
+            cl.setTYPE("URL");
+            version.setContentLocation(cl);
+            version.setBinaryContent(null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    private static void adjustRELSEXT(DigitalObject obj, String tilesUrlValue) {
+        for (DatastreamType ds : obj.getDatastream()) {
+            if ("RELS-EXT".equals(ds.getID())) {
+                List<DatastreamVersionType> versions = ds.getDatastreamVersion();
+                if (versions != null) {
+                    DatastreamVersionType ver = versions.get(versions.size() - 1);
+                    XmlContentType xmlContent = ver.getXmlContent();
+                    Node element = xmlContent.getAny().get(0).getFirstChild();
+                    // printElement(element);
+                    Document document = element.getOwnerDocument();
+                    Element relElement = appendChildNS(document, element, NS_KRAMERIUS, "kramerius:tiles-url", tilesUrlValue);
+                    //printElement(element);
+                }
+            }
+        }
+    }
+
+    private static final String NS_KRAMERIUS = "http://www.nsdl.org/ontologies/relationships#";
+
+    private static Element appendChildNS(Document d, Node parent, String prefix, String name, String value) {
+        Element e = d.createElementNS(prefix, name);
+        e.setTextContent(value);
+        parent.appendChild(e);
+        return e;
+    }
+
+    public static void printElement(Node element) {
+        try {
+            // Set up a transformer to convert the element to a string
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            Transformer transformer = transformerFactory.newTransformer();
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+
+            // Create a DOMSource for the Element
+            DOMSource source = new DOMSource(element);
+
+            // Print to console
+            StreamResult result = new StreamResult(System.out);
+            transformer.transform(source, result);
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private static List<RDFTuple> readRDF(byte[] bytes) {
+        XMLInputFactory f = XMLInputFactory.newInstance();
+
+        List<RDFTuple> retval = new ArrayList<RDFTuple>();
+        String subject = null;
+        boolean inRdf = false;
+        try {
+            XMLStreamReader r = f.createXMLStreamReader(new ByteArrayInputStream(bytes));
+            while (r.hasNext()) {
+                r.next();
+                if (r.isStartElement()) {
+                    if ("rdf".equals(r.getName().getPrefix()) && "Description".equals(r.getName().getLocalPart())) {
+                        subject = r.getAttributeValue(r.getNamespaceURI("rdf"), "about");
+                        inRdf = true;
+                        continue;
+                    }
+                    if (inRdf) {
+                        String namespace = r.getName().getNamespaceURI();
+                        String predicate = r.getName().getLocalPart();
+                        String object = r.getAttributeValue(r.getNamespaceURI("rdf"), "resource");
+                        boolean literal = false;
+                        if (object == null) {
+                            object = r.getElementText();
+                            if (object != null) {
+                                literal = true;
+                            }
+                        }
+                        retval.add(new RDFTuple(subject, namespace, predicate, object, literal));
+                    }
+                }
+                if (r.isEndElement()) {
+                    if ("rdf".equals(r.getName().getPrefix()) && "Description".equals(r.getName().getLocalPart())) {
+                        inRdf = false;
+                    }
+                }
+            }
+        } catch (XMLStreamException ex) {
+            ex.printStackTrace();
+        }
+        return retval;
+    }
+
+
+    /**
+     * Parse FOXML file and if it has model in fedora.topLevelModels, add its
+     * PID to roots list. Objects in the roots list then will be submitted to
+     * Indexer (whole-tree indexation).
+     * Note that object might not be actual root, when it is part of a convolute,
+     * but here it is still considered a root.
+     */
+//    private static void checkModelIsClassicRoot(DigitalObject dobj) {
+//        try {
+//            boolean isRootObject = false;
+//            String title = "";
+//            for (DatastreamType ds : dobj.getDatastream()) {
+//                if ("DC".equals(ds.getID())) {//obtain title from DC stream
+//                    List<DatastreamVersionType> versions = ds.getDatastreamVersion();
+//                    if (versions != null) {
+//                        DatastreamVersionType v = versions.get(versions.size() - 1);
+//                        XmlContentType dcxml = v.getXmlContent();
+//                        List<Element> elements = dcxml.getAny();
+//                        for (Element el : elements) {
+//                            NodeList titles = el.getElementsByTagNameNS("http://purl.org/dc/elements/1.1/", "title");
+//                            if (titles.getLength() > 0) {
+//                                title = titles.item(0).getTextContent();
+//                            }
+//                        }
+//                    }
+//                }
+//                if ("RELS-EXT".equals(ds.getID())) { //check for root model in RELS-EXT
+//                    List<DatastreamVersionType> versions = ds.getDatastreamVersion();
+//                    if (versions != null) {
+//                        DatastreamVersionType v = versions.get(versions.size() - 1);
+//                        XmlContentType dcxml = v.getXmlContent();
+//                        List<Element> elements = dcxml.getAny();
+//                        for (Element el : elements) {
+//                            NodeList types = el.getElementsByTagNameNS("info:fedora/fedora-system:def/model#", "hasModel");
+//                            for (int i = 0; i < types.getLength(); i++) {
+//                                String type = types.item(i).getAttributes().getNamedItemNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "resource").getNodeValue();
+//                                if (type.startsWith("info:fedora/model:")) {
+//                                    String model = type.substring(18);//get the string after info:fedora/model:
+//                                    isRootObject = classicRootModels.contains(model);
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//
+//            }
+//            if (isRootObject) {
+//                TitlePidTuple npt = new TitlePidTuple(title, dobj.getPID());
+////                if (roots != null) {
+////                    roots.add(npt);
+////                    log.info("Found (root) object for indexing - " + npt);
+////                }
+//            }
+//
+//        } catch (Exception ex) {
+//            log.log(Level.WARNING, "Error in Ingest.checkRoot for file " + dobj.getPID() + ", file cannot be checked for auto-indexing : " + ex);
+//        }
+//    }
+
+    public static String fetchJwtToken(CloseableHttpClient httpClient) throws IOException {
+        KConfiguration config = KConfiguration.getInstance();
+        String clientId = config.getConfiguration().getString("process.token.clientId");
+        String secret = config.getConfiguration().getString("process.token.secret");
+        String extsPoint = config.getConfiguration().getString("api.exts.v7.point");
+
+        if (extsPoint.endsWith("/")) extsPoint = extsPoint.substring(0, extsPoint.length() - 1);
+        String url = String.format("%s/tokens/%s?secrets=%s", extsPoint, clientId, secret);
+
+        LOGGER.info("Requesting JWT token from: " + url);
+        HttpGet request = new HttpGet(url);
+        request.setHeader("Accept", "application/json");
+
+        return httpClient.execute(request, response -> {
+            int status = response.getCode();
+            String body = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+
+            if (status == 200) {
+                JSONObject jsonResponse = new JSONObject(body);
+                if (jsonResponse.has("access_token")) {
+                    return jsonResponse.getString("access_token");
+                } else {
+                    throw new IOException("Response does not contain 'access_token'. Body: " + body);
+                }
+            } else {
+                throw new IOException("Failed to fetch token. Status: " + status + ", Body: " + body);
+            }
+        });
+    }
+    private static void addCollection(AkubraRepository akubraRepository, CloseableHttpClient httpClient, String jwtToken, String collectionPid, ImportInventory plan, Set<TitlePidTuple> collectionsToReindex) {
+        //Client c = Client.create();
+
+        List<String> rootPids = new ArrayList<>();
+        List<String> pidsToCollection = new ArrayList<>();
+
+        // find all roots; necessary for add to collection
+        ScheduleStrategy.indexRoots.scheduleItems(plan).forEach(p -> {
+            rootPids.add(p.getPid());
+        });
+
+        String adminPoint = KConfiguration.getInstance().getConfiguration().getString("api.admin.v7.point");
+        if (!adminPoint.endsWith("/")) adminPoint = adminPoint + "/";
+        String collectionDescUrl = adminPoint + String.format("collections/%s", collectionPid);
+
+        LOGGER.info(String.format("Adding collections %s", collectionDescUrl));
+
+        HttpGet getRequest = new HttpGet(collectionDescUrl);
+        getRequest.setHeader("Accept", "application/json");
+        getRequest.setHeader("Authorization", "Bearer " + jwtToken);
+
+        try {
+            JSONObject collectionObject = httpClient.execute(getRequest, response -> {
+                if (response.getCode() != 200) {
+                    throw new IOException("Failed to fetch collection, status: " + response.getCode());
+                }
+                String json = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+                return new JSONObject(json);
+            });
+            // polozky v kolekci
+            JSONArray alreadyInCollection = collectionObject.getJSONArray("items");
+            List<String> alreadyInCollectionList = new ArrayList<String>();
+            for (int i = 0; i < alreadyInCollection.length(); i++) {
+                alreadyInCollectionList.add(alreadyInCollection.getString(i));
+            }
+
+            for (String pidToAdd : rootPids) {
+                if (!alreadyInCollectionList.contains(pidToAdd)) {
+                    pidsToCollection.add(pidToAdd);
+                } else {
+                    LOGGER.info(String.format("Pid %s has been already added to %s", pidToAdd, collectionPid));
+                }
+            }
+
+            String collectionsUrl = adminPoint + String.format("collections/%s/items?indexation=false", collectionPid);
+            //WebResource r = c.resource(collectionsUrl);
+            for (String pidToCollection : pidsToCollection) {
+                LOGGER.info(String.format("Adding %s  to collection %s", pidToCollection, collectionPid));
+
+                HttpPost postRequest = new HttpPost(collectionsUrl);
+                postRequest.setHeader("Accept", "text/plain");
+                postRequest.setHeader("Authorization", "Bearer " + jwtToken);
+
+                postRequest.setEntity(new StringEntity(pidToCollection, ContentType.TEXT_PLAIN));
+
+
+
+                httpClient.execute(postRequest, response -> {
+                    int status = response.getCode();
+                    if (status != 200 && status != 201) {
+                        String responseBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+                        throw new RuntimeException(String.format("Status code %d, %s", status, responseBody));
+                    }
+                    return null;
+                });
+            }
+
+            TitlePidTuple npt = new TitlePidTuple("Sbírka", collectionPid);
+            collectionsToReindex.add(npt);
+
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Network error during collection update", e);
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    /**
+     * Parse FOXML file and if it has model "convolute", add its
+     * PID to convolutes list. Objects in the convolutes list then will be submitted to
+     * Indexer (object-only indexation)
+     */
+    private static void checkModelIsConvoluteOrCollection(File importFile, DigitalObject dobj, Set<TitlePidTuple> convolutes, Set<TitlePidTuple> collections, ImportInventory importInventory) {
+        try {
+            boolean isConvolute = false;
+            boolean isCollection = false;
+            String title = DigitalObjectUtils.dcTitle(dobj);
+            for (DatastreamType ds : dobj.getDatastream()) {
+                if ("RELS-EXT".equals(ds.getID())) { //check for root model in RELS-EXT
+                    List<DatastreamVersionType> versions = ds.getDatastreamVersion();
+                    if (versions != null) {
+                        DatastreamVersionType v = versions.get(versions.size() - 1);
+                        XmlContentType dcxml = v.getXmlContent();
+                        List<Element> elements = dcxml.getAny();
+                        for (Element el : elements) {
+                            NodeList types = el.getElementsByTagNameNS("info:fedora/fedora-system:def/model#", "hasModel");
+                            for (int i = 0; i < types.getLength(); i++) {
+                                String type = types.item(i).getAttributes().getNamedItemNS("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "resource").getNodeValue();
+                                if (type.startsWith("info:fedora/model:")) {
+                                    String model = type.substring(18);//get the string after info:fedora/model:
+                                    isConvolute = "convolute".equals(model);
+                                    isCollection = "collection".equals(model);
+                                }
+                            }
+                        }
+                        //<rel:contains xmlns:rel="http://www.nsdl.org/ontologies/relationships#" rdf:resource="info:fedora/uuid:be0aa9c4-cbbb-4d3d-b552-e9533c9b4fed"/>
+                        XmlContentType xmlContent = v.getXmlContent();
+                        List<Element> any = xmlContent.getAny();
+                        for (Element elm : any) {
+                            List<Element> pids = XMLUtils.getElementsRecursive(elm, new XMLUtils.ElementsFilter() {
+                                @Override
+                                public boolean acceptElement(Element element) {
+                                    boolean equals = element.getLocalName().equals("contains");
+                                    return equals;
+                                }
+                            });
+                            for (int i = 0; i < pids.size(); i++) {
+                                String attributeNS = pids.get(i).getAttributeNS(RepositoryNamespaces.RDF_NAMESPACE_URI, "resource");
+                                if (attributeNS.contains("info:fedora/")) {
+                                    String rootPid = attributeNS.substring("info:fedora/".length());
+                                    TitlePidTuple npt = new TitlePidTuple(rootPid, rootPid);
+                                    LOGGER.info(String.format("Adding contains relation from collection %s", rootPid));
+                                    // TODO: from collection
+                                    if (importInventory != null) {
+                                        // musi se preindexovat cely root dane polozky, tedy
+                                        importInventory.addIndexationPlanItem(new ImportInventoryItem(importFile, rootPid, rootPid, new ArrayList<>(), false));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (isConvolute) {
+                TitlePidTuple npt = new TitlePidTuple(title, dobj.getPID());
+                if (convolutes != null) {
+                    convolutes.add(npt);
+                    log.info("Found (convolute) object for indexing - " + npt);
+                }
+            } else if (isCollection) {
+                TitlePidTuple npt = new TitlePidTuple(title, dobj.getPID());
+                if (collections != null) {
+                    collections.add(npt);
+                    log.info("Found (collection) object for indexing - " + npt);
+                }
+
+            }
+
+        } catch (Exception ex) {
+            log.log(Level.WARNING, "Error in Ingest.checkRoot for file " + dobj.getPID() + ", file cannot be checked for auto-indexing : " + ex);
+        }
+    }
+
+
+
+
+    /**
+     * Checks if fedora contains object with given PID
+     *
+     * @param pid requested PID
+     * @return true if given object exists
+     */
+    public static boolean objectExists(AkubraRepository repo, String pid) throws RepositoryException {
+        return repo.exists(pid);
+    }
+}
+
+class RDFTuple {
+
+    String subject;
+    String namespace;
+    String predicate;
+    String object;
+    boolean literal;
+
+    public RDFTuple(String subject, String namespace, String predicate, String object, boolean literal) {
+        super();
+        this.subject = subject;
+        this.namespace = namespace;
+        this.predicate = predicate;
+        this.object = object;
+        this.literal = literal;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RDFTuple rdfTuple = (RDFTuple) o;
+
+        if (literal != rdfTuple.literal) return false;
+        if (object != null ? !object.equals(rdfTuple.object) : rdfTuple.object != null) return false;
+        if (namespace != null ? !namespace.equals(rdfTuple.namespace) : rdfTuple.namespace != null) return false;
+        if (predicate != null ? !predicate.equals(rdfTuple.predicate) : rdfTuple.predicate != null) return false;
+        if (subject != null ? !subject.equals(rdfTuple.subject) : rdfTuple.subject != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = subject != null ? subject.hashCode() : 0;
+        result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
+        result = 31 * result + (predicate != null ? predicate.hashCode() : 0);
+        result = 31 * result + (object != null ? object.hashCode() : 0);
+        result = 31 * result + (literal ? 1 : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "RDFTuple{" +
+                "subject=" + subject +
+                ", namespace=" + namespace +
+                ", predicate=" + predicate +
+                ", object=" + object +
+                ", literal=" + literal +
+                '}';
+    }
+}
+
+class TitlePidTuple {
+
+    public String title;
+    public String pid;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TitlePidTuple that = (TitlePidTuple) o;
+
+        if (pid != null ? !pid.equals(that.pid) : that.pid != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return pid != null ? pid.hashCode() : 0;
+    }
+
+    public TitlePidTuple(String name, String pid) {
+        this.title = name;
+        this.pid = pid;
+    }
+
+    @Override
+    public String toString() {
+        return "Title:" + title + " PID:" + pid;
+    }
+}
+//class ImportModule extends AbstractModule {
+//
+//    @Override
+//    protected void configure() {
+//        bind(FedoraAccess.class).annotatedWith(Names.named("rawFedoraAccess")).to(FedoraAccessImpl.class).in(Scopes.SINGLETON);
+//
+//        bind(StatisticsAccessLog.class).annotatedWith(Names.named("database")).to(GenerateDeepZoomCacheModule.NoStatistics.class).in(Scopes.SINGLETON);
+//        bind(StatisticsAccessLog.class).annotatedWith(Names.named("dnnt")).to(GenerateDeepZoomCacheModule.NoStatistics.class).in(Scopes.SINGLETON);
+//
+//
+//        bind(AggregatedAccessLogs.class).to(GenerateDeepZoomCacheModule.NoStatistics.class).in(Scopes.SINGLETON);
+//        bind(KConfiguration.class).toInstance(KConfiguration.getInstance());
+//        bind(RelationService.class).to(RelationServiceImpl.class).in(Scopes.SINGLETON);
+//        bind(SortingService.class).to(SortingServiceImpl.class).in(Scopes.SINGLETON);
+//    }
+//}
+//

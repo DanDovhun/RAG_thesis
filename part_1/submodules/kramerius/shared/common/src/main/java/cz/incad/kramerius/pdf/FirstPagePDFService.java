@@ -1,0 +1,62 @@
+/*
+ * Copyright (C) 2010 Pavel Stastny
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+package cz.incad.kramerius.pdf;
+
+import java.io.OutputStream;
+
+import cz.incad.kramerius.ObjectPidsPath;
+import cz.incad.kramerius.document.model.AkubraDocument;
+import cz.incad.kramerius.pdf.utils.pdf.FontMap;
+
+/**
+ * Service for generating first page
+ */
+public interface FirstPagePDFService {
+
+    /**
+     * Type of page
+     */
+    public enum FirstPageType {
+        // Textova prvni stranka
+        TEXT, 
+        // Vyrendrovany obrazek
+        IMAGE,
+
+
+        // licenses - pak zmenim - pokud nic, pak special needs, pokud licence pak dle licence
+        USERPROCESS;
+    };
+
+    /**
+     * Generate first pdf page for selection
+     * @param rdoc Generating document model
+     * @param os Outputstream
+     * @param pids PIDs selection
+     * @param fontMap Prepared FontMap object
+     */
+    public void selection(AkubraDocument rdoc, OutputStream os, String[] pids, FontMap fontMap, String providedByLicense);
+    
+    /**
+     * Generate first pdf page for title 
+     * @param rdoc Generating document model
+     * @param os Outputstream
+     * @param path Path for generting object
+     * @param fontMap Prepared FontMap object
+     */
+    public void parent(AkubraDocument rdoc, OutputStream os, ObjectPidsPath path, FontMap fontMap, String providedByLicense);
+    
+}

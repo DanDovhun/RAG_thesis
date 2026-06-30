@@ -1,0 +1,44 @@
+<% content_for :title, 'Výsledky vyhľadávania' %>
+
+<% content_for(:before_main_wrapper) do %>
+  <%= render 'searches/search_box' %>
+  <div class="govuk-width-container">
+    <main class="govuk-main-wrapper">
+      <div class="govuk-grid-row">
+        <div class="govuk-grid-column-two-thirds govuk-!-padding-top-7">
+          <h2 class="govuk-heading-m govuk-!-margin-bottom-9">Výsledky vyhľadávania pre &bdquo;<%= @q %>&ldquo;</h2>
+
+          <% if @searches.empty? %>
+            <p class="govuk-body">
+              Pre tento výraz sme nenašli žiadne výsledky.
+            </p>
+          <% end %>
+          <% @searches.each do |search| %>
+            <% if search.searchable_type == 'Journey' %>
+              <%= render partial: 'journey', locals: { journey: search.searchable, query: @q, analyzed_query: @analyzed_q } %>
+            <% elsif search.searchable_type == 'Page' %>
+              <%= render partial: 'page', locals: { page: search.searchable, query: @q } %>
+            <% elsif search.searchable_type == 'App' %>
+              <%= render partial: 'app', locals: { app: search.searchable, query: @q } %>
+            <% end %>
+          <% end %>
+          <%= render partial: 'pagination', locals: { searches: @searches } %>
+        </div>
+      </div>
+      <div class="govuk-grid-row govuk-!-padding-top-6">
+        <div class="govuk-grid-column-two-thirds">
+          <div class="govuk-panel govuk-panel--contact">
+            <h2 class="govuk-panel__heading">
+              Nenašli ste to, čo ste hľadali?
+            </h2>
+            <div class="govuk-panel__body">
+              <p class="govuk-body">
+               Ak Vám tu chýba nejaký návod, alebo máte otázku, napíšte nám <br>na <%= mail_to 'navody@slovensko.digital', 'navody@slovensko.digital', class: 'govuk-link' %>, alebo nám pomôžte a <%= link_to 'zapojte sa', page_path('ako-sa-zapojit'), class: 'govuk-link' %>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+<% end %>

@@ -1,0 +1,85 @@
+{
+  "ignored_warnings": [
+    {
+      "warning_type": "File Access",
+      "warning_code": 16,
+      "fingerprint": "088197f05cc1fbe65fb5f38fc93878d77cbd09b4ea0a9f2c0cedab56fb583f71",
+      "check_name": "SendFile",
+      "message": "Parameter value used in file name",
+      "file": "app/controllers/message_threads/bulk/exports_controller.rb",
+      "line": 11,
+      "link": "https://brakemanscanner.org/docs/warning_types/file_access/",
+      "code": "send_file(policy_scope(Export).find((params[:id] or params[:export_id])).storage_path, :type => \"application/x-zip-compressed\", :disposition => :download)",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "MessageThreads::Bulk::ExportsController",
+        "method": "show"
+      },
+      "user_input": "params[:export_id]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Dynamic Render Path",
+      "warning_code": 15,
+      "fingerprint": "0d7a447e47382893b06895c67cb02fc7084b4904e795f2488049b4083d5ef829",
+      "check_name": "Render",
+      "message": "Render path contains parameter value",
+      "file": "app/views/admin/tags/show.html.erb",
+      "line": 6,
+      "link": "https://brakemanscanner.org/docs/warning_types/dynamic_render_path/",
+      "code": "render(action => policy_scope([:admin, Tag]).find(params[:id]), {})",
+      "render_path": [
+        {
+          "type": "controller",
+          "class": "Admin::TagsController",
+          "method": "show",
+          "line": 16,
+          "file": "app/controllers/admin/tags_controller.rb",
+          "rendered": {
+            "name": "admin/tags/show",
+            "file": "app/views/admin/tags/show.html.erb"
+          }
+        }
+      ],
+      "location": {
+        "type": "template",
+        "template": "admin/tags/show"
+      },
+      "user_input": "params[:id]",
+      "confidence": "Weak",
+      "cwe_id": [
+        22
+      ],
+      "note": ""
+    },
+    {
+      "warning_type": "Command Injection",
+      "warning_code": 14,
+      "fingerprint": "fe57f090ca3980a1ef5fd94f8a3634bb41c543d20c13d72dd32409eef5e433f4",
+      "check_name": "Execute",
+      "message": "Possible command injection",
+      "file": "app/models/concerns/pdf_visualization_operations.rb",
+      "line": 29,
+      "link": "https://brakemanscanner.org/docs/warning_types/command_injection/",
+      "code": "system(\"fop -xml #{Tempfile.new(\"#{id}.xml\").path} -c #{(Rails.root + \"config/apache_fop/fop.xconf\")} -xsl #{Tempfile.new(\"#{id}.fo.xsl\").path} -pdf #{Tempfile.new(\"#{id}.pdf\").path}\")",
+      "render_path": null,
+      "location": {
+        "type": "method",
+        "class": "PdfVisualizationOperations",
+        "method": "prepare_pdf_visualization_from_template"
+      },
+      "user_input": "Tempfile.new(\"#{id}.xml\").path",
+      "confidence": "Medium",
+      "cwe_id": [
+        77
+      ],
+      "note": ""
+    }
+  ],
+  "brakeman_version": "7.0.2"
+}

@@ -1,0 +1,2 @@
+class AvmBadEncryptionKeyError < StandardError
+end

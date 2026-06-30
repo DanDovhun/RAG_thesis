@@ -72,7 +72,7 @@ file_types = {
     ".md", ".pdf", ".yaml", ".html", ".txt", ".rb", ".java", ".json",
     ".go", ".php", ".js", ".tx", ".cs", ".cshtml", ".csv", ".groovy", ".bat", ".sh",
 }
-dataset_dir = Path("submodules")
+dataset_dir = Path("part_1ter")
 
 # Natural-language prose formats — translation candidates. Source code and
 # structured/tabular formats (.json, .yaml, .csv, .java, ...) are excluded
@@ -200,6 +200,9 @@ class OpenAIDocumentEmbedder:
                 response = self.client.embeddings.create(input=batch, model=self.model_id)
                 embeddings.extend(e.embedding for e in sorted(response.data, key=lambda x: x.index))
                 i += batch_size
+            except openai.RateLimitError:
+                log.warning("OpenAI rate limit (429) — waiting 10 s before retry")
+                time.sleep(10)
             except openai.BadRequestError:
                 if batch_size == 1:
                     raise
@@ -211,11 +214,11 @@ class OpenAIDocumentEmbedder:
 
 
 class RAGPipeline:
-    def __init__(self, model_configs: list[dict], submodules: list[str], translation_config: dict | None = None):
+    def __init__(self, model_configs: list[dict], translation_config: dict | None = None):
         self.model_configs = {cfg["name"]: cfg for cfg in model_configs}
         self.embedders: dict[str, SentenceTransformersDocumentEmbedder] = {}
         self.bm25_store: InMemoryDocumentStore | None = None
-        self.qdrant = QdrantClient(url=QDRANT_URL)
+        self.qdrant = QdrantClient(url=QDRANT_URL, timeout=60)
         self.splitter = DocumentSplitter(
             split_by="word", split_length=CHUNK_SIZE, split_overlap=CHUNK_OVERLAP
         )
@@ -489,12 +492,12 @@ def process_docs(args):
     translation_config = load_translation_config()
 
     if args.reset:
-        client = QdrantClient(url=QDRANT_URL)
+        client = QdrantClient(url=QDRANT_URL, timeout=60)
         for collection in client.get_collections().collections:
             log.info("Deleting collection: %s", collection.name)
             client.delete_collection(collection.name)
 
-    rag = RAGPipeline(model_configs, submodules, translation_config)
+    rag = RAGPipeline(model_configs, translation_config)
 
     files = [
         (filepath, get_file_metadata(filepath))

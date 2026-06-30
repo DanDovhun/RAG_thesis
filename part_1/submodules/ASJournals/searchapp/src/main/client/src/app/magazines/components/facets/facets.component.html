@@ -1,0 +1,19 @@
+<mat-accordion *ngIf="active" multi>
+  <mat-expansion-panel [expanded]="active" *ngFor="let facet of state.facets">
+    <mat-expansion-panel-header expandedHeight="48px" collapsedHeight="48px">
+      <strong>{{ 'magazines.' + facet.field | translate }}</strong>
+    </mat-expansion-panel-header>
+    <div *ngFor="let facetItem of facet.values" class="app-facet-item">
+      <a (click)="addFilter(facet.field, facetItem[0])">
+        <mat-icon class="app-mr-1">{{ state.isFacetUsed(facet.field, facetItem[0]) ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+         <ng-container *ngIf="facet.field === 'vydavatel'">
+          {{ editorName(facetItem[0]) }}
+         </ng-container>
+          <ng-container *ngIf="facet.field !== 'vydavatel'">
+          {{ facetItem[0] }}
+         </ng-container>
+          
+      </a>
+    </div>
+  </mat-expansion-panel>
+</mat-accordion>

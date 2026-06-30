@@ -1,0 +1,22 @@
+{
+  "name": "alto_processing",
+  "version": "1.0.0",
+  "description": "Toto prostředí slouží pro zpracování ALTO XML souborů z Kramerius systému a jejich převod na formátovaný text s podporou českých znaků.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@types/node": "^24.5.2",
+    "jsdom": "^27.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^21.1.7"
+  }
+}

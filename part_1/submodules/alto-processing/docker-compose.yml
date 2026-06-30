@@ -1,0 +1,11 @@
+services:
+  alto-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./agents:/app/agents
+      - ./config:/app/config

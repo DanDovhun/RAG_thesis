@@ -1,0 +1,9 @@
+<% content_for :title, build_journey_page_title(@journey) %>
+<% content_for :headerline, @journey.title %>
+<% content_for :description, sanitize_description(@journey.description) %>
+
+<% if @journey.blank? %>
+  <%= render partial: 'journeys/blank', locals: {journey: @journey}%>
+<% else %>
+  <%= render partial: 'journeys/published', locals: {journey: @journey}%>
+<% end %>

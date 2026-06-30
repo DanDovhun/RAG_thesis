@@ -1,0 +1,165 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+ssd_main_general_finance:
+  message_thread: ssd_main_general
+  tag: ssd_finance
+
+ssd_main_general_legal:
+  message_thread: ssd_main_general
+  tag: ssd_legal
+
+ssd_main_general_external:
+  message_thread: ssd_main_general
+  tag: ssd_external
+
+ssd_main_general_other:
+  message_thread: ssd_main_general
+  tag: ssd_other
+
+ssd_main_general_everything:
+  message_thread: ssd_main_general
+  tag: ssd_everything
+
+ssd_main_issue_finance:
+  message_thread: ssd_main_issue
+  tag: ssd_finance
+
+ssd_main_issue_hidden:
+  message_thread: ssd_main_issue
+  tag: ssd_hidden
+
+ssd_main_issue_archived:
+  message_thread: ssd_main_issue
+  tag: ssd_archived
+
+ssd_main_delivery_everything:
+  message_thread: ssd_main_delivery
+  tag: ssd_everything
+
+ssd_main_done_done:
+  message_thread: ssd_main_done
+  tag: ssd_done
+
+ssd_main_draft_only_everything:
+  message_thread: ssd_main_draft_only
+  tag: ssd_everything
+
+ssd_main_draft_only_other:
+  message_thread: ssd_main_draft_only
+  tag: ssd_other
+
+ssd_main_draft_only_finance:
+  message_thread: ssd_main_draft_only
+  tag: ssd_finance
+
+ssd_main_draft_to_be_signed_everything:
+  message_thread: ssd_main_draft_to_be_signed
+  tag: ssd_everything
+
+ssd_main_draft_to_be_signed_finance:
+  message_thread: ssd_main_draft_to_be_signed
+  tag: ssd_finance
+
+ssd_main_draft_to_be_signed_ssd_signature_requested:
+  message_thread: ssd_main_draft_to_be_signed
+  tag: ssd_signature_requested
+
+ssd_main_draft_to_be_signed_ssd_signer_user_signature_requested:
+  message_thread: ssd_main_draft_to_be_signed
+  tag: ssd_signer_user_signature_requested
+
+ssd_main_draft_to_be_signed_ssd_signer_user_signed:
+  message_thread: ssd_main_draft_to_be_signed
+  tag: ssd_signer_user_signed
+
+ssd_main_draft_to_be_signed_ssd_signed:
+  message_thread: ssd_main_draft_to_be_signed
+  tag: ssd_signed
+
+ssd_main_draft_to_be_signed_ssd_submitted:
+  message_thread: ssd_main_draft_to_be_signed
+  tag: ssd_submitted
+
+ssd_main_draft_to_be_signed2_finance:
+  message_thread: ssd_main_draft_to_be_signed2
+  tag: ssd_finance
+
+ssd_main_draft_to_be_signed2_legal:
+  message_thread: ssd_main_draft_to_be_signed2
+  tag: ssd_legal
+
+ssd_main_draft_to_be_signed2_external:
+  message_thread: ssd_main_draft_to_be_signed2
+  tag: ssd_external
+
+ssd_main_draft_to_be_signed2_other:
+  message_thread: ssd_main_draft_to_be_signed2
+  tag: ssd_other
+
+ssd_main_draft_to_be_signed2_everything:
+  message_thread: ssd_main_draft_to_be_signed2
+  tag: ssd_everything
+
+ssd_main_draft_to_be_signed2_ssd_signature_requested:
+  message_thread: ssd_main_draft_to_be_signed2
+  tag: ssd_signature_requested
+
+ssd_main_draft_to_be_signed2_ssd_signer_user_signature_requested:
+  message_thread: ssd_main_draft_to_be_signed2
+  tag: ssd_signer_user_signature_requested
+
+ssd_main_draft_to_be_signed3_everything:
+  message_thread: ssd_main_draft_to_be_signed3
+  tag: ssd_everything
+
+ssd_main_draft_to_be_signed3_finance:
+  message_thread: ssd_main_draft_to_be_signed3
+  tag: ssd_finance
+
+ssd_main_draft_to_be_signed3_ssd_signature_requested:
+  message_thread: ssd_main_draft_to_be_signed3
+  tag: ssd_signature_requested
+
+ssd_main_draft_to_be_signed3_ssd_signer2_signature_requested:
+  message_thread: ssd_main_draft_to_be_signed3
+  tag: ssd_signer_user2_signature_requested
+
+ssd_main_draft_to_be_signed3_ssd_signers_signature_requested:
+  message_thread: ssd_main_draft_to_be_signed3
+  tag: ssd_signers_signature_requested
+
+ssd_main_draft_to_be_signed4_everything:
+  message_thread: ssd_main_draft_to_be_signed4
+  tag: ssd_everything
+
+ssd_main_draft_to_be_signed4_finance:
+  message_thread: ssd_main_draft_to_be_signed4
+  tag: ssd_finance
+
+ssd_main_draft_to_be_signed4_ssd_signature_requested:
+  message_thread: ssd_main_draft_to_be_signed4
+  tag: ssd_signature_requested
+
+ssd_main_draft_to_be_signed4_ssd_signers_signature_requested:
+  message_thread: ssd_main_draft_to_be_signed4
+  tag: ssd_signers_signature_requested
+
+ssd_main_empty_draft_ssd_basic_user_drafts:
+  message_thread: ssd_main_empty_draft
+  tag: ssd_basic_user_drafts
+
+fs_accountants_outbox_everything:
+  message_thread: fs_accountants_multiple_api_connections_thread1
+  tag: accountants_everything
+
+ssd_main_draft_to_be_signed_author:
+  message_thread: ssd_main_draft_to_be_signed
+  tag: ssd_basic_user_authors
+
+fs_accountants_multiple_api_connections_thread1_author:
+  message_thread: fs_accountants_multiple_api_connections_thread1
+  tag: accountants_basic_user_authors
+
+fs_accountants_draft_uzmujv14_with_attachment_author:
+  message_thread: fs_accountants_draft_uzmujv14_with_attachment
+  tag: accountants_basic_user_authors

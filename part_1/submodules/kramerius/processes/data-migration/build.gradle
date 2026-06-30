@@ -1,0 +1,7 @@
+
+
+dependencies {
+    implementation project(':shared:common')
+    implementation project(':processes:import')
+    implementation "org.ceskaexpedice:process-api:${processapiversion}"
+}

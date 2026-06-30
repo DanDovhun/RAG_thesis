@@ -1,0 +1,19 @@
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    depends_on:
+      - alto-web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+      # Let’s Encrypt certs – mount host path with generated certs
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      # Optional: serve ACME HTTP-01 challenge files from host
+      - /var/www/certbot/.well-known:/var/www/certbot/.well-known:ro
+    restart: unless-stopped
+
+  # Disable direct host port mapping on alto-web; Nginx terminates traffic.
+  alto-web:
+    ports: []

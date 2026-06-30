@@ -1,0 +1,9 @@
+.mat-mdc-card {
+  &:not(.app-alert) {
+    flex: 1 1 350px;
+    box-sizing: border-box;
+    max-width: 350px;
+    min-width: 350px;
+    padding-top: 16px;
+  }
+}

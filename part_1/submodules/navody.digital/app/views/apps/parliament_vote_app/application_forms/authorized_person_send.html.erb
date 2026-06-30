@@ -1,0 +1,38 @@
+<%= content_for :title, build_page_title('Zaslanie žiadosti', 'Parlamentné voľby') %>
+<%= content_for(:headerline, 'Parlamentné voľby') %>
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-xl">Pošlite žiadosť na úrad</h1>
+
+    <div>
+      <% if @application_form.municipality_email.present? %>
+        <p class="govuk-body-l">Otvorte
+        <%= mail_to @application_form.municipality_email, 'pripravenú žiadosť v emailovom klientovi'.html_safe,
+          target: '_blank',
+          body: @application_form.from_slovakia_authorized_person_email_body,
+          subject: 'Žiadosť o hlasovací preukaz do parlamentných volieb.'
+        %>
+        alebo ju manuálne skopírujte a odošlite na emailovú adresu obce:
+        <%= mail_to @application_form.municipality_email, @application_form.municipality_email %>
+        </p>
+      <% else %>
+        <p class="govuk-body-l">Skopírujte text žiadosti a pošlite ho na emailovú adresu obce.</p>
+      <% end %>
+    </div>
+    <div class="govuk-form-group">
+      <textarea onclick="this.focus();this.select();" rows="8" class="govuk-textarea"><%= @application_form.from_slovakia_authorized_person_email_body %></textarea>
+    </div>
+
+    <%= render 'municipality_email_warning' %>
+
+    <div class="govuk-checkboxes__item">
+      <input class="govuk-checkboxes__input" id="waste" name="waste" type="checkbox" value="carcasses" onchange="document.getElementById('nextButton').disabled = !this.checked;">
+      <label class="govuk-label govuk-checkboxes__label" for="waste">Poslal/a som žiadosť na úrad</label>
+    </div>
+
+    <%= form_with url: end_apps_parliament_vote_app_application_forms_url, method: :get, local: true do |form| %>
+      <%= form.submit 'Pokračovať', id: 'nextButton', class: 'govuk-button govuk-!-margin-top-5', disabled: true %>
+    <% end %>
+  </div>
+</div>

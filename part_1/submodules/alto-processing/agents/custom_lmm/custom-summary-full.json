@@ -1,0 +1,28 @@
+{
+  "name": "custom-summary-full",
+  "display_name": "custom-summary-full",
+  "prompt": "Dostaneš text celé stránky. Stručně shrň hlavní obsah do 2-3 vět. Výstup vrať jako prostý text bez formátování, bez HTML a bez metadat. Ignoruj <note> bloky.",
+  "temperature": 0.3,
+  "top_p": 1.0,
+  "model": "openrouter/google/gemini-2.5-flash",
+  "reasoning_effort": "",
+  "settings": {
+    "defaults": {
+      "temperature": 0.3,
+      "top_p": 1.0,
+      "reasoning_effort": "low"
+    },
+    "per_model": {
+      "openrouter/openai/gpt-4.1-mini": {
+        "temperature": 0.3,
+        "top_p": 1.0
+      },
+      "openrouter/google/gemini-2.5-flash": {
+        "temperature": 0.3,
+        "top_p": 1.0
+      }
+    }
+  },
+  "collection": "custom_lmm",
+  "updated_at": 1765185712.004246
+}

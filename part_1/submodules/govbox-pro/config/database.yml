@@ -1,0 +1,22 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 50
+
+development:
+  <<: *default
+  url: <%= ENV['DATABASE_URL'] %>
+  database: govbox_pro_development
+
+test:
+  <<: *default
+  url: <%= ENV['DATABASE_URL'] %>
+  database: govbox_pro_test
+
+staging:
+  url: <%= ENV['DATABASE_URL'] %>
+  pool: 30
+
+production:
+  url: <%= ENV['DATABASE_URL'] %>
+  pool: 50

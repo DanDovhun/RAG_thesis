@@ -1,0 +1,29 @@
+default: &default
+  google:
+    client_id: <%= ENV.fetch('GOOGLE_CLIENT_ID', nil) %>
+    client_secret: <%= ENV.fetch('GOOGLE_CLIENT_SECRET', nil) %>
+
+  brevo:
+    api_key: <%= ENV.fetch('BREVO_API_KEY', nil) %>
+
+  eid:
+    base_url: <%= ENV.fetch('AUTH_EID_BASE_URL', nil) %>
+    public_key: <%= ENV.fetch('AUTH_EID_PUBLIC_KEY', nil).inspect %>
+    private_key: <%= ENV.fetch('AUTH_EID_PRIVATE_KEY', nil).inspect %>
+    
+  altcha:
+    hmac_key: <%= ENV.fetch('ALTCHA_HMAC_KEY', nil) %>
+    
+development:
+  <<: *default
+
+test:
+  <<: *default
+  brevo:
+    api_key: ''
+
+staging:
+  <<: *default
+
+production:
+  <<: *default

@@ -1,0 +1,31 @@
+<div class="app-page-wrapper">
+  <div class="app-container">
+    <div class="app-fxLayout app-row app-fill app-mobile">
+      <div class="app-left app-mr-8">
+        <img [src]="state.imgSrc" onerror="this.src='assets/img/thumb-no-image.png'" [title]="" class="app-mb-2"
+        routerLink="../home" queryParamsHandling="preserve" />
+        <button mat-stroked-button color="primary" class="app-db app-w-100" routerLink="../archiv" queryParamsHandling="preserve" ><mat-icon>inventory</mat-icon>{{'ARCHIV STARŠÍCH ROČNÍKŮ' | translate }}</button>      
+      </div>
+      <div class="app-right app-fxFlex" *ngIf="actual">
+        <div *ngIf="actual">
+          <h1><app-journal-details [journal]="actual"></app-journal-details></h1>
+          <!-- <button mat-flat-button color="primary" class="app-mb-6" (click)="gotoArticle()"><mat-icon>menu_book</mat-icon>Prohlizet</button> -->
+        </div>
+        <ng-container *ngIf="!state.currentMagazine.sortByOrder">
+          <ng-container *ngFor="let genre of actual.genres">
+            <div *ngIf="actual.genresObject[genre].visible">
+              <h2 class="app-headline">{{'genre.' + genre | translate}}</h2>
+              <app-article-result class="app-item" *ngFor="let art of actual.genresObject[genre].articles" [article]="art"></app-article-result>
+              <mat-divider></mat-divider>
+            </div>
+          </ng-container>
+        </ng-container>
+        <div *ngIf="state.currentMagazine.sortByOrder" class="app-items-wrapper">
+          <ng-container *ngFor="let art of actual.articles">
+            <app-article-result *ngIf="!isHiddenByGenre(art['genre'])" [article]="art"></app-article-result>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

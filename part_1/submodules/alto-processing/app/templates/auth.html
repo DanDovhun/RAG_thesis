@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }} – přístup</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #e8f0ff, #f6f7fb);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: white;
+            padding: 32px 28px;
+            border-radius: 18px;
+            box-shadow: 0 18px 48px rgba(18, 38, 63, 0.12);
+            width: min(420px, 92vw);
+        }
+        h1 {
+            margin: 0 0 10px;
+            font-size: 22px;
+            color: #0f172a;
+        }
+        p {
+            margin: 0 0 20px;
+            color: #475569;
+            line-height: 1.5;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+        input[type="password"],
+        input[type="text"],
+        button {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        input[type="password"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+        button {
+            margin-top: 16px;
+            border: none;
+            background: #2563eb;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+        button:hover { background: #1d4ed8; }
+        button:active { transform: translateY(1px); }
+        .error {
+            margin-top: 12px;
+            padding: 10px 12px;
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecdd3;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <h1>Přístup k {{ app_name }}</h1>
+        <p>Zadej společný přístupový kód.</p>
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        <form method="post" action="/auth" autocomplete="off">
+            <label for="token">Přístupový kód</label>
+            <input type="password" id="token" name="token" required autofocus>
+            <button type="submit">Pokračovat</button>
+        </form>
+    </main>
+</body>
+</html>

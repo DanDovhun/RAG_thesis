@@ -1,0 +1,153 @@
+description "Common Kramerius library"
+
+sourceSets {
+    main {
+    	    resources {
+    	    	    srcDir 'src/main/java'
+    	    }
+    }
+}
+
+configurations {
+    testImplementation {
+        exclude group: 'com.sun.jersey', module: 'jersey-core'
+        exclude group: 'com.sun.jersey', module: 'jersey-server'
+        exclude group: 'com.sun.jersey', module: 'jersey-client'
+        exclude group: 'com.sun.jersey', module: 'jersey-json'
+        exclude group: 'com.sun.jersey', module: 'jersey-servlet'
+    }
+}
+
+dependencies {
+    implementation "org.ceskaexpedice:hazelcast-locks-server:${hazelcastversion}"
+
+    api "org.ceskaexpedice:akubra:${akubraversion}"
+
+//    api project(':processes:import-jaxb')
+    // Nullable annotation
+    api 'com.google.code.findbugs:jsr305:1.3.9'
+    api 'javax.servlet:servlet-api:2.5'
+    api 'org.json:json:20140107'
+    api 'commons-codec:commons-codec:1.5'
+    //api 'org.apache.pdfbox:pdfbox:2.0.26'
+    api 'org.apache.pdfbox:pdfbox:2.0.32'
+	 
+    api 'org.apache.pdfbox:jbig2-imageio:3.0.4'
+    api 'com.ibm.icu:icu4j:56.1'
+    api 'com.google.guava:guava:31.0.1-jre'
+    api 'org.bouncycastle:bcprov-jdk15on:1.68'
+    api 'org.bouncycastle:bcmail-jdk15on:1.68'
+
+    api 'org.apache.solr:solr-solrj:6.2.1'
+    //api 'org.apache.solr:solr-solrj:9.5.0'
+
+    //java 11
+    api 'com.zaxxer:HikariCP:5.0.1'
+    //java 8
+    //api 'com.zaxxer:HikariCP:4.0.3'
+
+
+    api "javax.mail:mail:1.4.1"
+    api "com.google.gwt:gwt-servlet:2.4.0"
+    api "commons-io:commons-io:2.3"
+    api "commons-codec:commons-codec:1.5"
+    api ("com.lowagie:itext:2.1.7"){exclude group: 'bouncycastle'}
+
+    //implementation 'com.itextpdf:itext7-core:7.2.5'
+
+    api "org.antlr:stringtemplate:3.2.1"
+
+    api 'fast-md5:fast-md5:2.5'
+
+    api group:'internal', name:"djvuframe-0.8.09"
+    api group:'internal', name:"javadjvu-0.8.09"
+
+    api "commons-configuration:commons-configuration:1.10"
+    api "org.apache.commons:commons-lang3:3.5"
+
+    api group: 'org.apache.commons', name: 'commons-pool2', version: '2.4.2'
+
+    api group: 'javax.media', name: 'jai_codec', version: '1.1.3'
+
+    api module(group:'internal',name:"jai_imageio-1.1") {
+        dependencies name:"jai_core-1.1.3"
+    }
+
+    api "commons-dbcp:commons-dbcp:1.4"
+    api "net.sf.json-lib:json-lib:2.3:jdk15"
+
+    //api 'javax.ws.rs:jsr311-api:1.1.1'
+
+    api "com.sun.jersey:jersey-server:${jerseyversion}"
+    api "com.sun.jersey:jersey-servlet:${jerseyversion}"
+    api "com.sun.jersey:jersey-json:${jerseyversion}"
+
+    api 'com.sun.jersey.contribs:jersey-multipart:1.19.4'
+    api "com.sun.jersey.contribs:jersey-guice:${jerseyversion}"
+
+    api "com.sun.jersey:jersey-client:${jerseyversion}"
+    api "com.sun.jersey.contribs:jersey-apache-client:${jerseyversion}"
+
+
+    // for audio support 
+    api 'org.ehcache:ehcache:3.3.0'
+    //api 'org.apache.httpcomponents:httpclient:4.3.2'
+    // https://mvnrepository.com/artifact/org.apache.httpcomponents.client5/httpclient5
+    api 'org.apache.httpcomponents.client5:httpclient5:5.3.1'
+
+
+    api "org.keycloak:keycloak-admin-client:${keycloakversion}"
+
+    //java 11
+    //api 'com.zaxxer:HikariCP:5.0.1'
+    //java 8
+    api 'com.zaxxer:HikariCP:4.0.3'
+
+    //
+    //api group: 'org.fcrepo.client', name: 'fcrepo-java-client', version: '0.3.0'
+
+    // dependencies in maven profile
+    api "xmlunit:xmlunit:1.3"
+
+    testImplementation 'org.hamcrest:hamcrest-core:1.3'
+    //testImplementation 'org.apache.solr:solr-core:6.3.0'
+    testImplementation 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-grizzly2:2.39'
+    testImplementation 'org.glassfish.jersey.inject:jersey-hk2:2.39'
+    testImplementation 'org.mockito:mockito-core:5.14.2'
+    testImplementation 'org.mockito:mockito-inline:5.2.0'
+
+    api'net.jcip:jcip-annotations:1.0'
+
+	api('nl.siegmann.epublib:epublib-core:3.1') {
+            exclude group: 'org.slf4j'
+            exclude group: 'xmlpull'
+    }
+
+    
+    api "com.maxmind.geoip2:geoip2:4.0.1"
+
+    //dom4j
+    api 'jaxen:jaxen:1.2.0'
+    api 'org.dom4j:dom4j:2.1.1'
+
+    //https://github.com/google/gson
+    api 'com.google.code.gson:gson:2.8.6'
+
+}
+
+/** processing index rebuild */
+if (project.hasProperty('REBUILDPROCESSING')) {
+	
+	apply plugin: 'application'	
+
+	tasks.withType(CreateStartScripts).each { task ->
+		task.doLast {
+			String text = task.windowsScript.text
+			text = text.replaceFirst(/(set CLASSPATH=%APP_HOME%\\lib\\).*/, { "${it[1]}*" })
+			task.windowsScript.write text
+		}
+	}
+
+	mainClassName = "cz.incad.kramerius.resourceindex.ProcessingIndexRebuild"
+}
+

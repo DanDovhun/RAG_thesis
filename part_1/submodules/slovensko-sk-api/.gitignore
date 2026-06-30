@@ -1,0 +1,10 @@
+.idea
+.bundle
+.opensource
+
+*.local
+
+/log/*
+/tmp/*
+
+/security/*

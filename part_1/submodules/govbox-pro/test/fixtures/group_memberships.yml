@@ -1,0 +1,69 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+ssd_basic_basic_user:
+  user: basic
+  group: ssd_basic_user
+
+ssd_basic_two_basic_two_user:
+  user: basic_two
+  group: ssd_basic_two_user
+
+ssd_admin_admin_user:
+  user: admin
+  group: ssd_admin_user
+
+ssd_basic_all:
+  user: basic
+  group: ssd_all
+
+ssd_admin_admin:
+  user: admin
+  group: ssd_admins
+
+ssd_signer_all:
+  user: ssd_signer
+  group: ssd_all
+
+ssd_signer2_all:
+  user: ssd_signer2
+  group: ssd_all
+
+ssd_signer_user_ssd_signer_user:
+  user: ssd_signer
+  group: ssd_signer_user
+
+ssd_signer_user_ssd_signer_user2:
+  user: ssd_signer2
+  group: ssd_signer_user2
+
+ssd_signers_ssd_signer:
+  user: ssd_signer
+  group: ssd_signers
+
+ssd_signers_ssd_signer2:
+  user: ssd_signer2
+  group: ssd_signers
+
+solver_other_user_other_user:
+  user: solver_other
+  group: solver_other_user
+
+accountants_basic_user:
+  user: accountants_basic
+  group: accountants_basic_user
+
+accountants_admin_basic_user:
+  user: accountants_basic
+  group: accountants_admins
+
+ssd_all_notification_user:
+  user: notification_user
+  group: ssd_basic_user
+
+accountants_user2_membership:
+  user: accountants_user2
+  group: accountants_user2_group
+
+accountants_user4_membership:
+  user: accountants_user4
+  group: accountants_user4_group

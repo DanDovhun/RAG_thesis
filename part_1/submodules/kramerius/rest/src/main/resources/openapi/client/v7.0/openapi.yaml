@@ -1,0 +1,1706 @@
+openapi: 3.0.2
+info:
+  title: Klientské API v systému Kramerius
+  description: |
+    Popis je platný k verzi 7.0.38 a vyšší. Kramerius obsahuje REST API, které umožňuje všechny operace nad systémem.  Standardně je dostupné na nainstalovaném serveru pod kontextem: `~/search/api/client/v7.0*`.  
+    Primárně určeno pro získávání a zobrazování dat pro koncové klienty ([Web klient](https://github.com/ceskaexpedice/kramerius-web-client), [mobilní-klient](https://play.google.com/store/apps/details?id=cz.mzk.kramerius.app), atd..)    
+    
+  version: "7.0"
+
+servers:
+  - url: /search/api/client/v7.0
+
+tags:
+  
+  - name: Informace o titulu
+    description: >
+      Všechny informace vztažené k titulu:  *Hledání*, *Informace pro zobrazení*, *Struktura titulu*, *metadata*,  *dotazy na OCR*, *obrazová i audio data*, *Informace specifické pro model - kolekce*
+      
+  - name: Informace o uživateli
+    description: Všechny inforamce a operace s uživatelem 
+    
+  - name: Uživatelské seznamy
+    description: Operace s uživatelskými seznamy 
+      
+  - name: Exkluzivní zámky
+    description: Manipulace s exkluzivními zámky
+
+  - name: Obecné informace
+    description: Obecné informace o systému
+
+  - name: UIConfig
+    description: >
+      Výpis klientske konfigurace
+
+paths:
+  # Vyhledavani v solru 
+  /search:
+    get:
+      tags:
+        - Informace o titulu
+
+      summary: Vyhledávání titulů
+      description: |
+        Vyhledávání je umožněno prostřednictvím endpointu, který slouží jako proxy do vyhledávacího enginu Solr. Přebírá všechny parametry, validuje je a následně je posílá na vyhledávací server Solr. Z odpovědi jsou filtrována data typu TEXT_OCR a posílána zpět na klienta. Možné parametry jsou všechny, které akceptuje vyhledávací engine Solr. Dokumentace je k nalezení [zde](https://solr.apache.org/guide/solr/latest/query-guide/query-syntax-and-parsers.html). Popis jednotlivých indexovaných polí je k nalezení [zde](https://github.com/ceskaexpedice/kramerius/blob/master/installation/solr-9.x/search/conf/managed-schema). V definici jsou uvedeny pouze ty nejdůležitější.
+      operationId: searching
+
+      parameters:
+        - in: query
+          name: q
+          description: Samotný dotaz do solru
+          schema:
+            type: string
+          required: true
+
+        - in: query
+          name: fl
+          description: Seznam polí ve výsledku
+          schema:
+            type: string
+          required: false
+
+        - in: query
+          name: fq
+          description: Filter query
+          schema:
+            type: array
+            items:
+                type: string
+          required: false
+
+        - in: query
+          name: sort
+          description: Pole pro třídění
+          schema:
+            type: string
+          required: false
+
+        - in: query
+          name: start
+          description: Počet dokumentů od kterých se má vracet výsledek
+          schema:
+            type: integer
+          required: false
+
+        - in: query
+          name: rows
+          description: Počet dokumentů v odpovědi
+          schema:
+            type: integer
+          required: false
+
+        - in: query
+          name: facet
+          description: Faseting
+          schema:
+            type: boolean
+          required: false
+
+        - in: query
+          name: facet.field
+          description: Pole pro fasetování
+          schema:
+            type: string
+          required: false
+
+        - in: query
+          name: facet.mincount
+          description: Minimální počet výsledků ve fasetu
+          schema:
+            type: integer
+          required: false
+        
+
+        - in: query
+          name: wt
+          schema:
+            type: string
+            enum: ["xml","json"]
+          required: false
+
+      responses:
+        '200':
+          description: Standardní výstup ze Solru. JSON nebo XML
+          content:
+            application/json:
+              schema:
+                type: string
+              example: {
+                  "response": {
+                    "docs": [
+                      {
+                        "root.pid": "uuid:cb955d70-e04f-11e5-ac59-005056825209",
+                        "titles.search": [
+                          "Acta Universitatis Carolinae. Philosophica et historica. Miscellanea logica",
+                          "Philosophica et historica",
+                          "Miscellanea logica",
+                          "Consequence, inference, structure VII (2008)",
+                          "Foundations of logic VIII (2010)"
+                        ],
+                        "id_ccnb": [
+                          "cnb000326959"
+                        ],
+                        "accessibility": "private",
+                        "date_range_start.year": 1998,
+                        "pid": "uuid:cb955d70-e04f-11e5-ac59-005056825209",
+                        "publication_places.facet": [
+                          "Xr",
+                          "Praha"
+                        ],
+                        "publishers.search": [
+                          "Karolinum"
+                        ],
+                        "licenses.facet": [
+                          "dnntt",
+                          "dnnto"
+                        ],
+                        "physical_locations.facet": [
+                          "BOA001"
+                        ],
+                        "part.name": "Philosophica et historica. Miscellanea logica",
+                        "id_barcode": [
+                          "2610406819"
+                        ],
+                        "id_urnnbn": [
+                          "urn:nbn:cz:mzk-004kw1"
+                        ],
+                        "pid_paths": [
+                          "uuid:cb955d70-e04f-11e5-ac59-005056825209"
+                        ],
+                        "root.model": "periodical",
+                        "id_issn": [
+                          "0567-8293"
+                        ],
+                        "modified": "2023-07-07T09:37:51.103Z",
+                        "model": "periodical",
+                        "date.min": "1998-01-01T00:00:00.001Z",
+                        "id_uuid": [
+                          "cb955d70-e04f-11e5-ac59-005056825209"
+                        ],
+                        "keywords.facet": [
+                          "Logika",
+                          "Logic"
+                        ],
+                        "has_tiles": false,
+                        "title.search": "Acta Universitatis Carolinae. Philosophica et historica. Miscellanea logica",
+                        "root.title.sort": "ACTA UNIVERSITATIS CAROLINAE PHILOSOPHICA ET HISTORICA MISCELLANEA LOGICA",
+                        "indexer_version": 19,
+                        "authors.facet": [
+                          "Univerzita Karlova"
+                        ],
+                        "root.title": "Acta Universitatis Carolinae. Philosophica et historica. Miscellanea logica",
+                        "indexed": "2024-03-02T21:33:18.759Z",
+                        "level": 0,
+                        "created": "2016-03-02T09:42:15.829Z",
+                        "own_model_path": "periodical",
+                        "authors.search": [
+                          "Univerzita Karlova"
+                        ],
+                        "languages.facet": [
+                          "slo",
+                          "cze",
+                          "eng"
+                        ],
+                        "date.max": "9999-12-31T23:59:59.999Z",
+                        "title.sort": "ACTA UNIVERSITATIS CAROLINAE PHILOSOPHICA ET HISTORICA MISCELLANEA LOGICA",
+                        "id_oclc": [
+                          "85013992"
+                        ],
+                        "publishers.facet": [
+                          "Karolinum"
+                        ],
+                        "date_range_end.year": 9999,
+                        "contains_licenses": [
+                          "dnnto",
+                          "dnntt"
+                        ],
+                        "_version_": 1.7924517703691796e+18,
+                        "shelf_locators": [
+                          "2-1043.440"
+                        ],
+                        "publication_places.search": [
+                          "xr",
+                          "Praha"
+                        ],
+                        "date.str": "1998-",
+                        "mdt": [
+                          "16"
+                        ],
+                        "keywords.search": [
+                          "logika",
+                          "logic"
+                        ],
+                        "own_pid_path": "uuid:cb955d70-e04f-11e5-ac59-005056825209",
+                        "authors": [
+                          "Univerzita Karlova"
+                        ]
+                      }
+                    ],
+                    "numFound": 1,
+                    "start": 0,
+                    "numFoundExact": true
+                  },
+                  "responseHeader": {
+                    "QTime": 2,
+                    "params": {
+                      "q": "pid:\"uuid:cb955d70-e04f-11e5-ac59-005056825209\"",
+                      "wt": "json"
+                    },
+                    "status": 0
+                  }}
+                
+        '400':
+          description: Chybný dotaz
+
+  # Dotazy na obecne informace
+  /items/{pid}:
+    head:
+      tags:
+        - Informace o titulu 
+      summary: Kontrolní endpoint pro titul 
+      description: Umožňuje získat informace o titulu    
+      operationId: exist
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Objekt existuje a uživatel má oprávnění na daný objekt
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen
+
+  # Informace o objektu        
+  /items/{pid}/info:
+    get:
+      tags:
+        - Informace o titulu
+      summary: Informace o objektu pro zobrazení
+      description: Informace o objektu pro zobrazení, typ zobrazení, licence, dle které se pid poskytnul
+      operationId: info
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID
+      responses:
+        '200':
+          description: Informace o zobrazení
+          content:
+            application/json:
+              schema:
+                type: string
+              example: {
+                  "image": {
+                    "type": "tiles"
+                  },
+                  "providedByLicenses": [],
+                  "data": {
+                    "image": {
+                      "preview": true,
+                      "thumb": true,
+                      "full": true
+                    },
+                    "metadata": {
+                      "mods": true,
+                      "dc": true
+                    },
+                    "audio": {
+                      "mp3": false,
+                      "wav": false,
+                      "ogg": false
+                    },
+                    "ocr": {
+                      "text": true,
+                      "alto": true
+                    }
+                  },
+                  "accessibleLocks": []
+                }  
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen
+          
+  
+  
+  # Informace o poskytovaných licencích pro konkrétního uživatele (určeno JWT tokenem)         
+  /items/{pid}/info/image:
+    get:
+      tags:
+        - Informace o titulu
+      summary: Informace o způsobu zobrazení dat (dlaždice, obrázek, audio atd.) 
+      description: Informace o způsobu zobrazení dat.
+      operationId: getImageInfo
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Úspěšné získání informací o způsobu zobrazení dat (dlaždice, obrázek, audio apod.).
+          content:
+            application/json:
+              schema:
+                type: string
+              example: {"type":"tiles"}
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen
+  
+  # Informace o poskytovaných licencích pro konkrétního uživatele (určeno JWT tokenem)         
+  /items/{pid}/info/providedByLicenses:
+    get:
+      tags:
+        - Informace o titulu
+      summary: Informace o licenci, podle které je dílo poskytnuto
+      description: Informace o licenci, podle které je dílo poskytnuto.
+      operationId: getProvidedByLicenses
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Úspěšné získání informací o licenci, pod kterou je dílo poskytováno.
+          content:
+            application/json:
+              schema:
+                type: string
+              example: {
+                    "licenses":[
+                        "onsite"
+                    ]
+                  }
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru.
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu.
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen.
+    
+  # Informace o struktuře        
+  /items/{pid}/info/structure:
+    get:
+      tags:
+        - Informace o titulu
+      summary: Informace o struktuře objektu pro zobrazení
+      description: Informace o struktuře, děti, rodiče, atd..
+      operationId: structure
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Úspěšné získání informací o strutuře
+          content:
+            application/json:
+              schema:
+                type: string
+              example: {
+                  "children": {
+                    "own": [
+                      {
+                        "pid": "uuid:99199751-78ac-11e9-8ed5-5ef3fc9ae867",
+                        "relation": "hasItem"
+                      },
+                      {
+                        "pid": "uuid:b7907e90-78b3-11e9-8ed5-5ef3fc9ae867",
+                        "relation": "hasItem"
+                      },
+                      {
+                        "pid": "uuid:4007de00-78b2-11e9-8ed5-5ef3fc9ae867",
+                        "relation": "hasItem"
+                      },
+                      {
+                        "pid": "uuid:92a99260-78ae-11e9-8ed5-5ef3fc9ae867",
+                        "relation": "hasItem"
+                      },
+                      {
+                        "pid": "uuid:68397770-78ae-11e9-8ed5-5ef3fc9ae867",
+                        "relation": "hasItem"
+                      }
+                    ],
+                    "foster": []
+                  },
+                  "model": "periodicalvolume",
+                  "parents": {
+                    "own": {
+                      "pid": "uuid:639726c0-22b6-11e4-8413-5ef3fc9ae867",
+                      "relation": "hasVolume"
+                    },
+                    "foster": []
+                   }
+                  }
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen
+
+  # informace o dostupných datastreamech - datech
+  /items/{pid}/info/data:
+    get:
+      tags:
+        - Informace o titulu
+      summary: Informace o dostupných datech/datastreams
+      description: Informace o dostupných datech/datastreams.
+      operationId: getDataAvailability
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Úspěšné získání informací o dostupných datech (obrázky, audio soubory, metadata atd.).
+          content:
+            application/json:
+              schema:
+                type: string
+              example: {
+                          "image": {
+                            "preview": true,
+                            "thumb": true,
+                            "full": true
+                          },
+                          "metadata": {
+                            "mods": true,
+                            "dc": true
+                          },
+                          "audio": {
+                            "mp3": false,
+                            "wav": false,
+                            "ogg": false
+                          },
+                          "ocr": {
+                            "text": true,
+                            "alto": true
+                          }
+                        }
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru.
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen.
+      
+
+  # Informace o metadatech        
+  /items/{pid}/metadata/dc:
+    head:
+      tags:
+        - Informace o titulu
+      summary: Dotaz na existenci metadat
+      description: Ziskani informace pro metadata 
+      operationId: dcMetadata
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Metadata jsou dostupná
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru.
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen.
+    get:
+      tags:
+        - Informace o titulu
+      summary: Získání metadat
+      description: Informace o objektu pro zobrazení, typ zobrazení, licence, dle které se pid poskytnul
+      operationId: getDcMetadata
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+
+      responses:
+        '200':
+          description: Úspěšné získání dc metadat
+          content:
+            application/xml:
+              schema:
+                type: string
+                xml:
+                    name: dc  
+                    namespace: "http://www.openarchives.org/OAI/2.0/oai_dc/"
+                    prefix: oai_dc
+              example: ... obsah dc streamu ...           
+
+
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru.
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen
+
+  # Informace o metadatech        
+  /items/{pid}/metadata/mods:
+    head:
+      tags:
+        - Informace o titulu
+      summary: Dotaz na existenci metadat
+      description: Ziskani informace pro metadata 
+      operationId: modsMetadata
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Metadata jsou dostupná
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru.
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen.
+    get:
+      tags:
+        - Informace o titulu
+      summary: Získání metadat
+      description: Informace o objektu pro zobrazení, typ zobrazení, licence, dle které se pid poskytnul
+      operationId: getModsMetadata
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+
+      responses:
+        '200':
+          description: Úspěšné získání dc metadat
+          content:
+            application/xml:
+              schema:
+                type: string
+                xml:
+                    name: modsCollection  
+                    namespace: "http://www.loc.gov/mods/v3"
+                    prefix: mods
+              example: ... obsah dc streamu ...           
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru.
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen
+
+
+  # Dotazy na ocr data       
+  /items/{pid}/ocr/text:
+    head:
+      tags:
+        - Informace o titulu
+      summary: Dotaz na existenci ocr dat v textové podobě
+      description: Dotaz na existenci ocr dat v textové podobě
+      operationId: hasTextOcr
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: OCR data jsou dostupná
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru.
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu.
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen.
+    get:
+      tags:
+        - Informace o titulu
+      summary: Získání OCR dat v textové podobě
+      description: Získání OCR dat v textové podobě
+      operationId: getTextOcr
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Úspěšné získání textových ocr dat
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: |
+                  Toto je příklad textového OCR obsahu.
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru.
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu.
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen.
+
+
+  # Dotazy na ocr data       
+  /items/{pid}/ocr/alto:
+    head:
+      tags:
+        - Informace o titulu
+      summary: Dotaz na existenci ocr dat v alto formátu
+      description: Dotaz na existenci ocr dat v alto formátu
+      operationId: hasAltotOcr
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: OCR data jsou dostupná
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru.
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu.
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen.
+    get:
+      tags:
+        - Informace o titulu
+      summary: Získání OCR dat v alto formátu
+      description: Získání OCR dat v alto formátu
+      operationId: getAltotOcr
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Úspěšné získání textových ocr dat
+          content:
+            application/xml:
+              schema:
+                type: string
+                xml:
+                    name: alto  
+                    namespace: "http://www.loc.gov/standards/alto/ns-v2#"
+                    prefix: alto
+              example: ... příklad alto streamu ...           
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru.
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu.
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen.
+
+
+  /items/{pid}/requests/{reqid}:
+    post:
+      tags:
+        - Uživatelské požadavky
+      summary: Naplánování nového požadavku pro PID
+      description: >
+        Endpoint slouží ke spuštění specifických operací (např. 'generate_pdf') nad daným objektem. 
+        Vytvoří proces v Process Manageru a připraví výstupní adresář v dočasném úložišti.
+      operationId: postRequest
+      parameters:
+        - in: path
+          name: pid
+          required: true
+          description: Identifikátor objektu (např. UUID)
+          schema:
+            type: string
+            example: "uuid:5f69fed8-6e54-40de-938e-14c34f745428"
+        - in: path
+          name: reqid
+          required: true
+          description: Typ požadavku (aktuálně podporováno "generate_pdf")
+          schema:
+            type: string
+            enum: [generate_pdf]
+            example: "generate_pdf"
+        - in: query
+          name: lang
+          example: "cs"
+          schema:
+            type: string
+            example: "cs"
+          description: Jazykova mutace pro prvni stranku
+      requestBody:
+        required: true
+        description: Definice parametrů pro daný proces
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                    type: string
+                    description: email pro notifikaci
+            example:
+              email: "some.email@example.com"
+
+      responses:
+        '200':
+          description: Požadavek byl úspěšně naplánován
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  processId:
+                    type: string
+                    description: ID vytvořeného procesu v Process Manageru
+                  output:
+                    type: string
+                    description: Cesta k vygenerovanému adresáři v systému
+              example:
+                processId: "12345"
+        '400':
+          description: Neplatný vstup (např. neznámý reqid nebo špatná data v reqDefinition)
+        '404':
+          description: Požadovaný objekt (PID) nebo profil nebyl nalezen
+        '500':
+          description: Interní chyba serveru nebo problém při komunikaci s Process Managerem
+
+  # Dotazy na obrazová data       
+  /items/{pid}/image:
+    head:
+      tags:
+        - Informace o titulu
+      summary: Dotaz na existenci obrazových dat
+      description: Dotaz na existenci obrazových dat
+      operationId: image
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Plný obraz je dostunpný
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen
+    get:
+      tags:
+        - Informace o titulu
+      summary: Získání plného skenu
+      description: Získání plného skenu
+      operationId: getImage
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Úspěšné získání  plného skenu
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru.
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu.t
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen.
+
+  # Dotazy malý náhled       
+  /items/{pid}/image/thumb:
+    get:
+      tags:
+        - Informace o titulu
+      summary: Získání malého náhledu
+      description: Získání malého náhledu
+      operationId: getImageThumb
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Úspěšné získání malého náhledu
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen
+
+  # Dotaz střední náhled       
+  /items/{pid}/image/preview:
+    get:
+      tags:
+        - Informace o titulu
+      summary: Získání středního náhledu
+      description: Získání středního náhledu
+      operationId: getImagePreview
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Úspěšné získání středního náhledu
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu.
+        '404':
+          description: Neexistence pidu
+
+  # Dotazy na audio data       
+  /items/{pid}/audio/{type}:
+    head:
+      tags:
+        - Informace o titulu
+      summary: Dotaz na existenci audio dat
+      description: Dotaz na existenci audio dat
+      operationId: audio
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+        - in: path
+          name: type
+          schema:
+            type: string
+            enum: 
+              - mp3
+              - wav
+              - ogg
+          required: true
+          description: Typ audio dat 
+      responses:
+        '200':
+          description: Audio data jsou dostupná 
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru.
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu
+        '404':
+          description: PID identifikátor neexistuje nebo nebyl nalezen.
+    get:
+      tags:
+        - Informace o titulu
+      summary: Získání audio dat
+      description: Získání audio dat
+      operationId: getAudio
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+
+        - in: path
+          name: type
+          schema:
+            type: string
+            enum: 
+              - mp3
+              - wav
+              - ogg
+          required: true
+          description: Typ audio dat 
+          
+      responses:
+        '200':
+          description: Úspěšný přístup na audio stream
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru
+        '403':
+          description: Uživatel nemá dostatečná oprávnění k přístupu k tomuto objektu
+        '404':
+          description:  PID identifikátor neexistuje nebo nebyl nalezen
+
+  # Dotaz specifický pro sbírku - získání výstřižků
+  /items/{pid}/collection/cuttings:
+    get:
+      tags:
+        - Informace o titulu
+      summary: Získání výstřižků
+      description: Získání výstřižků
+      operationId: getCuttings
+      parameters:
+        - in: path
+          name: pid
+          schema:
+            type: string
+          required: true
+          description: Identifikátor PID 
+      responses:
+        '200':
+          description: Úspěšné získání výstřižků
+          content:
+            application/json:
+              schema:
+                type: string
+                example: [
+                            {
+                                "name": "jmeno",
+                                "uuid": "2cdd2a8e-2e56-45d5-a50f-7423d74ce274",
+                                "itemsCount": 1,
+                                "users": [
+                                    [
+                                        {
+                                            "createdAt": "2024-02-08 14:38:30.874",
+                                            "userRole": "owner",
+                                            "userId": "xxx@mzk.cz"
+                                        }
+                                    ]
+                                ],
+                                "updatedAt": "2024-02-08 14:38:31.028612"
+                            },
+                            {
+                                "name": "K prezentaci",
+                                "uuid": "5c7e423f-ae3e-4b7c-9ce0-6536c879db34",
+                                "itemsCount": 13,
+                                "users": [
+                                    [
+                                        {
+                                            "createdAt": "2024-02-05 09:56:32.18",
+                                            "userRole": "follower",
+                                            "userId": "xxx@mzk.cz"
+                                        },
+                                        {
+                                            "createdAt": "2024-01-24 20:53:39.255",
+                                            "userRole": "owner",
+                                            "userId": "zzz@mzk.cz"
+                                        }
+                                    ]
+                                ],
+                                "updatedAt": "2024-02-07 16:12:07.719772"
+                            }
+                        ]          
+        '400':
+          description: Chybný formát nebo hodnota PID identifikátoru
+        '404':
+          description: "Neexitence výstřižků. Poznámka: V případě, že model není typu collection vrací vždy status 404"
+
+  # Dotaz na uživatele
+  /user:
+    get:
+      tags:
+        - Informace o uživateli
+      summary: Informace o uživateli. V případě přihlášených uživatelů (v dotazu je přítomen JWT token), pak jsou vidět informace o platnosti tokenu, o atributech, o přiřazené roli a licencích 
+      description: Informace o uživateli. V případě přihlášených uživatelů (v dotazu je přítomen JWT token), pak jsou vidět informace o platnosti tokenu, o atributech, o přiřazené roli a licencích 
+      operationId: getUserInfo
+      parameters:
+        - in: query
+          name: sessionAttributes
+          schema:
+            type: boolean
+          required: false
+          description: Navrácení runtime informaci - čas expirace tokenu, atributů získaných z keycloaku, atd.. 
+      responses:
+        '200':
+          description: Úspěšné získání informací o uživateli ve formátu JSON
+          content:
+            application/json:
+              schema:
+                type: string
+              example: {
+                  "uid": "xxx@mzk.cz",
+                  "authenticated": true,
+                  "licenses": [
+                      "mzk_public-muo",
+                      "mzk_public-contract",
+                      "public",
+                      "dnnto"
+                  ],
+                  "session": {
+                      "eduPersonEntitlement": "urn:mace:dir:entitlement:common-lib-terms",
+                      "eduPersonScopedAffiliation": "[member@mzk.cz]",
+                      "token_id": "ee60372a-bc5e-4651-a81f-7d3829273c55",
+                      "displayName": "Test Testovic",
+                      "expiration_time": "1727809076",
+                      "eduPersonPrincipalName": "xxx@mzk.cz",
+                      "eduPersonUniqueId": "xxx@mzk.cz",
+                      "expires_in": "10801",
+                      "preffered_user_name": "204f1520147d1ac0de3f78b0ac6c2f19bebcca65c6146548d7aa3216106051fb._6ad3c10d03e0fee55dc0f3c69414f0a3b342fd646d",
+                      "email": "xxx@mzk.cz",
+                      "authentication_time": "1727798275"
+                  },
+                  "roles": [
+                      "common_users",
+                      "default-roles-kramerius",
+                      "dnnt_users",
+                      "offline_access",
+                      "uma_authorization"
+                  ],
+                  "name": "Test Testovic",
+                  "email": "xxx@mzk.cz"
+              }
+  # Dotaz na uživatele a povolene akce
+  /user/actions:
+    get:
+      tags:
+        - Informace o uživateli
+      summary: Informace o povolených akcích pro auktuálně přihlášeného uživatele.  
+      description: Informace o uživateli. V případě přihlášených uživatelů (v dotazu je přítomen JWT token), pak jsou vidět informace o platnosti tokenu, o atributech, o přiřazené roli a licencích 
+      operationId: getUserInfoActions
+      parameters:
+        - in: query
+          name: pid
+          schema:
+            type: string
+          required: false
+          description: Povolené akce ke konkrétnímu pidu. Pokud není uvedene, bere se za to že se jedná o uuid:1 - identifikátor celého repozitáře"
+      responses:
+        '200':
+          description: Úspěšné získání povolených akcí pro konkrétní objekt
+          content:
+            application/json:
+              schema:
+                type: string
+              example: {
+                  "actions": [
+                    "a_pdf_read",
+                    "a_statistics",
+                    "a_export_statistics"
+                  ]
+                }          
+        '401':
+            description: Nepřihlášený uživatel
+        
+  # Informace o systému
+  /info:
+    get:
+      tags:
+        - Obecné informace
+      summary: Obecné informace o systému 
+      description: Obecné informace o systému 
+      operationId: getInfo
+      responses:
+        '200':
+          description: Úspěšné získání informací o systému ve formě JSON
+          content:
+            application/json:
+              schema:
+                type: string
+              example: {
+                      "rightMsg": {
+                        "cs": "Tento dokument není veřejně přístupný.",
+                        "en": "This document is not public"
+                      },
+                      "instance": {
+                        "registr": "https://registr.digitalniknihovna.cz/library/mzk",
+                        "acronym": "mzk"
+                      },
+                      "pdfMaxRange": "80",
+                      "version": "7.0.38-dev",
+                      "indexerVersion": 19,
+                      "hash": "38afc320e39ecdfd3c1fca378ddc67a0f8208758"
+                    }
+        '401':
+            description: Nepřihlášený uživatel
+
+
+  # Uživatelské seznamy
+  /folders:
+    get:
+      tags:
+        - Uživatelské seznamy
+      summary: Získání uživatelských seznamů pro přihlášeného uživatele 
+      description: Získání uživatelských seznamů pro přihlášeného uživatele 
+      operationId: getFolders
+      responses:
+        '200':
+          description: Úspěšné získání uživatelských seznamů
+          content:
+            application/json:
+              schema:
+                type: string
+              example: [
+                        {
+                            "name": "jmeno",
+                            "uuid": "2cdd2a8e-2e56-45d5-a50f-7423d74ce274",
+                            "itemsCount": 1,
+                            "users": [
+                                [
+                                    {
+                                        "createdAt": "2024-02-08 14:38:30.874",
+                                        "userRole": "owner",
+                                        "userId": "xxx@mzk.cz"
+                                    }
+                                ]
+                            ],
+                            "updatedAt": "2024-02-08 14:38:31.028612"
+                        },
+                        {
+                            "name": "K prezentaci",
+                            "uuid": "5c7e423f-ae3e-4b7c-9ce0-6536c879db34",
+                            "itemsCount": 13,
+                            "users": [
+                                [
+                                    {
+                                        "createdAt": "2024-02-05 09:56:32.18",
+                                        "userRole": "follower",
+                                        "userId": "xxx@mzk.cz"
+                                    },
+                                    {
+                                        "createdAt": "2024-01-24 20:53:39.255",
+                                        "userRole": "owner",
+                                        "userId": "zzz@mzk.cz"
+                                    }
+                                ]
+                            ],
+                            "updatedAt": "2024-02-07 16:12:07.719772"
+                        }
+                    ]
+        '401':
+            description: Nepřihlášený uživatel
+    post:
+      tags:
+        - Uživatelské seznamy
+      summary:  Vytvoření nového uživatelského systému 
+      description: Vytvaření nového uživatelského seznamu 
+      operationId: createFolder
+      requestBody:
+        description: Název nového seznamu, který má být vytvořen.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "NovySeznam"
+      responses:
+        '201':
+          description: Úspěšně vytvořený nový seznam.
+          content:
+            application/json:
+              schema:
+                type: string
+              example: {
+                    "name": "NovySeznam",
+                    "uuid": "b5d56622-8d1f-417f-a667-07bcf9547621",
+                    "itemsCount": 0,
+                    "users": [
+                        [
+                            {
+                                "createdAt": "2024-08-21 11:04:22.421",
+                                "userRole": "owner",
+                                "userId": "xxxx@mzk.cz"
+                            }
+                        ]
+                    ],
+                    "updatedAt": "2024-08-21 11:04:22.421"
+                }
+        '401':
+            description: Nepřihlášený uživatel
+                
+  # Informace o systému
+  /folders/{uuid}:
+    get:
+      tags:
+        - Uživatelské seznamy
+      summary:  Změna vlastností  uživatelského seznamu
+      description:  Změna vlastností  uživatelského seznamu
+      operationId: getFolder
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: Jedinečný identifikátor seznamu
+          schema:
+            type: string
+            example: "b5d56622-8d1f-417f-a667-07bcf9547621"
+      responses:  
+          '200':
+              description: Úspěšně získaný obsah seznamu.
+              content:
+                application/json:
+                  schema:
+                    type: string
+                  example: {
+                        "name": "NovySeznam",
+                        "uuid": "b5d56622-8d1f-417f-a667-07bcf9547621",
+                        "itemsCount": 0,
+                        "users": [
+                            [
+                                {
+                                    "createdAt": "2024-08-21 11:04:22.421",
+                                    "userRole": "owner",
+                                    "userId": "xxxx@mzk.cz"
+                                }
+                            ]
+                        ],
+                        "updatedAt": "2024-08-21 11:04:22.421"
+                    }
+          '401':
+                description: Nepřihlášený uživatel
+
+    put:
+      tags:
+        - Uživatelské seznamy
+      summary:  Změna vlastností  uživatelského seznamu
+      description:  Změna vlastností  uživatelského seznamu
+      operationId: updateFolder
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: Jedinečný identifikátor seznamu
+          schema:
+            type: string
+            example: "b5d56622-8d1f-417f-a667-07bcf9547621"
+      requestBody:
+        description: Aktualizovaný obsah seznamu, včetně názvu a seznamu uživatelů.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Aktualizovaný název seznamu.
+                  example: "NovySeznam"
+                users:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      userRole:
+                        type: string
+                        description: Role uživatele v seznamu.
+                        example: "owner"
+                      userId:
+                        type: string
+                        description: Jedinečný identifikátor uživatele 
+                        example: "xxxx@mzk.cz"
+      responses:
+          '200':
+              description: Úspěšně vytvořený nový seznam.
+              content:
+                application/json:
+                  schema:
+                    type: string
+                  example: {
+                        "name": "NovySeznam",
+                        "uuid": "b5d56622-8d1f-417f-a667-07bcf9547621",
+                        "itemsCount": 0,
+                        "users": [
+                            [
+                                {
+                                    "createdAt": "2024-08-21 11:04:22.421",
+                                    "userRole": "owner",
+                                    "userId": "xxxx@mzk.cz"
+                                }
+                            ]
+                        ],
+                        "updatedAt": "2024-08-21 11:04:22.421"
+                    }
+          '401':
+                description: Nepřihlášený uživatel
+
+    delete:
+      tags:
+        - Uživatelské seznamy
+      summary:  Smazání uživatelského seznamu
+      description:  Smazání uživatelského seznamu
+      operationId: deleteFolder
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: Jedinečný identifikátor seznamu.
+          schema:
+            type: string
+            example: "b5d56622-8d1f-417f-a667-07bcf9547621"
+      responses:
+          '200':
+              description: Úspěšně smazaný seznam.
+          '401':
+                description: Nepřihlášený uživatel
+          '403':
+                description: Volající není vlastník seznamu
+            
+
+  # Informace o systému
+  /folders/{uuid}/items:
+    put:
+      tags:
+        - Uživatelské seznamy
+      summary:  Přidání/obrání položek v uživatelském seznamu
+      description:  Přidání/obrání položek v uživatelském seznamu
+      operationId: updateFolderItems
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: Jedinečný identifikátor seznamu
+          schema:
+            type: string
+            example: "b5d56622-8d1f-417f-a667-07bcf9547621"
+      requestBody:
+        description: Aktualizovaný obsah seznamu, včetně názvu a seznamu uživatelů.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: string
+                    example: "uuid:7aebc9bf-b139-436d-a638-d47c745edf76"
+      responses:
+          '200':
+              description: Úspěšně přidány a odebrány položky ze seznamu.
+              content:
+                application/json:
+                  schema:
+                    type: string
+                  example: {
+                        "name": "NovySeznam",
+                        "uuid": "b5d56622-8d1f-417f-a667-07bcf9547621",
+                        "itemsCount": 1,
+                        "items":[
+                            "uuid:7aebc9bf-b139-436d-a638-d47c745edf76"
+                        ],
+                        "users": [
+                            [
+                                {
+                                    "createdAt": "2024-08-21 11:04:22.421",
+                                    "userRole": "owner",
+                                    "userId": "xxxx@mzk.cz"
+                                }
+                            ]
+                        ],
+                        "updatedAt": "2024-08-21 11:04:22.421"
+                    }
+          '401':
+                description: Nepřihlášený uživatel
+
+  # Exkluzivni zamky 
+  /locks/{hash}:
+    get:
+      tags:
+        - Exkluzivní zámky
+      summary:  Vrací informace o přiděleném (exkluzivním zámku)[https://github.com/ceskaexpedice/kramerius/wiki/Licence#z%C3%A1mky-u-licenc%C3%AD] pro daného uživatele.
+      description:  Vrací informace o přiděleném (exkluzivním zámku)[https://github.com/ceskaexpedice/kramerius/wiki/Licence#z%C3%A1mky-u-licenc%C3%AD] pro daného uživatele.
+      operationId: getExclusiveLock
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          description: Hash zámku
+          schema:
+            type: string
+            example: "b5d56622"
+      responses:
+          '200':
+              description: Úspěšně získané informace o zámku
+              content:
+                application/json:
+                  schema:
+                    type: string
+                  example: {
+                        "maxTime": "2024-08-21T15:29:15.592705Z",
+                        "refreshedTime": "2024-08-21T12:42:35.592705Z",
+                        "tokenId": "02427359-3ddf-4094-ab61-4311def413c1",
+                        "refreshInterval": 20,
+                        "createdTime": "2024-08-21T12:42:35.592705Z",
+                        "username": "krameriusadmin"
+                    }
+          '404':
+                description: Neexistující zámek nebo volající není vlastníkem zámku
+
+    delete:
+      tags:
+        - Exkluzivní zámky
+      summary:  Uvolnění exkluzivního zámku
+      description:  Uvolnění exkluzivního zámku
+      operationId: deleteExclusiveLock
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          description: Hash zámku
+          schema:
+            type: string
+            example: "b5d56622"
+      responses:
+          '200':
+              description: Úspěšně uvolnění zámku
+          '404':
+                description: Neexistující zámek nebo zámek patřicí jinému uživateli
+  
+  # Exkluzivni zamky 
+  /locks/{hash}/refresh:
+    get:
+      tags:
+        - Exkluzivní zámky
+      summary:  Získání informace o zámku s aktivním zaznamenáním, že je zámek používán. Podmínkou je, že uživatel musí být přihlášený, musí mít zámek aktivní.
+      description:  Získání informace o zámku s aktivním zaznamenáním, že je zámek používán. Podmínkou je, že uživatel musí být přihlášený, musí mít zámek aktivní.
+      operationId: getAndRefreshExclusiveLock
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          description: Hash zámku
+          schema:
+            type: string
+            example: "b5d56622"
+      responses:
+          '200':
+              description: Úspěšně získané informace o zámku
+              content:
+                application/json:
+                  schema:
+                    type: string
+                  example: {
+                        "maxTime": "2024-08-21T15:29:15.592705Z",
+                        "refreshedTime": "2024-08-21T12:42:35.592705Z",
+                        "tokenId": "02427359-3ddf-4094-ab61-4311def413c1",
+                        "refreshInterval": 20,
+                        "createdTime": "2024-08-21T12:42:35.592705Z",
+                        "username": "krameriusadmin"
+                    }
+          '404':
+                description: Neexistující zámek nebo volající není vlastníkem zámku
+
+  /ui-config/general:
+    get:
+      tags:
+        - UIConfig
+      summary: Vrací JSON vseobecnou konfiguraci klienta
+      description: Vrací JSON vseobecnou konfiguraci klienta
+      responses:
+        '200':
+          description: JSON reprezentace vseobecne konfigurace
+          content:
+            application/json:
+              schema:
+                type: string
+                example: {
+                  "share_url": "https://kramerius.lib.cas.cz/uuid/${UUID}",
+                  "ga4": "G-3DSV45X30Q",
+                  "ga4clientId": "kramerius.lib.cas.cz",
+                  "enablePeriodicalVolumesYearsLayout": false,
+                  "enablePeriodicalIsssuesCalendarLayout": false,
+                  "defaultPeriodicalVolumesLayout": "grid",
+                  "defaultPeriodicalIssuesLayout": "grid",
+                  "publicFilterDefault": false,
+                  "bigHomeLogo": false,
+                  "hideHomeTitle": false
+                }
+        '403':
+          description: Uživatel nemá oprávnění k požadované akci
+        '404':
+          description: UI config neexistuje
+
+  /ui-config/licenses:
+    get:
+      tags:
+        - UIConfig
+      summary: Vrací JSON konfiguraci klienta tykajici se licenci
+      description: Vrací JSON konfiguraci klienta tykajici se licenci
+      responses:
+        '200':
+          description: JSON reprezentace konfigurace licenci
+          content:
+            application/json:
+              schema:
+                type: string
+                example: {
+                  "public": {
+                    "access": "open",
+                    "label": {
+                      "cs": "Volna dila",
+                      "en": "Public domain"
+                    },
+                    "message": {
+                      "cs": "/assets/shared/licences/public.cs.html",
+                      "en": "/assets/shared/licences/public.en.html"
+                    },
+                    "instruction": {
+                      "cs": "/assets/shared/licences/public.instruction.cs.html",
+                      "en": "/assets/shared/licences/public.instruction.en.html"
+                    }
+                  },
+                  "orphan": {
+                    "access": "open",
+                    "label": {
+                      "cs": "Osirela dila",
+                      "en": "Orphan works"
+                    },
+                    "message": {
+                      "cs": "/assets/shared/licences/orphan.cs.html",
+                      "en": "/assets/shared/licences/orphan.en.html"
+                    },
+                    "instruction": {
+                      "cs": "/assets/shared/licences/orphan.instruction.cs.html",
+                      "en": "/assets/shared/licences/orphan.instruction.en.html"
+                    }
+                  }
+                }
+        '403':
+          description: Uživatel nemá oprávnění k požadované akci
+        '404':
+          description: UI config neexistuje
+
+  /ui-config/curator-lists:
+    get:
+      tags:
+        - UIConfig
+      summary: Vrací JSON konfiguraci klienta tykajici se kuratorskych seznamu
+      description: Vrací JSON konfiguraci klienta tykajici se kuratorskych seznamu
+      responses:
+        '200':
+          description: JSON reprezentace konfigurace licenci
+          content:
+            application/json:
+              schema:
+                type: string
+                example: [
+                  {
+                    "cs": "Casopisy Akademie ved CSR",
+                    "en": "Journals of the Czech Academy of Sciences",
+                    "content": [
+                      "uuid:694b7069-9b46-46a9-8665-2b1ea226172c",
+                      "uuid:b7c97808-0502-4246-bd07-88108d461626",
+                      "uuid:c82a1017-48e1-11e1-9389-005056a60003"
+                    ]
+                  },
+                  {
+                    "cs": "Vybrane sbirky",
+                    "en": "Selected collections",
+                    "content": [
+                      "uuid:30d8c0e8-4e26-4453-83c7-d38a4e178805",
+                      "uuid:175f7bc8-e51b-4fb3-b737-cfd7f3f2a43b",
+                      "uuid:314bf0c1-9863-442e-8439-b3fe1cec88ae"
+                    ]
+                  }
+                ]
+        '403':
+          description: Uživatel nemá oprávnění k požadované akci
+        '404':
+          description: UI config neexistuje
+
+  # Uzivatelske pozadavky
+  /userrequests/requests/{reqid}:
+    get:
+      tags:
+        - Uživatelské požadavky
+      summary: Získání informace o stavu uživatelského požadvaku / procesu
+      description:  Získání informace o stavu uživatelského požadvaku / procesu
+      operationId: getUserRequest
+      parameters:
+        - name: reqid
+          in: path
+          required: true
+          description: ID požadavku
+          schema:
+            type: string
+            example: "b5d56622"
+      responses:
+        '200':
+          description: Úspěšné získání procesu
+          content:
+            application/json:
+              schema:
+                type: string
+              example: {
+                "owner": "111@some.org",
+                "workerId": "publicworker",
+                "processId": "1ff59c3a-9cf5-47e5-834d-5d002b76552a",
+                "payload": {
+                  "roles": "common_users",
+                  "pid": "uuid:9cd57b03-0797-4e8f-90cb-6987dd633034",
+                  "providedByLicense": "special-needs",
+                  "locale": "und",
+                  "user": "111@some.org"
+                },
+                "profileId": "special_needs_pdf",
+                "description": "Main process for the profile special_needs_pdf",
+                "pid": 35252,
+                "started": 1770253964637,
+                "finished": 1770253973502,
+                "planned": 1770253962058,
+                "batchId": "1ff59c3a-9cf5-47e5-834d-5d002b76552a",
+                "status": "FINISHED"
+              }
+        '404':
+          description: Neexistujici požadavek
+
+  /userrequests/userspace/{token}:
+    get:
+      tags:
+        - Uživatelské požadavky
+      summary:  Získání uživatlských dat
+      description: ⚠️ Swagger UI nepodporuje streamované stahování velkých souborů.  Použijte přímý URL nebo curl.
+      operationId: getUserFile
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: Token pro získání dat
+          schema:
+            type: string
+            example: "b5d56622"
+      responses:
+        '200':
+          description: Ziska soubor
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Neexistujici soubor
+

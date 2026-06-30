@@ -8,16 +8,17 @@ qdrant_url = "http://localhost:6333/"
 snapshots_root = Path("snapshots")
 snapshots_root.mkdir(parents=True, exist_ok=True)
 
-timestamp = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
-download_path = snapshots_root / timestamp
-#download_path.mkdir(parents=True, exist_ok=True)
-
 client = QdrantClient(url=qdrant_url)
 
 collections = requests.get(qdrant_url + "collections").json().get("result").get("collections")
 for coll in collections:
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H_%M_%S_%f")
+    download_path = snapshots_root / timestamp
+    #download_path.mkdir(parents=True, exist_ok=True)
+
     collection = coll.get("name")
     snapshot = client.create_snapshot(collection_name=collection)
+
     print(snapshot)
     print(f"{qdrant_url}collections/{collection}/snapshots/{snapshot}")
     response = requests.get(

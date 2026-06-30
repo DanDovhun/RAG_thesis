@@ -1,0 +1,26 @@
+<%= form_with model: @upvs_submission, url: upvs_submission_submit_path(@upvs_submission), method: 'POST', id: :new_message, builder: AppFormBuilder do |f| %>
+  <h1 class="govuk-heading-l"><%= @upvs_submission.title %></h1>
+  <p class="govuk-body-l">Pripravené na odoslanie.</p>
+
+  <%= render 'components/error_summary', form: @upvs_submission %>
+  <%= render partial: 'sender' %>
+
+  <div class="govuk-form-group">
+    <%= f.label :recipient_name, 'Príjimateľ správy', class: 'govuk-label' %>
+    <%= f.text_field :recipient_name, disabled: true %>
+    <div id="recipient-name-container"></div>
+  </div>
+
+  <div id="iframe-wrapper">
+    <iframe id="iframe"  srcdoc="<%= raw @upvs_submission.form_visualisation %>"
+      onload="(
+        function() {
+          $('#iframe-wrapper').height( $('#iframe').contents().outerHeight() + 2 );
+        }
+        (this)
+      )">
+    </iframe>
+  </div>
+
+  <%= render partial: 'actions' %>
+<% end %>

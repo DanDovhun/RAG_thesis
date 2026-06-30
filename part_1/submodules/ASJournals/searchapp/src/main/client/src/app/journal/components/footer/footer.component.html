@@ -1,0 +1,17 @@
+<footer *ngIf="!state.isFull">
+  <div class="app-fxLayout app-row app-container">
+    <div *ngIf="foot" class="app-fxFlex app-left">
+      <span [innerHtml]="foot" name="text"></span>
+    </div>
+    <div *ngIf="!foot" class="app-fxFlex app-left">
+      © {{ currentYear }} Knihovna AV ČR, v. v. i.
+    </div>
+    <div class="app-right">
+      <!-- Created by 
+      <a href="http://www.inovatika.cz" title="Inovatika" target="_blank">
+        <img src="assets/img/logo-inovatika.png" alt="Inovatika" class="app-logo-inovatika" />
+      </a> -->
+      <a href="https://lib.cas.cz/databaze-a-katalogy/as-journals/" title="Knihovnou AV ČR" target="_blank">ASJournals – řešení Knihovny AV ČR</a>
+    </div>
+  </div>
+</footer>

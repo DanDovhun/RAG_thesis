@@ -1,0 +1,25 @@
+description "Import tools"
+
+def osName = System.getProperty('os.name').toLowerCase()
+def compilerName = osName.contains('win') ? 'javac.exe' : 'javac'
+compileJava {
+    // This only works when forking and passing 'javac' as an executable
+    options.compilerArgs << '-XDignore.symbol.file'    
+    options.fork = true
+    options.forkOptions.executable = "${System.properties['java.home']}/bin/${compilerName}"
+}
+
+dependencies {
+    api project(':shared:common')
+
+    //api project(':processes:import-jaxb')
+    api project(':processes:import-jaxb-periodical')
+    api project(':processes:import-jaxb-monograph')
+
+
+    api 'commons-codec:commons-codec:1.5'
+    api 'org.safehaus.jug:jug:2.0.0:lgpl@jar'
+}
+
+
+

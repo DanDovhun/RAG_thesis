@@ -1,0 +1,77 @@
+<%= form_with model: @submission, id: dom_id(@submission), html: { novalidate: true } do |f| %>
+  <%= f.hidden_field :callback_url %>
+  <%= f.hidden_field :callback_step_path %>
+  <%= f.hidden_field :callback_step_status %>
+  <%= f.hidden_field :raw_extra %>
+
+  <% @submission.subscription_types.each do |type| %>
+    <%= f.hidden_field :subscription_types, { multiple: true, value: type } %>
+  <% end %>
+
+  <% if @submission.attachments.any? %>
+    <p class="govuk-body">
+      Pripravené súbory tohto podania si môžete teraz stiahnuť alebo Vám ich zašleme na email s ďalšími inštrukciami.
+    </p>
+    <% @submission.attachments.each do |attachment| %>
+      <%= hidden_field_tag 'submission[attachments[]filename]', attachment['filename'] %>
+      <%= hidden_field_tag 'submission[attachments[]body_base64]', attachment['body_base64'] %>
+    <% end %>
+  <% end %>
+
+  <div class="govuk-form-group<%= @submission.errors[:selected_subscription_types].any? ? ' govuk-form-group--error' : nil %>">
+    <% @submission.errors[:selected_subscription_types].each do |error| %>
+      <span class="govuk-error-message"><%= error %></span>
+    <% end %>
+    <div class="govuk-checkboxes">
+      <% valid_types = @submission.subscription_types.select {|type| NotificationSubscription::TYPES[type] } %>
+      <% primary_types, secondary_types = valid_types.partition { |type| NotificationSubscription::TYPES[type][:on_submission_job] } %>
+      <% primary_types, secondary_types = secondary_types, [] if primary_types.empty? %>
+
+      <% primary_types.each_with_index do |type, index| %>
+        <% subscription = NotificationSubscription::TYPES[type] %>
+        <div class="govuk-checkboxes__item">
+          <%= f.check_box :selected_subscription_types, { multiple: true, class: 'govuk-checkboxes__input', id: "subscription_#{index}" }, type, nil %>
+          <%= f.label index, subscription[:label], class: 'govuk-label govuk-checkboxes__label govuk-label--s', for: "subscription_#{index}" %>
+          <span class="govuk-hint govuk-checkboxes__hint"><%= subscription[:hint] %></span>
+        </div>
+      <% end %>
+    </div>
+    <% if secondary_types.length > 0 %>
+      <h4 class="govuk-heading-m govuk-!-margin-top-9">Mohlo by Vás tiež zaujímať</h4>
+      <div class="govuk-checkboxes govuk-checkboxes--small">
+        <% secondary_types.each.with_index(primary_types.length) do |type, index| %>
+          <% subscription = NotificationSubscription::TYPES[type] %>
+          <div class="govuk-checkboxes__item">
+            <%= f.check_box :selected_subscription_types, { multiple: true, class: 'govuk-checkboxes__input', id: "subscription_#{index}" }, type, nil %>
+            <%= f.label index, subscription[:label], class: 'govuk-label govuk-checkboxes__label govuk-label--s', for: "subscription_#{index}" %>
+            <span class="govuk-hint govuk-checkboxes__hint"><%= subscription[:hint] %></span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <% if !current_user.logged_in? || current_user.email != @submission.email %>
+    <div class="govuk-form-group<%= @submission.errors[:email].any? ? ' govuk-form-group--error' : nil %>">
+      <%= f.label :email, 'Emailová adresa', class: 'govuk-label' %>
+      <% @submission.errors[:email].each do |error| %>
+        <span class="govuk-error-message"><%= error %></span>
+      <% end %>
+      <% if @submission.errors[:email].any? %>
+        <%= f.email_field :email, class: 'govuk-input govuk-input--width-20 govuk-input--error', autocomplete: :email %>
+      <% else %>
+        <%= f.email_field :email, class: 'govuk-input govuk-input--width-20', autocomplete: :email %>
+      <% end %>
+    </div>
+  <% else %>
+    <%= f.hidden_field :email %>
+  <% end %>
+
+
+  <p class="govuk-body">
+    <%= f.submit 'Chcem takéto emaily a ísť ďalej', class: 'govuk-button' %>
+    <%= f.button 'Súbory chcem len stiahnuť', class: 'govuk-button govuk-link', name: :skip_subscribe %>
+  </p>
+<% end %>
+
+<%= javascript_include_tag 'submission_analytics.js', 'data-turbolinks-track': 'reload' %>

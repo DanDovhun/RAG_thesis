@@ -1,0 +1,69 @@
+/** template for import processes */
+group processes;
+
+/** === TREE RENDERING === */
+
+/** one tree item */
+treeNode(item) ::=<<
+    $if(item.leaf)$
+
+    <li id="$item.id$"><a href="#">$item.itemName$</a></li>
+
+    $else$
+    <li id="$item.id$">
+    <a href="#">$item.itemName$</a>
+    $tree(root=item)$
+    </li>
+    $endif$
+
+>>
+
+
+/** tree */
+tree(root) ::=<<
+    <ul>
+        $root.children:{item|$treeNode(item=item)$}$ 
+    </ul>
+>>
+
+/** tree - js initialization */
+makeJSTree(treeRoot, bindfunction) ::=<<
+        \$(function () {
+            \$("#$treeRoot$").jstree({ 
+                "plugins" : [ "themes", "html_data", "ui" ]
+            })
+            .bind("select_node.jstree", function (event, data) { 
+                var p = data.rslt.obj.attr("id");
+                $(bindfunction)()$;
+            });
+        });
+>>
+
+
+/** === FORMS' PARTS TEMPLATES === */
+
+/** other settings */
+importFedoraNoIndexer() ::=<<
+<fieldset style="margin-top:10px;border: 1px solid gray;">
+    <legend style="border:none">$bundle.("k3replication.othersettings.fields")$</legend>
+    <input type="checkbox" id="importToFedora" name="importToFedora" value="importToFedora" checked>$bundle.("k3replication.importtofedora")$</input>
+    <input type="checkbox" id="startIndexer" name="startIndexer" value="indexer">$bundle.("k3replication.indexerstart")$</input>
+</fieldset>
+>>
+
+importFedoraStartIndexer() ::=<<
+<fieldset style="margin-top:10px;border: 1px solid gray;">
+    <legend style="border:none">$bundle.("k3replication.othersettings.fields")$</legend>
+    <input type="checkbox" id="importToFedora" name="importToFedora" value="importToFedora" checked>$bundle.("k3replication.importtofedora")$</input>
+    <input type="checkbox" id="startIndexer" name="startIndexer" value="indexer" checked>$bundle.("k3replication.indexerstart")$</input>
+</fieldset>
+>>
+
+
+noFedoraNoIndexer() ::=<<
+<fieldset style="margin-top:10px;border: 1px solid gray;">
+    <legend style="border:none">$bundle.("k3replication.othersettings.fields")$</legend>
+    <input type="checkbox" id="importToFedora" name="importToFedora" value="importToFedora">$bundle.("k3replication.importtofedora")$</input>
+    <input type="checkbox" id="startIndexer" name="startIndexer" value="indexer" disabled="disabled">$bundle.("k3replication.indexerstart")$</input>
+</fieldset>
+>>

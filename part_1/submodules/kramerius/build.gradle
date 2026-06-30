@@ -1,0 +1,472 @@
+/*
+ * Copyright (C) 2014 Pavel Stastny
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <`http://www.gnu.org/licenses/>.
+ */
+
+/*plugins {
+    id 'com.gradle.build-scan' version '1.0'
+}
+
+
+
+
+buildScan {
+    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
+    licenseAgree = 'yes'
+}*/
+
+
+plugins {
+    id 'com.google.cloud.tools.jib' version '3.4.4' apply false
+}
+
+if (!hasProperty('buildProfile')) ext.buildProfile = 'docker'  //supported profiles: dist, docker
+
+apply from: "profile-${buildProfile}.gradle"
+
+apply plugin: 'java' // -> generate javadoc
+println "Building K7; please read BUILD-README.txt"
+
+configurations {
+    /**
+     * Contains external editors
+     */
+    editors {
+        transitive = false
+    }
+}
+
+
+/*
+configurations.all {
+    exclude module: 'slf4j-log4j12'
+}*/
+
+
+/*
+if(JavaVersion.current() != JavaVersion.VERSION_1_8){
+   println JavaVersion.current()
+   throw new GradleException("This build must be run with java 8")
+}*/
+
+dependencies {
+    // editor dependency
+    // editors group: "cz.incad.kramerius", name: "editor", version: "5.1.1", ext: "war"
+    // rightseditor dependency
+    //editors group: "cz.incad.kramerius", name: "rightseditor", version: "5.1.1", ext: "war"
+}
+
+
+
+repositories {
+    mavenLocal()
+}
+
+
+
+/**
+ * Inject to all subprojects
+ */
+allprojects {
+
+
+    apply plugin:'java'
+    apply plugin:'java-library'
+    apply plugin: 'eclipse'
+    apply plugin: 'maven-publish'
+
+
+    compileJava.options.encoding = 'UTF-8'
+    compileTestJava.options.encoding = 'UTF-8'
+
+    ext.guiceversion ='6.0.0'
+
+    ext.postgresversion = '42.3.9'
+    ext.slf4jversion='1.7.35'
+    //ext.slf4jversion='2.0.16'
+    ext.logbackclassicversion='1.4.14'
+
+    //ext.jerseyversion = '1.17.1'
+    ext.jerseyversion = '1.19.4'
+    ext.keycloakversion = '20.0.2' 
+
+    ext.hazelcastversion='2.0'
+    ext.akubraversion='1.7'
+    ext.processapiversion='1.5'
+
+    ext.generatedSources = "generated-sources"
+
+
+    configurations {
+        database
+    }
+
+    dependencies {
+        // postgresql to all subprojects
+        api "org.postgresql:postgresql:${postgresversion}"
+        database "org.postgresql:postgresql:${postgresversion}"
+
+        // guice to all subprojects
+       
+  	    api ("com.google.inject:guice:${guiceversion}") {exclude group: 'com.google.guava', module: 'guava'}
+        api ("com.google.inject.extensions:guice-servlet:${guiceversion}"){exclude group: 'com.google.guava', module: 'guava'}
+        api "com.google.inject.extensions:guice-assistedinject:${guiceversion}"
+        api "javax.inject:javax.inject:1"
+
+        //JAXB
+        api "javax.xml.bind:jaxb-api:2.3.1"
+        api "com.sun.xml.bind:jaxb-impl:2.3.1"
+        api "javax.activation:activation:1.1"
+        api "javax.annotation:javax.annotation-api:1.3.2"
+
+        api "jakarta.xml.ws:jakarta.xml.ws-api:2.3.3"
+        api "com.sun.xml.ws:jaxws-rt:2.3.3"
+
+        // logging
+        api "org.slf4j:slf4j-api:${slf4jversion}"
+        api "org.slf4j:log4j-over-slf4j:${slf4jversion}"
+        api "org.slf4j:slf4j-jdk14:${slf4jversion}"
+        api "org.slf4j:jcl-over-slf4j:${slf4jversion}"
+        //api "org.apache.logging.log4j:log4j-to-slf4j:2.17.1"
+
+        //junit to all subprojects
+        //testImplementation 'junit:junit:4.13.2'
+        //testImplementation "org.easymock:easymock:3.0"
+
+        //dom4j
+        implementation 'jaxen:jaxen:1.2.0'
+        implementation 'org.dom4j:dom4j:2.1.1'
+        implementation 'org.apache.commons:commons-text:1.10.0'
+
+        //junit to all subprojects
+        testImplementation "junit:junit:4.4"
+        //testCompile "org.easymock:easymock:3.0"
+        testImplementation "org.easymock:easymock:4.3"
+    }
+
+    repositories {
+        /** libraries doesn't exist in public repo */
+        flatDir {
+            dirs "../buildSrc/lib"
+        }
+        flatDir {
+            dirs "../../buildSrc/lib"
+        }
+        flatDir {
+            dirs "../../../buildSrc/lib"
+        }
+        flatDir {
+            dirs "../../../../buildSrc/lib"
+        }
+
+        flatDir {
+            dirs "../../../../../buildSrc/lib"
+        }
+
+        mavenLocal()
+        mavenCentral()
+
+
+        /*
+        maven {
+            url "https://m2.duraspace.org/content/repositories/releases"
+        }*/
+
+        maven {
+            url "https://maven.java.net/content/repositories/snapshots/"
+        }
+
+        maven {
+          url "https://maven.elmakers.com/repository"
+        }
+
+
+        /* tls handshake error
+        maven {
+            url "https://maven.geotoolkit.org/"
+        }*/
+
+        maven {
+            url "https://repository.jboss.org/nexus/content/repositories/thirdparty-releases"
+        }
+
+        maven {
+            url "https://download.osgeo.org/webdav/geotools/"
+        }
+
+
+        maven {
+            url 'https://github.com/psiegman/mvn-repo/raw/master/releases'
+        }
+
+
+        /*
+        maven {
+            url "https://repo.jfrog.org/artifactory/libs-releases/"
+        }*/
+
+        /*
+        maven {
+            url "https://maven.atlassian.com/content/groups/public"
+        }*/
+        
+        maven {
+            url "https://jbig2-imageio.googlecode.com/svn/maven-repository"
+        }
+
+        maven {
+            url "https://jbig2-imageio.googlecode.com/svn/maven-repository"
+        }
+
+        maven {
+            url "https://jitpack.io"
+        }
+        /*
+        maven {
+            url "http://download.java.net/maven/2/"
+        }*/
+
+
+        maven {
+            url "https://maven.pkg.github.com/ceskaexpedice/hazelcast-locks-server"
+            credentials {
+                if (project.hasProperty('githubRepositoryUser') && project.hasProperty('githubRepositoryToken')) {
+                    println "Using project properties for GitHub credentials"
+                    username = "$githubRepositoryUser"
+                    password = "$githubRepositoryToken"
+                } else {
+                    username = System.getenv("USERNAME")
+                    password = System.getenv("TOKEN")
+                }
+            }
+        }
+
+         maven {
+            url "https://maven.pkg.github.com/ceskaexpedice/akubra"
+            credentials {
+                if (project.hasProperty('githubRepositoryUser') && project.hasProperty('githubRepositoryToken')) {
+                    println "Using project properties for GitHub credentials"
+                    username = "$githubRepositoryUser"
+                    password = "$githubRepositoryToken"
+                } else {
+                    username = System.getenv("USERNAME")
+                    password = System.getenv("TOKEN")
+                }
+            }
+        }
+        maven {
+            url "https://maven.pkg.github.com/ceskaexpedice/process-platform"
+            credentials {
+                if (project.hasProperty('githubRepositoryUser') && project.hasProperty('githubRepositoryToken')) {
+                    println "Using project properties for GitHub credentials"
+                    username = "$githubRepositoryUser"
+                    password = "$githubRepositoryToken"
+                } else {
+                    username = System.getenv("USERNAME")
+                    password = System.getenv("TOKEN")
+                }
+            }
+		}
+    }
+
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+
+    //~ overwrite windows encoding
+    test {
+        systemProperty "file.encoding", "utf-8"
+
+        jvmArgs "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+                "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED"
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+        options.fork = true
+
+        // if there JDK6_HOME path defined; use it
+        if (System.env.JDK6_HOME != null) {
+            options.bootClasspath = "$System.env.JDK6_HOME/jre/lib/rt.jar"
+            options.bootClasspath += "$File.pathSeparator$System.env.JDK6_HOME/jre/lib/jsse.jar"
+            // if there JDK7_HOME path defined; use it
+        } else if (System.env.JDK7_HOME != null) {
+            options.bootClasspath = "$System.env.JDK7_HOME/jre/lib/rt.jar"
+            options.bootClasspath += "$File.pathSeparator$System.env.JDK7_HOME/jre/lib/jsse.jar"
+        }
+    }
+
+
+    // ~ overwritten windows encoding
+
+    // remove all dependencies without group id
+//    install.repositories.mavenInstaller.pom.whenConfigured {pom ->
+//        pom.dependencies.removeAll { it.groupId == null || it.groupId.equals("") }
+//    }
+
+
+}
+
+allprojects {
+    task sourcesJar(type: Jar) { //workaround for setting duplicatesStrategy for subsequent withSourcesJar call
+        duplicatesStrategy = 'include'
+        archiveClassifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    java {
+        withSourcesJar()
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                groupId = group
+                artifactId = project.name
+                from components.java
+
+                pom {
+                    name = 'Kramerius'
+                    description = 'Kramerius'
+
+                }
+            }
+        }
+        repositories {
+            mavenLocal()
+            maven {
+                name = "GitHubPackages"
+                url = "https://maven.pkg.github.com/ceskaexpedice/kramerius"
+                credentials {
+                    if (project.hasProperty('githubRepositoryUser') && project.hasProperty('githubRepositoryToken')) {
+                        username = "$githubRepositoryUser"
+                        password = "$githubRepositoryToken"
+                    } else {
+                        username = System.getenv("GITHUB_ACTOR")
+                        password = System.getenv("GITHUB_TOKEN")
+                    }
+                }
+            }
+        }
+
+    }
+
+	task printAllDependencies(type: DependencyReportTask) {}
+
+    javadoc {
+        if(JavaVersion.current().isJava9Compatible()) {
+            options.addBooleanOption('html5', true)
+        }
+    }
+}
+
+/**
+ * Distribution task; zipInstallDir first
+ */
+task distZip(type:Zip, dependsOn: ['zipInstallDir', ':search:war', ':processes:migration:distZip']) {
+    description "Create full distribution zip"
+    archiveBaseName.set('kramerius')
+    group "Distribution"
+
+    // Nastavení závislosti na spuštění po `:search:war`
+    //finalizedBy ':search:war'
+
+    // core war 
+    from {'search/build/libs'}
+
+    //inputs.files file('search/build/libs/search.war')
+
+    // migration tool 
+    from {'processes/migration/build/distributions'}
+    // installation.zip
+    from {'build/installation/'}
+    eachFile {
+        it.path = it.path.replace('-5.1.0.war', '.war')
+    }
+
+    exclude "**.tar"
+}
+
+/*
+task distZipWOEditors(type: Zip, dependsOn: 'zipInstallDir') {
+    description "Create  distributions zip without editors"
+    baseName "kramerius"
+    group "Distribution"
+    from { 'search/build/libs' }
+    from { 'build/installation' }
+}*/
+
+/**
+ * Patch distribution task
+  // DISABLED	
+task distPatchZip(type:Zip) {
+    description "Create patch distribution zip"
+    baseName "kramerius-patch"
+    group "Distribution"
+    from configurations.database
+    from {'search/build/libs'}
+    from {'processes/migration/build/distributions'}
+
+    exclude "**.tar"
+}
+ */
+
+
+// zip installaton directory
+task zipInstallDir(type:Zip) {
+    description "Create zip from installation directory"
+
+    def installationProject = project(':installation')
+    def solrTasks = installationProject.tasks.matching { task ->
+        task.name.startsWith('copySolr9') || task.name.startsWith('generateSchema')
+    }
+    dependsOn(solrTasks)
+
+    archiveBaseName.set('installation')
+
+    from ("installation/build") {
+      include "solr-9*/**"
+    }
+    from ("installation") {
+      include "0eaa6730-9068-11dd-97de-000d606f5dc6.zip"
+    }
+
+    destinationDirectory.set(file('build/installation'))
+}
+
+
+// disabled distributions
+/*
+task zipAllJavadocs(type: Zip) {
+    String[] _spr = ["shared:common","rest","search"];
+    description "create javadocs for ${_spr} and zip it"
+    archiveBaseName.set('kramerius-javadoc')
+    for(String project in _spr) {
+        dependsOn(":${project}:javadoc")
+        into(project) {
+            from(tasks.getByPath(":${project}:javadoc").destinationDir)
+        }
+
+    }
+}*/
+
+
+/* Debug task used for username and token */
+task printEnv {
+    doLast {
+        println "USERNAME: " + System.getenv("USERNAME")
+        println "TOKEN: " + System.getenv("TOKEN") 
+    }
+}

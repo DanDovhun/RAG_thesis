@@ -1,0 +1,97 @@
+/**
+ * Javascript  - prava
+ */
+group rightData;
+
+/** inicializace formulare - nastavovani callbacku */
+newRightData_InitForm() ::=<<
+    
+    \$('select[name=params]').change(function(e) {
+        callbacks.callbackCriteriumParamsValueChanged(e.target);
+    });
+    
+    \$('select[name=criterium]').change(function(e) {
+        callbacks.callbackCriteriumValueChanged(e.target);
+    });
+    
+    \$('input[id=groupType]').change(function(e) {
+        callbacks.callbackRadioButtonGroupValueChanged(e.target);
+    });
+    \$('input[id=allType]').change(function(e) {
+        callbacks.callbackRadioButtonAllValueChanged(e.target);
+    });
+>>
+
+editRightData(right, criterium, criteriumParams,allParams, allCriteriums) ::=<<
+    $newRightData(right=right,criterium=criterium,criteriumParams=criteriumParams, allParams=allParams, allCriteriums=allCriteriums)$
+>>
+
+paramInitValues(param) ::=<<
+"$param.id$": 
+{ 
+    "shortDesc":"$param.shortDescription$",
+    "longDesc":"$param.longDescription$" ,
+    "values":"$param.objects;separator=";"$"
+}
+>>
+
+newRightData(right, criterium, criteriumParams,allParams, allCriteriums) ::=<<
+            
+{
+    init:function() {
+        $newRightData_InitForm()$
+    },
+    params:{
+       $allParams:{param|$paramInitValues(param=param)$};separator=","$
+    },
+    needParamsMap:{
+        $allCriteriums:{crit | "$crit.rightCriterium.qName$":"$crit.rightCriterium.paramsNecessary$"};separator=","$ 
+    },
+    $initValues(right=right, criterium=criterium,criteriumParams=criteriumParams)$
+}
+>>
+
+initValues(right, criterium, criteriumParams) ::=<<
+    initvalues: {
+    
+        "securedaction":"$right.action$",
+
+        $if(right)$
+        "rightId":"$right.id$"
+        $else$
+        "rightId":"-1"
+        $endif$
+        ,
+        $if(criterium)$
+        "rightCriteriumId":"$criterium.id$"
+        $else$
+        "rightCriteriumId":"-1"
+        $endif$
+        ,
+        $if(criteriumParams)$
+        "rightCriteriumParamId":"$criteriumParams.id$",
+        "rightCriteriumParamShortDesc":"$criteriumParams.shortDescription$",
+        "rightCriteriumParamLongDesc":"$criteriumParams.longDescription$",
+        "rightCriteriumParamVals":"$criteriumParams.objects;separator=";"$"
+
+        $else$
+        "rightCriteriumParamId":"-1",
+        "rightCriteriumParamShortDesc":"",
+        "rightCriteriumParamLongDesc":"",
+        "rightCriteriumParamVals":""
+
+        $endif$
+        ,
+        "criterium":"$criterium.rightCriterium.qName$"
+        ,
+        "fixedPriority":"$right.fixedPriority$"
+        ,
+        "selectedParams":"$criteriumParams.id$"
+        ,
+        "user":"$right.user.inputId$"
+        ,
+        "userType":"$right.user.typeOfUser$"
+    }
+>>
+
+

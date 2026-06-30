@@ -41,3 +41,6 @@ git submodule update --init --recursive
 
 ### Installing HuggingFace embedders:
 `python3 download_models.py`
+
+## Ollama
+https://github.com/mythrantic/ollama-docker

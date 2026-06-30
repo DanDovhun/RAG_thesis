@@ -1,0 +1,5 @@
+description "JAXB for periodical models"
+
+dependencies {
+}
+

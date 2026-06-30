@@ -1,0 +1,472 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+ssd_finance:
+  name: Finance
+  type: SimpleTag
+  visible: true
+  tenant: ssd
+
+ssd_legal:
+  name: Legal
+  type: SimpleTag
+  visible: true
+  tenant: ssd
+
+ssd_hidden:
+  name: Hidden
+  type: SimpleTag
+  visible: false
+  tenant: ssd
+
+ssd_external:
+  name: External
+  type: SimpleTag
+  external_name: "slovensko.sk:/nieco"
+  visible: false
+  tenant: ssd
+
+ssd_external_visible:
+  name: ExtVisible
+  type: SimpleTag
+  external_name: "slovensko.sk:/nieco"
+  visible: true
+  tenant: ssd
+
+ssd_drafts:
+  name: Drafts
+  type: DraftTag
+  visible: true
+  tenant: ssd
+
+ssd_everything:
+  name: Everything
+  type: EverythingTag
+  visible: false
+  tenant: ssd
+
+ssd_inbox:
+  name: Inbox
+  type: InboxTag
+  visible: false
+  tenant: ssd
+
+ssd_signed_externally:
+  name: SignedExternally
+  type: SignedExternallyTag
+  visible: false
+  tenant: ssd
+
+ssd_other:
+  name: Other
+  type: SimpleTag
+  visible: true
+  tenant: ssd
+
+ssd_construction:
+  name: Construction
+  type: SimpleTag
+  visible: true
+  tenant: ssd
+
+ssd_office:
+  name: Office
+  type: SimpleTag
+  visible: true
+  tenant: ssd
+
+ssd_print:
+  name: Print
+  type: SimpleTag
+  visible: true
+  tenant: ssd
+
+ssd_crac_success:
+  name: CRAC vybavené
+  type: SimpleTag
+  visible: true
+  tenant: ssd
+
+ssd_done:
+  name: Vybavené
+  type: SimpleTag
+  visible: true
+  tenant: ssd
+
+ssd_signature_requested:
+  name: Na podpis
+  type: SignatureRequestedTag
+  visible: true
+  tenant: ssd
+  icon: pencil
+  color: yellow
+
+ssd_basic_user_signature_requested:
+  name: 'Na podpis: Another user'
+  type: SignatureRequestedFromTag
+  visible: true
+  tenant: ssd
+  owner: basic
+  icon: pencil
+  color: yellow
+
+ssd_signer_user_signature_requested:
+  name: 'Na podpis: Signer user'
+  type: SignatureRequestedFromTag
+  visible: true
+  tenant: ssd
+  owner: ssd_signer
+  icon: pencil
+  color: yellow
+
+ssd_signer_user2_signature_requested:
+  name: 'Na podpis: Signer user 2'
+  type: SignatureRequestedFromTag
+  visible: true
+  tenant: ssd
+  owner: ssd_signer2
+  icon: pencil
+  color: yellow
+
+ssd_signers_signature_requested:
+  name: 'Na podpis: Podpisovatelia'
+  type: SignatureRequestedFromTag
+  visible: true
+  tenant: ssd
+  icon: pencil
+  color: yellow
+
+ssd_signed:
+  name: Podpísané
+  type: SignedTag
+  visible: true
+  tenant: ssd
+  icon: fingerprint
+  color: green
+
+ssd_basic_user_signed:
+  name: 'Podpísané: Another user'
+  type: SignedByTag
+  visible: true
+  tenant: ssd
+  icon: fingerprint
+  color: green
+
+ssd_signer_user_signed:
+  name: 'Podpísané: Signer user'
+  type: SignedByTag
+  visible: true
+  tenant: ssd
+  icon: fingerprint
+  color: green
+
+ssd_signer_user2_signed:
+  name: 'Podpísané: Signer user 2'
+  type: SignedByTag
+  visible: true
+  tenant: ssd
+  icon: fingerprint
+  color: green
+
+ssd_archived:
+  name: Archivovane
+  type: ArchivedTag
+  visible: true
+  tenant: ssd
+  icon: archive-box
+  color: green
+
+solver_special:
+  name: Special
+  type: SimpleTag
+  visible: true
+  tenant: solver
+
+solver_drafts:
+  name: Drafts
+  type: DraftTag
+  visible: true
+  tenant: solver
+
+solver_everything:
+  name: Everything
+  type: EverythingTag
+  visible: false
+  tenant: solver
+
+solver_inbox:
+  name: Inbox
+  type: InboxTag
+  visible: false
+  tenant: solver
+
+ssd_basic_user_drafts:
+  name: Drafts-Basic user
+  owner: basic
+  type: DraftTag
+  visible: false
+  tenant: ssd
+
+ssd_basic_user_authors:
+  name: Author-Basic user
+  owner: basic
+  type: AuthorTag
+  visible: false
+  tenant: ssd
+
+ssd_admin_user_drafts:
+  name: Drafts-Admin user
+  owner: admin
+  type: DraftTag
+  visible: false
+  tenant: ssd
+
+ssd_admin_user_author:
+  name: Author-Admin user
+  owner: basic
+  type: AuthorTag
+  visible: false
+  tenant: ssd
+
+ssd_submitted:
+  name: Odoslané na spracovanie
+  type: SubmittedTag
+  visible: true
+  tenant: ssd
+
+solver_other_user_drafts:
+  name: Drafts-Other user
+  owner: solver_other
+  type: DraftTag
+  visible: false
+  tenant: solver
+
+solver_other_user_author:
+  name: Author-Other user
+  owner: solver_other
+  type: AuthorTag
+  visible: false
+  tenant: solver
+
+solver_archived:
+  name: Archivovane
+  type: ArchivedTag
+  visible: true
+  tenant: solver
+  icon: archive-box
+  color: green
+
+solver_signed_externally:
+  name: SignedExternally
+  type: SignedExternallyTag
+  visible: false
+  tenant: solver
+
+accountants_drafts:
+  name: Rozpracované
+  type: DraftTag
+  visible: true
+  tenant: accountants
+
+accountants_unprocessable:
+  name: Chybné
+  type: UnprocessableTag
+  visible: true
+  tenant: accountants
+
+accountants_everything:
+  name: Everything
+  type: EverythingTag
+  visible: false
+  tenant: accountants
+
+accountants_inbox:
+  name: Inbox
+  type: InboxTag
+  visible: false
+  tenant: accountants
+
+accountants_submission_error_tag:
+  name: Chyba pri odoslaní
+  type: SubmissionErrorTag
+  visible: true
+  tenant: accountants
+
+accountants_problem_tag:
+  name: Problémové
+  type: ProblemTag
+  visible: true
+  tenant: accountants
+
+accountants_validation_error_tag:
+  name: Chybné údaje
+  type: ValidationErrorTag
+  visible: true
+  tenant: accountants
+
+accountants_validation_warning_tag:
+  name: Upozornenia
+  type: ValidationWarningTag
+  visible: true
+  tenant: accountants
+
+accountants_signature_requested:
+  name: Na podpis
+  type: SignatureRequestedTag
+  visible: true
+  tenant: accountants
+  icon: pencil
+  color: yellow
+
+accountants_signers_signature_requested:
+  name: 'Na podpis: Podpisovatelia'
+  type: SignatureRequestedFromTag
+  visible: true
+  tenant: accountants
+  icon: pencil
+  color: yellow
+
+accountants_externally:
+  name: SignedExternally
+  type: SignedExternallyTag
+  visible: false
+  tenant: accountants
+
+accountants_submitted:
+  name: Odoslané na spracovanie
+  type: SubmittedTag
+  visible: true
+  tenant: accountants
+
+accountants_basic_user_drafts:
+  name: Drafts-Basic user
+  owner: accountants_basic
+  type: DraftTag
+  visible: false
+  tenant: accountants
+
+accountants_basic_user_authors:
+  name: Author-Basic user
+  owner: accountants_basic
+  type: AuthorTag
+  visible: false
+  tenant: accountants
+
+accountants_basic_user_signature_requested:
+  name: 'Na podpis: Basic user 2'
+  type: SignatureRequestedFromTag
+  visible: true
+  tenant: accountants
+  icon: pencil
+  color: yellow
+  owner: accountants_basic
+
+accountants_user2_signature_requested:
+  name: 'Na podpis: Basic user 3'
+  type: SignatureRequestedFromTag
+  visible: true
+  tenant: accountants
+  icon: pencil
+  color: yellow
+  owner: accountants_user2
+
+accountants_user3_signature_requested:
+  name: 'Na podpis: Basic user 4'
+  type: SignatureRequestedFromTag
+  visible: true
+  tenant: accountants
+  icon: pencil
+  color: yellow
+  owner: accountants_user3
+
+accountants_user4_signature_requested:
+  name: 'Na podpis: Basic user 5'
+  type: SignatureRequestedFromTag
+  visible: true
+  tenant: accountants
+  icon: pencil
+  color: yellow
+  owner: accountants_user4
+
+accountants_signed:
+  name: Podpísané
+  type: SignedTag
+  visible: true
+  tenant: accountants
+  icon: fingerprint
+  color: green
+
+accountants_basic_user_signed:
+  name: 'Podpísané: Basic user 2'
+  type: SignedByTag
+  visible: true
+  tenant: accountants
+  icon: pencil
+  color: yellow
+  owner: accountants_basic
+
+accountants_user2_signed:
+  name: 'Podpísané: Basic user 3'
+  type: SignedByTag
+  visible: true
+  tenant: accountants
+  icon: pencil
+  color: yellow
+  owner: accountants_user2
+
+accountants_user3_signed:
+  name: 'Podpísané: Basic user 4'
+  type: SignedByTag
+  visible: true
+  tenant: accountants
+  icon: pencil
+  color: yellow
+  owner: accountants_user3
+
+accountants_user4_signed:
+  name: 'Podpísané: Basic user 5'
+  type: SignedByTag
+  visible: true
+  tenant: accountants
+  icon: pencil
+  color: yellow
+  owner: accountants_user4
+
+accountants_tag1:
+  name: 'Tag 1'
+  type: SimpleTag
+  visible: true
+  tenant: accountants
+  icon: pencil
+  color: yellow
+
+accountants_tag2:
+  name: 'Tag 2'
+  type: SimpleTag
+  visible: true
+  tenant: accountants
+  icon: pencil
+  color: yellow
+
+accountants_s_potvrdenkou:
+  name: S potvrdenkou
+  type: SimpleTag
+  visible: true
+  tenant: accountants
+
+accountants_s_neoverenou_potvrdenkou:
+  name: S neoverenou potvrdenkou
+  type: SimpleTag
+  visible: true
+  tenant: accountants
+
+ssd_attachment_matched:
+  name: AttachmentMatched
+  type: SimpleTag
+  visible: true
+  tenant: ssd
+
+api_connection_tag:
+  name: ApiConnectionTag
+  type: SimpleTag
+  visible: true
+  tenant: accountants

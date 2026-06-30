@@ -1,0 +1,8 @@
+<% id = @current_step ? dom_id(@current_step, :todo_list) : 'todo_list' %>
+<%= content_tag :div, id: id do %>
+  <% if current_user.logged_in? %>
+    <%= render 'steps/todo_list_logged_in' %>
+  <% else %>
+    <%= render 'steps/todo_list_anonymous' %>
+  <% end %>
+<% end %>

@@ -1,0 +1,1868 @@
+openapi: '3.0.2'
+
+info:
+  title: AVM Server
+  version: '0.4.0'
+
+servers:
+  - url: https://autogram.slovensko.digital/api/v1
+  - url: http://localhost:3000/api/v1
+
+tags:
+  - name: Mobile2App
+  - name: Desktop2App - Extension
+  - name: Desktop2App - Client
+  - name: Minimal Integration
+  - name: QR code
+  - name: Integration
+
+paths:
+  /documents:
+    post:
+      tags:
+        - Mobile2App
+        - Desktop2App - Extension
+      security:
+        - Header: [ ]
+        - Parameter: [ ]
+      summary: Client app posts document along with some parameters to Server.
+      description: Client app posts document along with some parameters to Server. Server encrypts the document using the provided EncryptionKey and stores it on a disk.
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/DocumentPostRequestBody"
+            examples:
+              Plain TXT document:
+                $ref: "#/components/examples/XAdES-ASiC_E-TXT"
+              Slovak EForm with resources:
+                $ref: "#/components/examples/XAdES-ASiC_E-Base64-HTML"
+              Slovak EForm with auto-loaded resources:
+                $ref: "#/components/examples/XAdES-ASiC_E-Auto"
+              PDF document:
+                $ref: "#/components/examples/PAdES-PDF"
+              DOCX document:
+                $ref: "#/components/examples/XAdES-ASiC_E-DOCX"
+              Image with CAdES level:
+                $ref: "#/components/examples/CAdES-ASiC_E-PNG_md"
+      parameters:
+        - name: Accept
+          in: header
+          schema:
+            type: string
+            default: application/json
+          required: true
+          allowEmptyValue: false
+      responses:
+        200:
+          description: Server stored the data and returned GUID so the client can further access the data.
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/CreateDocumentResponseBody"
+          headers:
+            Last-Modified:
+              schema:
+                type: string
+                pattern: '^(Mon|Tue|Wed|Thu|Fri|Sat|Sun), \d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} GMT$'
+                example: 'Tue, 15 Oct 2019 12:45:26 GMT'
+              description: Datetime of the last-modified attribute of the uploaded file. Useful for polling with the GET document request.
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestErrorResponseBody"
+        401:
+          description: EncryptionKey not provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyNotProvidedErrorResponseBody"
+        422:
+          description: Unprocessable content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseBody"
+        500:
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalErrorResponseBody"
+        502:
+          description: Bad gateway - internal error on AVM microservice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadGatewayErrorResponseBody"
+
+  /documents/{guid}:
+    get:
+      tags:
+        - Desktop2App - Extension
+      security:
+        - Header: [ ]
+        - Parameter: [ ]
+      summary: External system requests signed document at the end of the process.
+      description: This endpoint is also designed for polling with the `If-Modified-Since` header.
+      parameters:
+        - name: guid
+          in: path
+          schema:
+            type: string
+          required: true
+          example: bfde97b4-ee27-47bc-97e2-5164ed96a92a
+        - name: If-Modified-Since
+          in: header
+          required: false
+          schema:
+            type: string
+            example: '2024-05-05 11:52:06 UTC'
+        - name: Accept
+          in: header
+          schema:
+            type: string
+            default: application/json
+          required: true
+          allowEmptyValue: false
+      responses:
+        200:
+          description: Requested document with an array of its signers
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/GetDocumentResponseBody"
+          headers:
+            Last-Modified:
+              schema:
+                type: string
+                example: '2024-05-05 11:52:06 UTC'
+              description: "Datetime of the last-modified attribute of the requeste document."
+        304:
+          description: Requested document has not been modified since `If-Modified-Since` header
+          headers:
+            Last-Modified:
+              schema:
+                type: string
+                example: '2024-05-05 11:52:06 UTC'
+              description: Datetime of the last-modified attribute of the requeste document.
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestErrorResponseBody"
+        401:
+          description: EncryptionKey not provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyNotProvidedErrorResponseBody"
+        403:
+          description: EncryptionKey mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyMismatchErrorResponseBody"
+        404:
+          description: Not found
+        422:
+          description: Unprocessable content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseBody"
+        500:
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalErrorResponseBody"
+        502:
+          description: Bad gateway - internal error on AVM microservice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadGatewayErrorResponseBody"
+
+    delete:
+      tags:
+        - Desktop2App - Extension
+      security:
+        - Header: [ ]
+        - Parameter: [ ]
+      summary: External system requests signed document at the end of the process.
+      description: This endpoint is also designed for polling with the `If-Modified-Since` header.
+      parameters:
+        - name: guid
+          in: path
+          schema:
+            type: string
+          required: true
+          example: aedf97b4-ee27-47bc-97e2-5164ed96a92a
+      responses:
+        204:
+          description: Document deleted
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestErrorResponseBody"
+        401:
+          description: EncryptionKey not provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyNotProvidedErrorResponseBody"
+        403:
+          description: EncryptionKey mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyMismatchErrorResponseBody"
+        404:
+          description: Not found
+        422:
+          description: Unprocessable content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseBody"
+        500:
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalErrorResponseBody"
+        502:
+          description: Bad gateway - internal error on AVM microservice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadGatewayErrorResponseBody"
+
+  /documents/{guid}/visualization:
+    get:
+      tags:
+        - Desktop2App - Client
+        - Mobile2App
+      security:
+        - Header: [ ]
+        - Parameter: [ ]
+      summary: Client app requests encrypted document to visualize it.
+      parameters:
+        - name: guid
+          in: path
+          schema:
+            type: string
+          required: true
+          example: bfde97b4-ee27-47bc-97e2-5164ed96a92a
+        - name: Accept
+          in: header
+          schema:
+            type: string
+            default: application/json
+          required: true
+          allowEmptyValue: false
+      responses:
+        200:
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/DocumentVisualizationResponseBody"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestErrorResponseBody"
+        401:
+          description: EncryptionKey not provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyNotProvidedErrorResponseBody"
+        403:
+          description: EncryptionKey mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyMismatchErrorResponseBody"
+        404:
+          description: Not found
+        422:
+          description: Unprocessable content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseBody"
+        500:
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalErrorResponseBody"
+        502:
+          description: Bad gateway - internal error on AVM microservice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadGatewayErrorResponseBody"
+
+  /documents/{guid}/parameters:
+    get:
+      tags:
+        - Desktop2App - Client
+      security:
+        - Header: [ ]
+        - Parameter: [ ]
+      summary: Client app gets the signature parameters of the doucment
+      parameters:
+        - name: guid
+          in: path
+          schema:
+            type: string
+          required: true
+          example: bfde97b4-ee27-47bc-97e2-5164ed96a92a
+        - name: Accept
+          in: header
+          schema:
+            type: string
+            default: application/json
+          required: true
+          allowEmptyValue: false
+      responses:
+        200:
+          description: OK
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/SigningParameters"
+        401:
+          description: EncryptionKey not provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyNotProvidedErrorResponseBody"
+        403:
+          description: EncryptionKey mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyMismatchErrorResponseBody"
+        404:
+          description: Not found
+
+  /documents/{guid}/validate:
+    get:
+      tags:
+        - Mobile2App
+      security:
+        - Header: [ ]
+        - Parameter: [ ]
+      summary: Client app requests a signature validation report of the document.
+      parameters:
+        - name: guid
+          in: path
+          schema:
+            type: string
+          required: true
+          example: bfde97b4-ee27-47bc-97e2-5164ed96a92a
+        - name: Accept
+          in: header
+          schema:
+            type: string
+            default: application/json
+          required: true
+          allowEmptyValue: false
+      responses:
+        200:
+          description: Validation report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentValidationResponseBody"
+        204:
+          description: Document is not signed yet, no content response.
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestErrorResponseBody"
+        401:
+          description: EncryptionKey not provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyNotProvidedErrorResponseBody"
+        403:
+          description: EncryptionKey mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyMismatchErrorResponseBody"
+        404:
+          description: Not found
+        422:
+          description: Unprocessable content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseBody"
+        500:
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalErrorResponseBody"
+        502:
+          description: Bad gateway - internal error on AVM microservice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadGatewayErrorResponseBody"
+
+  /documents/{guid}/datatosign:
+    post:
+      tags:
+        - Mobile2App
+        - Desktop2App - Client
+      security:
+        - Header: [ ]
+        - Parameter: [ ]
+      summary: Client app gets datatosign based on provided signing certificate.
+      description: Client app posts signing certificate to the server. Server decrypts the encrypted document from disk, computes DataToSign and returns it along exact signing time in milliseconds. The whole response object is later required for POST /sign request.
+      parameters:
+        - name: guid
+          in: path
+          schema:
+            type: string
+          required: true
+          example: bfde97b4-ee27-47bc-97e2-5164ed96a92a
+        - name: Accept
+          in: header
+          schema:
+            type: string
+            default: application/json
+          required: true
+          allowEmptyValue: false
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/DataToSignRequestBody"
+      responses:
+        200:
+          description: Computed DataToSign and exact SigningTime.
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/DataToSignStructure"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestErrorResponseBody"
+        401:
+          description: EncryptionKey not provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyNotProvidedErrorResponseBody"
+        403:
+          description: EncryptionKey mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyMismatchErrorResponseBody"
+        404:
+          description: Not found
+        422:
+          description: Unprocessable content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseBody"
+        500:
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalErrorResponseBody"
+        502:
+          description: Bad gateway - internal error on AVM microservice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadGatewayErrorResponseBody"
+
+  /documents/{guid}/sign:
+    post:
+      tags:
+        - Mobile2App
+        - Desktop2App - Client
+      security:
+        - Header: [ ]
+        - Parameter: [ ]
+      summary: Create signed document using the SignedData obtained from client.
+      parameters:
+        - name: guid
+          in: path
+          schema:
+            type: string
+          required: true
+          example: bfde97b4-ee27-47bc-97e2-5164ed96a92a
+        - name: returnSignedDocument
+          in: query
+          schema:
+            type: boolean
+            description: Inidcation whether to return signed document in the response. Default to true. Is useful when signing document for external system.
+            default: true
+          required: false
+        - name: Accept
+          in: header
+          schema:
+            type: string
+            default: application/json
+          required: true
+          allowEmptyValue: false
+      requestBody:
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/SignRequestBody"
+      responses:
+        200:
+          description: |
+            Document was sucessfuly signed, can be obtained via GET signed request, and is also returned in the response.
+
+            When `"returnSignedDocument": false` Document.Content is empty.
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/SignDocumentResponseBody"
+        400:
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadRequestErrorResponseBody"
+        401:
+          description: EncryptionKey not provided
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyNotProvidedErrorResponseBody"
+        403:
+          description: EncryptionKey mismatch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionKeyMismatchErrorResponseBody"
+        404:
+          description: Not found
+        409:
+          description: Signature invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvalidSignatureErrorResponseBody"
+        422:
+          description: Unprocessable content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseBody"
+        500:
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InternalErrorResponseBody"
+        502:
+          description: Bad gateway - internal error on AVM microservice
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BadGatewayErrorResponseBody"
+
+  /integrations:
+    post:
+      tags:
+        - Integration
+        - Minimal Integration
+      summary: Integration registers itself at the server
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostIntegrationRequestBody"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostIntegrationResponse"
+
+  /devices:
+    post:
+      tags:
+        - Integration
+        - Minimal Integration
+      summary: Device registers itself at the server
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostDeviceRequestBody"
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostDeviceResponse"
+
+  /device-integrations:
+    post:
+      tags:
+        - Integration
+        - Minimal Integration
+      security:
+        - Device JWT: []
+      summary: Device registers itself for receiving sign requests (push notification) from given integration
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostDeviceIntegrationsRequestBody"
+      responses:
+        204:
+          description: OK
+
+    get:
+      tags:
+        - Integration
+      security:
+        - Device JWT: []
+      summary: Device retrieves a list of paired integrations
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetDeviceIntegrationsResponseBody"
+
+  /device-integrations/{integration_id}:
+    delete:
+      tags:
+        - Integration
+      security:
+        - Device JWT: []
+      summary: Device deletes integration from its paired integrations
+      parameters:
+        - name: integration_id
+          in: path
+          schema:
+            type: string
+          description: Identifier of the integration
+          example: 0d939eb1-8e14-41e5-9c7e-05e77641cc7b
+          required: true
+          allowEmptyValue: false
+      responses:
+        204:
+          description: OK
+        404:
+          description: Not found
+
+  /integration-devices:
+    get:
+      tags:
+        - Integration
+      security:
+        - Integration JWT: []
+      summary: Integration retrieves a list of paired devices
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetIntegrationDevicesResponseBody"
+
+  /integration-devices/{device_id}:
+    delete:
+      tags:
+        - Integration
+      security:
+        - Integration JWT: []
+      summary: Integration deletes device from its paired devices
+      parameters:
+        - name: device_id
+          in: path
+          schema:
+            type: string
+          description: Identifier of the device
+          example: 03de5319-a40d-48ea-b4fb-29d11e7017bb
+          required: true
+          allowEmptyValue: false
+      responses:
+        204:
+          description: OK
+        404:
+          description: Not found
+
+  /sign-request:
+    post:
+      tags:
+        - Integration
+        - Minimal Integration
+      security:
+        - Integration JWT: []
+      summary: Integration sends a sign request (push notification) to all paired signing devices
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostSignRequestBody"
+      responses:
+        200:
+          description: OK
+      callbacks:
+        myEvent:
+          'FCM-notificaiton-SDK':
+            post:
+              description: |
+                This is a pseudo-description of data sent to subscibing device in `data` payload through Firebase Cloud Messaging.
+
+                `encryptedMessage` conatins document GUID and its encryption key encrypted with AES256 pushkey shared between integration and device,
+
+                Encrpyted message JSON:
+                ```json
+                {
+                  "documentGuid": "bfde97b4-ee27-47bc-97e2-5164ed96a92a",
+                  "documentEncryptionKey": "EeESAfZQh9OTf5qZhHZtgaDJpYtxZD6TIOQJzRgRFgQ="
+                }
+                ```
+
+                The encrypted model is the same as `PostSignRequestBody` in this documentation.
+              requestBody:
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        encryptedMessage:
+                          type: string
+                          example: ZhHZtgaDJpYtxZD6TIOQJzRgRFgQ...
+                      required:
+                        - message
+              responses:
+                200:
+                  description: OK
+
+  /qr-code:
+    get:
+      tags:
+        - QR code
+      summary: URL format used by Autogram extenision and Autogram v mobile app
+      description: |
+        This QR code / URL is a standard used by Autogram browser extension and Autogram v mobile application. Server doesn't really care if potential other integrations / applications use the same format or not.
+
+        Example: `https://autogram.slovensko.digital/api/v1/qr-code?guid=e7e95411-66a1-d401-e063-0a64dbb6b796&key=EeESAfZQh9OTf5qZhHZtgaDJpYtxZD6TIOQJzRgRFgQ%3D&integration=eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiI3OGQ5MWRlNy0xY2MyLTQwZTQtOWE3MS0zODU4YjRmMDMxOWQiLCJleHAiOjE3MTI5MDk3MjAsImp0aSI6IjAwZTAxN2Y1LTI4MTAtNDkyNS04ODRlLWNiN2FhZDAzZDFhNiIsImF1ZCI6ImRldmljZSJ9.7Op6W2BvbX2_mgj9dkz1IiolEsQ1Z2a0AzpS5bj4pcG3CJ4Z8j9W3RQE95wrAj3t6nmd9JaGZSlCJNSV_myyLQ`
+
+        <img src="data:image/png;base64, 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JEyPHj169OjRO8t5YRLoOaFNrb09PNbppekW7u2+8L3TVunRo0ePHj16sWe17yEUtWqBaO867mW1rVj1vqF32NksH6NHjx49evToXRahJsy9tlbPOATAw5Lc3pl7fpe/2N+jR48ePXr0frRe3f9eOKu5rD5qSnwvfeoG65Nr8LyPqvTo0aNHjx6980fvPnVmqVas9qmkmx7iTZuxdPCebxI9evTo0aNH73f/X6n3Nwr8lfCadU/WU0fwZuyqNEnp0aNHjx49er/7GE04sZAq66HW2lUV3Uton4nSh41TevTo0aNHj977A3weNLqZjK4+dci6ftvLczqcE5/Gs+rVoUePHj169Ohd6N0UeT54qNeVt1AFvPm9qcNYz4UePXr06NGjF1tYtQE3/bUORd909aa226R82Aw8bD3So0ePHj169GLKquWyPYyGE3sTv87aaXulrPp8+prQo0ePHj169JaQFLpcU71oL4iFp+yh9ebIp2sSkuZUM6NHjx49evToxXxZQ+bzqp258B2n0S2i1+LcVFXcO4L06NGjR48evVhmqgPBobL1HBT3Le3h8RDzZuc1UJ729+jRo0ePHr2v05uOt9ap9rmeWtSqsfmD+bf2Aaf24TZ7RY8ePXr06NE7ktrnhELAuumL7R8L51kTeK3f7YNL9OjRo0ePHr2lt7VP7hweTC2XTXeltuxCB6++2lQUzJVBevTo0aNH79v16stMouEA9z0c1r1qwt03vdfv9ktEjx49evTo0Vs2t9NMlyPE3BrxDnuSh5XB2svbO6D06NGjR48evdvMOSWqfU6oDjOFnDc15cLFum5qHoZlevTo0aNHj968DqtE0+nsjcTaWKtR8PmX98+GgmK+mfTo0aNHj9636+1BbEqGU4PwBjhUrGoY3VuUtbZW35QePXr06NGjF1t7h4d1U1ur537Y7pvy5eGV3fuFNW7So0ePHj169JbkNX37YXftcCZo/+X6lXufcq+KhS3Qo0ePHj169Ga9vXw0dc2m87z+6c0lmup8U1+RHj169OjRo/dhvXrke0lpuhc1sE3FtOfTCDfk+Yum16VHjx49evTozf29m/JRaHrdDDjVaDn1FafreTiFNV1AevTo0aNHj9585HWEqX42RLLDlthnenT7PFGQr4NL9OjRo0ePHj3rv7bo0bPoWfToWfQsehY9ehY9i55Fj55Fz6JHz6Jn0bPo/dz1Px4NXyy79PLkAAAAAElFTkSuQmCC" width="300px" height="300px"/>
+      parameters:
+        - name: guid
+          in: query
+          schema:
+            type: string
+          description: GUID of a document
+          example: e7e95411-66a1-d401-e063-0a64dbb6b796
+          required: true
+        - name: key
+          in: query
+          schema:
+            type: string
+          description: AES256 key in Base64 for the document
+          example: EeESAfZQh9OTf5qZhHZtgaDJpYtxZD6TIOQJzRgRFgQ=
+          required: true
+        - name: integration
+          in: query
+          schema:
+            type: string
+          description: 'JWT of source integration. Can be used to pair device with the integration. Must contain `aud: "device"` claim'
+          example: eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiI3OGQ5MWRlNy0xY2MyLTQwZTQtOWE3MS0zODU4YjRmMDMxOWQiLCJleHAiOjE3MTI5MDk3MjAsImp0aSI6IjAwZTAxN2Y1LTI4MTAtNDkyNS04ODRlLWNiN2FhZDAzZDFhNiIsImF1ZCI6ImRldmljZSJ9.7Op6W2BvbX2_mgj9dkz1IiolEsQ1Z2a0AzpS5bj4pcG3CJ4Z8j9W3RQE95wrAj3t6nmd9JaGZSlCJNSV_myyLQ
+          required: false
+      responses:
+        302:
+          description: Redirect to app download page. The QR code / url should be open through Autogram v mobile app and parameters should be parsed and used for document signing or integration pairing.
+
+components:
+  schemas:
+    PostSignRequestBody:
+      type: object
+      properties:
+        documentGuid:
+          type: string
+          example: e1b2fafc-59c4-46de-ac0a-83aa782184e9
+          description: GUID of the document to sign
+        documentEncryptionKey:
+          type: string
+          description: AES256 encryption key in hexadecimal form (64 characters) that is used to encrypt and decrypt signing doucment.
+          example: EeESAfZQh9OTf5qZhHZtgaDJpYtxZD6TIOQJzRgRFgQ=
+      required:
+        - documentGuid
+        - documentEncryptionKey
+
+    PostIntegrationRequestBody:
+      type: object
+      properties:
+        platform:
+          type: string
+          description: Platform identifier
+          example: extension
+        displayName:
+          type: string
+          description: Human-readable name of the integration
+          example: Autogram browser extension
+        publicKey:
+          type: string
+          description: Integration's ES256 public key that shall be used to authenticate its JWT tokens. Either with or without "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----".
+          example: "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGoqUt0JPQgvvMhLNxFQkwOoClKxDK8D8oW+qmakxQuOJuy/V0uKPJbhRkEWz8WPFZCUXUr1LsD5E667h5StmLw==\n-----END PUBLIC KEY-----"
+      required:
+        - platform
+        - displayName
+        - publicKey
+
+    PostIntegrationResponse:
+      type: object
+      properties:
+        guid:
+          type: string
+          description: Assigned identifier
+          example: 57820662-f56c-4b2f-97d1-e95306aee6db
+      required:
+        - guid
+
+    PostDeviceRequestBody:
+      type: object
+      properties:
+        platform:
+          type: string
+          description: Platform of the signing device used to determine which notification service to use. (`android` or `ios`)
+          example: android
+        registrationId:
+          type: string
+          description: Identifier of the app instance registration entry in the notification service (APNS or GCM)
+          example: idk32b83ef7-21fe-4120-b8fa-d9f6aba05731
+        displayName:
+          type: string
+          description: Human-readable name of the device
+          example: John's phone
+        publicKey:
+          type: string
+          description: Device's ES256 public key that shall be used to authenticate its JWT tokens. Either with or without "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----".
+          example: "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE1iPVm0v/ZNM04587g10F54JVIrMZqWnlOXuGjOvcYsuweTYxuXafP8aJ6kIXe+jQhjeldm2mQZzSZ4ceLRq0yA==\n-----END PUBLIC KEY-----"
+        pushkey:
+          type: string
+          description: Device's AES256 key in Base64 form that shall be used to encrypt notificaiton messages sent to the device
+          example: "R/rfN+z129w1H2iftbr1GOKXdC3OxSJU9PZeHs+W7ts="
+      required:
+        - platform
+        - registrationId
+        - displayName
+        - publicKey
+        - pushkey
+
+    PostDeviceResponse:
+      type: object
+      properties:
+        guid:
+          type: string
+          description: Assigned identifier
+          example: 03de5319-a40d-48ea-b4fb-29d11e7017bb
+
+    GetDeviceIntegrationsResponseBody:
+      type: array
+      items:
+        type: object
+        properties:
+          integrationId:
+            type: string
+            description: Identifier of the integration
+            example: 0d939eb1-8e14-41e5-9c7e-05e77641cc7b
+          platform:
+            type: string
+            description: Platform identifier
+            example: extension
+          displayName:
+            type: string
+            description: Human-readable name of the integration
+            example: Autogram browser extension
+        required:
+          - platform
+          - integrationId
+          - displayName
+
+    GetIntegrationDevicesResponseBody:
+      type: array
+      items:
+        type: object
+        properties:
+          deviceId:
+            type: string
+            description: Identifier of the device
+            example: 03de5319-a40d-48ea-b4fb-29d11e7017bb
+          platform:
+            type: string
+            description: Platform of the signing device used to determine which notification service to use. (`android` or `ios`)
+            example: android
+          displayName:
+            type: string
+            description: Human-readable name of the device
+            example: John's phone
+        required:
+          - platform
+          - deviceId
+          - displayName
+
+    PostDeviceIntegrationsRequestBody:
+      type: object
+      properties:
+        integrationPairingToken:
+          type: string
+          description: "JWT token provided by integration on pairing. The token must contain `aud: \"device\"` claim."
+          example: eyJhbGciOiJFUzI1NiJ9.eyJzdWIiOiI3OGQ5MWRlNy0xY2MyLTQwZTQtOWE3MS0zODU4YjRmMDMxOWQiLCJleHAiOjE3MTI5MDk3MjAsImp0aSI6IjAwZTAxN2Y1LTI4MTAtNDkyNS04ODRlLWNiN2FhZDAzZDFhNiIsImF1ZCI6ImRldmljZSJ9.7Op6W2BvbX2_mgj9dkz1IiolEsQ1Z2a0AzpS5bj4pcG3CJ4Z8j9W3RQE95wrAj3t6nmd9JaGZSlCJNSV_myyLQ
+      required:
+        - integrationPairingToken
+
+    DocumentPostRequestBody:
+      type: object
+      properties:
+        document:
+          $ref: "#/components/schemas/Document"
+        parameters:
+          $ref: "#/components/schemas/SigningParameters"
+        payloadMimeType:
+          type: string
+          example: text/plain;base64
+          description: |
+            MIME type for document content and signature parameters XSLT transformation and XSD schema.
+            Binary files should be encoded using base64, e.g., `application/pdf;base64`.
+            Text formats like XML can be optionally encoded using base64 or supplied as plain text.
+            
+            If omitted, mimetype is decided based on document.filename and content is expected to be in Base64.
+      required:
+        - document
+
+    SigningCertificate:
+      type: string
+      description: Base64 encoded x509 certificate of the signing entity
+      example: MIIDZjCCAk6gAwIBAgIEZVH4UzANBgkqhkiG9w0BAQsFADB1MQswCQYDVQQGEwJTSzETMBEGA1UECAwKQnJhdGlzbGF2YTETMBEGA1UEBwwKQnJhdGlzbGF2YTERMA8GA1UECgwIQXV0b2dyYW0xETAPBgNVBAsMCEF1dG9ncmFtMRYwFAYDVQQDDA1BdXRvZ3JhbSBUZXN0MB4XDTIzMTExMzEwMjAwM1oXDTI0MTExMjEwMjAwM1owdTELMAkGA1UEBhMCU0sxEzARBgNVBAgMCkJyYXRpc2xhdmExEzARBgNVBAcMCkJyYXRpc2xhdmExETAPBgNVBAoMCEF1dG9ncmFtMREwDwYDVQQLDAhBdXRvZ3JhbTEWMBQGA1UEAwwNQXV0b2dyYW0gVGVzdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN8d3eH2xRJeesoNmDIguuHBv5hhqRPsN4LGjGmhQ9NrBAN1DKW31wh0+Tfdx58GNztgLVpElpQB7/yBprqNAKADYXs+onkUbg4X798lAbiaaMvQzY9dVXhFhb1I2ZEGurNhZqP01wbjRso4O0UJ2wSIw5r/sZZji17VhdhquVzDP+RzJeU36CRohE7T1caG6Q1/Tl5arSvEcJMz/8YUYjudB0Bbj+1Z06JTWK+FW/7zJmPNsRGSnF/TLIMDvIabMDoUswP7wBPbnoWy+B/tTdKnl818OKilRlZf5mjmINvZ8I3eXl0WRA/UlURuAp3PprcZnBdejCBHNomgyML8G9sCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAKD+0fM+cRVkDOoTU9qyESQ6tma8cchjV8dVvTbvHmLTZYCBxKUTugZOz9tENd+9p+1uGc6opcCrmiHyq0oG8D8Y9FLzHFKgslod4+IHUOON/pes+r6b4/0Z4+rjuZ5JrDyeIWsGtwVQaM6BeC1afr/H7uT9kr8Eu1ElNw/SAWBmQZiz3e40XF2ijPd9b43p05O0dqBF0q383bD2K15QJofzCM+0I0OqhJwsWvHlupoPlcF4gRqFV7MUQ5QHXOryUCICp8h2O8988JFvXxaJKGMCU9Zfick3KJ3UsdJ+0jbCL4pOep75abBD6pcdD9qlUF4seiiQiceMbmmeTQfqTgg==
+
+    DataToSign:
+      type: string
+      description: Base64 encoded DataToSign object
+      example: MYIBBDAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMC8GCSqGSIb3DQEJBDEiBCBi60eUI/NmObmcTwDsze2zBooVmgpZh8puJa4OhNpEejCBtgYLKoZIhvcNAQkQAi8xgaYwgaMwgaAwgZ0EIJz+4gnulo5kn6oovtKTUeONdQyNjCUKINcKqCmvL7JwMHkwa6RpMGcxCzAJBgNVBAYTAlNLMRMwEQYDVQQHEwpCcmF0aXNsYXZhMRcwFQYDVQRhEw5OVFJTSy0zNTk3NTk0NjETMBEGA1UEChMKRGlzaWcgYS5zLjEVMBMGA1UEAxMMU1ZLIGVJRCBBQ0EyAgoG/pWsnJ0ABRcV
+
+    SigningTime:
+      type: integer
+      description: Epoch timestamp in milliseconds of the signing time
+      example: 1707900119123
+
+    DataToSignRequestBody:
+      type: object
+      properties:
+        signingCertificate:
+          $ref: "#/components/schemas/SigningCertificate"
+        addTimestamp:
+          type: boolean
+          description: Indication whether to add a timestamp to the signature if it was not set at document creation time
+          example: true
+          default: false
+      required:
+        - signingCertificate
+
+    DataToSignStructure:
+      type: object
+      properties:
+        dataToSign:
+          $ref: "#/components/schemas/DataToSign"
+        signingTime:
+          $ref: "#/components/schemas/SigningTime"
+        signingCertificate:
+          $ref: "#/components/schemas/SigningCertificate"
+      required:
+        - dataToSign
+        - signingTime
+        - signingCertificate
+
+    SignRequestBody:
+      type: object
+      properties:
+        signedData:
+          type: string
+          description: DataToSign signed by SigningCertificate
+          example: eP49QHaKINDTo8/56O6ZlDVKGn3FYq+fRqnCMpQExYVIWrHeZkGoq2FxRRThlEKkOBUS5+8+RHZzOf4yXAFfKjNmNdMnyisEUToQqYSQavec3KZPaDgcvNdZ4MC+tRMcwTod75Zu87UleyOLe3Xoqxjteq7MvqVRCc/C1sX2yVab3yIOSgoZILpHgTl4EqTOonVJts4XBnEzuZKwXS10KyumjoSE41EqTrM/mwy95ebdrRZqNI5EWJIzor8jC5AMsmsBWvxeBKkfepFiWHMtTy1iYkJMZ6vbttlEdTSt9OqSszyw7Z7fP7Tl55hkKL4fiiXA9DOzyibn4E1XD1tRPRaqulxsdIrTbnMgeXlteXG3XXK76+OgqnRxb2hxPx6H8Qiig0GhK1Qn2H26JaNrpFjsqT9n7md9PzLuhmB4MI7HxOUCdAxmRt4cxNkJdHB2NsDBVfQ7FBNxxi35j93D/GD2KpaG77Iq/5ZfBegvQn28N2oGh/xsEqc3hoc6o23E
+        dataToSignStructure:
+          $ref: "#/components/schemas/DataToSignStructure"
+          description: The original DataToSignStructre to compare it with DataToSignStructure generated in this request to verify consistency
+      required:
+        - signingCertificate
+        - signingTime
+        - signedData
+        - dataToSignStructure
+
+    SignDocumentResponseBody:
+      type: object
+      properties:
+        filename:
+          type: string
+          description: Filename of the signed document
+          example: sample_document.pdf
+        mimeType:
+          type: string
+          description: mimeType of the signed document
+          enum:
+            - "application/pdf;base64"
+            - "application/vnd.etsi.asic-e+zip;base64"
+            - "application/vnd.etsi.asic-s+zip;base64"
+        content:
+          type: string
+          description: Base64 encrypted content of the signed document
+          example: ZXhhbXBsZSBvZiBzaWduZWQgZG9jdW1lbnQgaW4gYmFzZTY0Cg==
+        signedBy:
+          type: string
+          example: "SERIALNUMBER=PNOSK-1234567890, C=SK, L=Bratislava, SURNAME=Smith, GIVENNAME=John, CN=John Smith"
+          description: "Distinguished name of the certificate used/attempting to sign the document."
+        issuedBy:
+          type: string
+          example: "CN=SVK eID ACA2, O=Disig a.s., OID.2.5.4.97=NTRSK-12345678, L=Bratislava, C=SK"
+          description: "Distinguished name of the issuer of the certificate used/attempting to sign the document."
+      required:
+        - filename
+        - mimeType
+        - content
+        - signedBy
+        - issuedBy
+
+    GetDocumentResponseBody:
+      type: object
+      properties:
+        filename:
+          type: string
+          description: Filename of the signed document
+          example: sample_document.pdf
+        mimeType:
+          type: string
+          description: mimeType of the signed document
+          enum:
+            - "application/pdf;base64"
+            - "application/vnd.etsi.asic-e+zip;base64"
+            - "application/vnd.etsi.asic-s+zip;base64"
+        content:
+          type: string
+          description: Base64 encrypted content of the signed document
+          example: ZXhhbXBsZSBvZiBzaWduZWQgZG9jdW1lbnQgaW4gYmFzZTY0Cg==
+        signers:
+          type: array
+          description: Array of all signers of the documents
+          items:
+            type: object
+            properties:
+              signedBy:
+                type: string
+                example: "SERIALNUMBER=PNOSK-1234567890, C=SK, L=Bratislava, SURNAME=Smith, GIVENNAME=John, CN=John Smith"
+                description: "Distinguished name of the certificate used/attempting to sign the document."
+              issuedBy:
+                type: string
+                example: "CN=SVK eID ACA2, O=Disig a.s., OID.2.5.4.97=NTRSK-12345678, L=Bratislava, C=SK"
+                description: "Distinguished name of the issuer of the certificate used/attempting to sign the document."
+      required:
+        - filename
+        - mimeType
+        - content
+        - signedBy
+        - issuedBy
+
+    Document:
+      type: object
+      properties:
+        filename:
+          type: string
+          description: Filename of the document. payloadMimeType must be provided if empty. Also, if payloadMimeType is empty, filename must be provided and mimetype must be understood from extension.
+          example: sample_document.txt
+        content:
+          type: string
+          description: Base64 encrypted content of the document
+          example: ZXhhbXBsZSBzdHJpbmcgaW4gYmFzZTY0Cg==
+      required:
+        - content
+
+    SignatureLevelResponse:
+      type: object
+      properties:
+        level:
+          type: string
+          description: Signature level.
+          example: XAdES_BASELINE_B
+          enum:
+            - PAdES_BASELINE_B
+            - PAdES_BASELINE_T
+            - XAdES_BASELINE_B
+            - XAdES_BASELINE_T
+            - CAdES_BASELINE_B
+            - CAdES_BASELINE_T
+
+    SigningParameters:
+      type: object
+      description: Signing parameters same as in the Autogram API
+      properties:
+        checkPDFACompliance:
+          type: boolean
+          default: false
+          description: "Check for PDF/A compliance and show warning if not compliant."
+
+        autoLoadEform:
+          type: boolean
+          default: false
+          description:
+            Try to find XSD and XSLT for a given eForm and load them automatically. Useful for visualizing and signing eForms.
+            If true, schema, transformation, conatinerXmlns, container, packaging, and identifier parameters are ignored.
+            If resources are not found, the response is 422.
+            If provided document is an ASiC_E container conatining XML Datacontainer or it is an XML Datacontainer itself, XSLT found is used for visualiztion of signing document. Also, XSD and XSLT hashes are compared with hashes of XSD and XSLT found in XML Data Container EForm. If they differ, the response is 422.
+            If the provided document is an XML document, Autogram will try to parse xmlns from root element and find resources based on its value.
+            If successful, XML Datacontainer with xmls="http://data.gov.sk/def/container/xmldatacontainer+xml/1.1" is created, the document is validated against the XSD and visualized using the XSLT. If XSD validation fails, the response is 422.
+            The XSLT transformation is found based on transformationLanguage (defaults to user preferred), transformationMediaDestinationTypeDescription (default XHTML, then HTML, then TXT), and transformationTargetEnvironment.
+            If multiple transformations meet the criteria, the first one found is used.
+
+        level:
+          type: string
+          description: Signature level.
+          example: XAdES_BASELINE_B
+          enum:
+            - PAdES_BASELINE_B
+            - PAdES_BASELINE_T
+            - XAdES_BASELINE_B
+            - XAdES_BASELINE_T
+            - CAdES_BASELINE_B
+            - CAdES_BASELINE_T
+
+        container:
+          type: string
+          description: Type of Advanced Signature Container. Defaults to null - no container.
+          example: ASiC-E
+          enum:
+            - ASiC-E
+            - ASiC-S
+
+        containerXmlns:
+          type: string
+          enum:
+            - http://data.gov.sk/def/container/xmldatacontainer+xml/1.1
+          example: http://data.gov.sk/def/container/xmldatacontainer+xml/1.1
+          description: XML namespace for the XML Datacontainer. Specifies if xmldatacontainer should be created from XML. Doesn't create xmldatacontainer if payloadMimeType is application/vnd.gov.sk.xmldatacontainer+xml already. Accepts http://data.gov.sk/def/container/xmldatacontainer+xml/1.1 only. Defaults to null. Is ignored with autoLoadEform true.
+
+        embedUsedSchemas:
+          type: boolean
+          example: false
+          description: When creating XML Datacontainer, parameter indicates whether to embed XSD and XML or reference them. Practically this should be only used for ORSR EForms in which case (when identifier contains "justice.gov.sk/Forms") this parameter is overridden to true.
+
+        identifier:
+          type: string
+          example: https://data.gov.sk/id/egov/eform/App.GeneralAgenda/1.9
+          description: Optional identifier of the document template. Required if containerXmlns is http://data.gov.sk/def/container/xmldatacontainer+xml/1.1. Defaults to null. Is ignored with autoLoadEform true.
+
+        packaging:
+          type: string
+          enum:
+            - ENVELOPED
+            - ENVELOPING
+          default: ENVELOPED
+          description: Optional form of packaging used with XML. ENVELOPED adds the signature as a child of the root element while ENVELOPING wraps the XML in a new element. Only applies to XAdES signatures. Must be ENVELOPING when used without ASiC container and with non XML documents. Is ignored with autoLoadEform true.
+
+        digestAlgorithm:
+          type: string
+          enum:
+            - SHA256
+            - SHA384
+            - SHA512
+          default: SHA256
+          description: Optional algorithm used to calculate digests.
+
+        en319132:
+          type: boolean
+          default: false
+          description: Optional flag to control whether the signature should be made according to ETSI EN 319132 for XAdES and ETSI EN 319122 for CAdES and PAdES.
+
+        infoCanonicalization:
+          type: string
+          enum:
+            - INCLUSIVE
+            - EXCLUSIVE
+            - INCLUSIVE_WITH_COMMENTS
+            - EXCLUSIVE_WITH_COMMENTS
+            - INCLUSIVE_11
+            - INCLUSIVE_11_WITH_COMMENTS
+          default: INCLUSIVE
+          description: Optional info canonicalization method.
+
+        propertiesCanonicalization:
+          type: string
+          enum:
+            - INCLUSIVE
+            - EXCLUSIVE
+            - INCLUSIVE_WITH_COMMENTS
+            - EXCLUSIVE_WITH_COMMENTS
+            - INCLUSIVE_11
+            - INCLUSIVE_11_WITH_COMMENTS
+          default: INCLUSIVE
+          description: Optional properties canonicalization method.
+
+        keyInfoCanonicalization:
+          type: string
+          enum:
+            - INCLUSIVE
+            - EXCLUSIVE
+            - INCLUSIVE_WITH_COMMENTS
+            - EXCLUSIVE_WITH_COMMENTS
+            - INCLUSIVE_11
+            - INCLUSIVE_11_WITH_COMMENTS
+          default: INCLUSIVE
+          description: Optional key info canonicalization method.
+
+        schema:
+          type: string
+          example: '<?xml version="1.0"?><xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"><xs:element name="Document"><xs:complexType><xs:sequence><xs:element name="Title" type="xs:string" /></xs:sequence></xs:complexType></xs:element></xs:schema>'
+          description: Optional XML schema used to validate the signing document and to compute digest used in "UsedXSDReference" in "DigestValue" attribute inside created XML Datacontainer. Format (plaintext or base64) is dictated by `payloadMimeType`. Is ignored with autoLoadEform true.
+
+        schemaIdentifier:
+          type: string
+          example: http://schemas.gov.sk/form/App.GeneralAgenda/1.9/form.xsd
+          description: Optional identifier of the XML schema. The value is used in "UsedXSDReference" field inside created XML Datacontainer. If provided with autoLoadEform true, Autogram will try to find such schema. Default value is "http://schemas.gov.sk/form/<form-idnetifier>/<version>/form.xsd".
+
+        transformation:
+          type: string
+          example: '<?xml version="1.0"?><xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"><xsl:template match = "/"><h1><xsl:value-of select="/Document/Title"/></h1></xsl:template></xsl:stylesheet>'
+          description: Optional XML transformation used to present the signing document to user and to compute digest used in "UsedPresentationSchemaReference" in "DigestValue" attribute inside created XML Datacontainer. Format (plaintext or base64) is dictated by `payloadMimeType`. Is ignored with autoLoadEform true.
+
+        transformationIdentifier:
+          type: string
+          example: http://schemas.gov.sk/form/App.GeneralAgenda/1.9/form.xslt
+          description: Optional identifier of the XML transformation. If provided with autoLoadEform true, Autogram will try to find such transformation. Default value is "http://schemas.gov.sk/form/<form-idnetifier>/<version>/form.xslt".
+
+        transformationLanguage:
+          type: string
+          example: sk
+          description: Optional language of the XML transformation. If autoLoadEform is true, Autogram will try to find signing XSLT with this language. Otherwise transformation must be provided. Default value is user preferred or "sk".
+
+        transformationMediaDestinationTypeDescription:
+          type: string
+          enum:
+            - XHTML
+            - HTML
+            - TXT
+          example: HTML
+          description: Optional media destination type description of the XML transformation. If autoLoadEform is true, Autogram will try to find signing XSLT with this type. Otherwise transformation must be provided. Overrides value of the output method in provided or auto-loaded transformation which is used by default.
+
+        transformationTargetEnvironment:
+          type: string
+          example: example-value
+          description: Optional target environment of the XML transformation. If autoLoadEform is true, Autogram will try to find signing XSLT with this target. Otherwise transformation must be provided. Null and not used by default.
+      example:
+        level: XAdES_BASELINE_B
+        container: ASiC-E
+
+    CreateDocumentResponseBody:
+      type: object
+      properties:
+        guid:
+          type: string
+          description: GUID of the posted document
+          example: bfde97b4-ee27-47bc-97e2-5164ed96a92a
+      required:
+        - guid
+
+    DocumentVisualizationResponseBody:
+      type: object
+      properties:
+        mimeType:
+          type: string
+          example: "application/pdf;base64"
+        filename:
+          type: string
+          description: Name of the document
+          example: sample_document.pdf
+        content:
+          type: string
+          description: Base64 encoded contentto be displayed
+          example: ZXhhbXBsZSBzdHJpbmcgaW4gYmFzZTY0Cg==
+      required:
+        - mimeType
+        - content
+
+    DocumentValidationResponseBody:
+      type: object
+      properties:
+        containerType:
+          type: string
+          enum:
+            - ASiC_E
+            - ASiC_S
+          description: Format of the validated container. ASiC_E or ASiC_S. Null if not a container
+          example: ASiC_E
+        signatureForm:
+          type: string
+          enum:
+            - XAdES
+            - CAdES
+            - PAdES
+          description: Signature form of the validated document
+          example: XAdES
+        signatures:
+          type: array
+          items:
+            type: object
+            properties:
+              validationResult:
+                type: string
+                description: |
+                  The standard ETSI EN 319 102-1 specifies a complete validation model and procedures for the validation of “AdES digital signatures”, which are implemented in the underlying DSS module.
+                  The validation result can have these values:
+
+                  "TOTAL_PASSED: indicating that the signature has passed verification and it complies with the signature validation policy"
+
+                  "TOTAL_FAILED: indicating that either the signature format is incorrect or that the digital signature value fails the verification"
+
+                  "INDETERMINATE: indicating that the format and digital signature verifications have not failed but there is insufficient information to determine if the electronic signature is valid"
+                enum:
+                  - TOTAL_PASSED
+                  - TOTAL_FAILED
+                  - INDETERMINATE
+                example: TOTAL_PASSED
+              level:
+                type: string
+                enum:
+                  - XAdES_BASELINE_B
+                  - XAdES_BASELINE_T
+                  - XAdES_BASELINE_LT
+                  - XAdES_BASELINE_LTA
+                  - PAdES_BASELINE_B
+                  - PAdES_BASELINE_T
+                  - PAdES_BASELINE_LT
+                  - PAdES_BASELINE_LTA
+                  - CAdES_BASELINE_B
+                  - CAdES_BASELINE_T
+                  - CAdES_BASELINE_LT
+                  - CAdES_BASELINE_LTA
+                description: Signature level of the signature.
+                example: XAdES_BASELINE_LTA
+              claimedSigningTime:
+                type: string
+                description: Claimed signing time based on the signature only.
+                example: "2023-08-01T12:37:47 +0200"
+              bestSigningTime:
+                type: string
+                description: Lowest time at which there exists a proof of existence for the signature.
+                example: "2023-08-01T12:37:47 +0200"
+              signingCertificate:
+                type: object
+                description: Signing certificate details.
+                properties:
+                  qualification:
+                    type: string
+                    description: Qualification of the signature at validation time. For more info check out Java class eu.europa.esig.dss.enumerations.SignatureQualification
+                    enum:
+                      - QESIG
+                      - QESEAL
+                      - UNKNOWN_QC_QSCD-QC-QSCD
+                      - ADESIG_QC-QC
+                      - ADESEAL_QC-QC
+                      - UNKNOWN_QC-QC
+                      - ADESIG
+                      - ADESEAL
+                      - UNKNOWN
+                      - INDETERMINATE_QESIG
+                      - INDETERMINATE_QESEAL
+                      - INDETERMINATE_UNKNOWN_QC_QSCD
+                      - INDETERMINATE_ADESIG_QC
+                      - INDETERMINATE_ADESEAL_QC
+                      - INDETERMINATE_UNKNOWN_QC
+                      - INDETERMINATE_ADESIG
+                      - INDETERMINATE_ADESEAL
+                      - INDETERMINATE_UNKNOWN
+                      - NOT_ADES_QC_QSCD
+                      - NOT_ADES_QC
+                      - NOT_ADES
+                      - NA
+                    example: QESEAL
+                  issuerDN:
+                    type: string
+                    description: RFC1779 of the signing certificate issuer name.
+                    example: "OID.2.5.4.5=NTRCZ-26439395, O=\"První certifikační autorita, a.s.\", CN=I.CA Qualified CA/RSA 07/2015, C=CZ"
+                  subjectDN:
+                    type: string
+                    description: RFC1779 of the signing certificate name.
+                    example: "OID.2.5.4.5=ICA - 10432139, OID.2.5.4.97=NTRSK-00166073, CN=Ministerstvo spravodlivosti SR, O=Ministerstvo spravodlivosti SR, C=SK"
+                  certificateDer:
+                    type: string
+                    description: Base64 encoded DER form of the certificate
+                    example: "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"
+                required:
+                  - qualification
+                  - issuerDN
+                  - subjectDN
+                  - certificateDer
+              areQualifiedTimestamps:
+                type: boolean
+                description: Boolean indicating if the signature has any timestamps and they are all qualified and valid.
+                example: true
+              timestamps:
+                type: array
+                description: List of timestamps on the signature.
+                items:
+                  type: object
+                  properties:
+                    qualification:
+                      type: string
+                      description: |
+                        Qualification status fo the timestamp at validation time.
+
+                        QTSA - Qualified timestamp" - "urn:cef:dss:timestampQualification:QTSA"
+
+                        TSA - Not qualified timestamp" - "urn:cef:dss:timestampQualification:TSA"
+
+                        NA - Not applicable" - "urn:cef:dss:timestampQualification:notApplicable"
+                      enum:
+                        - QTSA
+                        - TSA
+                        - NA
+                      example: QTSA
+                    timestampType:
+                      type: string
+                      enum:
+                        - CONTENT_TIMESTAMP
+                        - ALL_DATA_OBJECTS_TIMESTAMP
+                        - INDIVIDUAL_DATA_OBJECTS_TIMESTAMP
+                        - SIGNATURE_TIMESTAMP
+                        - VRI_TIMESTAMP
+                        - VALIDATION_DATA_REFSONLY_TIMESTAMP
+                        - VALIDATION_DATA_TIMESTAMP
+                        - DOCUMENT_TIMESTAMP
+                        - ARCHIVE_TIMESTAMP
+                      description: Type of the timestamp
+                      example: SIGNATURE_TIMESTAMP
+                    subjectDN:
+                      type: string
+                      description: RFC1779 of the timestamp certificate name.
+                      example: CN=NASES Time Stamp Authority 2, O=Národná agentúra pre sieťové a elektronické služby, OID.2.5.4.97=NTRSK-42156424, OU=SNCA, C=SK
+                    certificateDer:
+                      type: string
+                      description: Base64 encoded DER form of the certificate
+                      example: "MIIHBTCCBO2gAwIBAgIKBH5eoiXqCwAACjANBgkqhkiG9w0BAQsFADCBgjELMAkGA1UEBhMCU0sxDTALBgNVBAsTBFNOQ0ExFzAVBgNVBGETDk5UUlNLLTQyMTU2NDI0MTswOQYDVQQKEzJOYXJvZG5hIGFnZW50dXJhIHByZSBzaWV0b3ZlIGEgZWxla3Ryb25pY2tlIHNsdXpieTEOMAwGA1UEAxMFU05DQTQwHhcNMjEwNDE1MTEzMTI0WhcNMjYwNDE0MTEzMTI0WjCBoDELMAkGA1UEBhMCU0sxDTALBgNVBAsMBFNOQ0ExFzAVBgNVBGEMDk5UUlNLLTQyMTU2NDI0MUIwQAYDVQQKDDlOw6Fyb2Ruw6EgYWdlbnTDunJhIHByZSBzaWXFpW92w6kgYSBlbGVrdHJvbmlja8OpIHNsdcW+YnkxJTAjBgNVBAMMHE5BU0VTIFRpbWUgU3RhbXAgQXV0aG9yaXR5IDIwggGiMA0GCSqGSIb3DQEBAQUAA4IBjwAwggGKAoIBgQCxUeaI0MPA9GiJYElp4338ynEYUbnJjraCMbYS83la8saO3eOEjdB1NHU7bSz68FWiCq2zAsJyXs1Lz+oDVqEh2Pw8+nGJFuEFzcsZqiJGAZjITVvoYIK+su0F5Pm0Q9GLde53oqQ7XRFEbvmzTDJT0+oK3goVEx9b7LmzOKhBH78Io0EAump1R7+jZqLpMz7WNUNruMhfrvmSZXuUVRQL4WMZgv/Iv6YJZg6+pTg6tPLu/oNuHDo73JFau5hvUUwA8B8jBAqoCrvg7syRH78nlrpDFqxQZvYoXJtdnVToZJCv8QRj4qbf8ejmtfuSA7k86FT3r1HvNT9bAvO9iAAJL8B2+o3VzzZekSrxMzfoiRViRGf1LvVdrs0o7S5FjpWMHM0RvHBiMz0XHO5rmHP9n5L4IqOwbZ06dzbd1EDtUtKdl+L/etmmH2DTAKIkjVeDn5amuR9P/mRNzxoK4lAHNBVw2apT3e+LYI7aJXYqLIpQcXwwVl/0TRm2ed3WJv0CAwEAAaOCAdswggHXMIGjBggrBgEFBQcBAQSBljCBkzA0BggrBgEFBQcwAYYoaHR0cDovL3NuY2E0LW9jc3Auc25jYS5nb3Yuc2svb2NzcC9zbmNhNDA3BggrBgEFBQcwAoYraHR0cDovL2NkcC5zbmNhLmdvdi5zay9zbmNhNC9jZXJ0L3NuY2E0LmRlcjAiBggrBgEFBQcwAqQWMBQxEjAQBgNVBAUTCVRMSVNLLTEzODAdBgNVHQ4EFgQUNBOTyD3KvFT92aUEetyj1h0Ho94wHwYDVR0jBBgwFoAUQmZJTJHHWpIsZygrX5mjawpMu4MwDAYDVR0TAQH/BAIwADBLBgNVHSAERDBCMEAGCiuBHpSNgwgAAQEwMjAwBggrBgEFBQcCARYkaHR0cHM6Ly9zbmNhLmdvdi5zay9jcHMvY3BzX3NuY2EucGRmMG8GA1UdHwRoMGYwMaAvoC2GK2h0dHA6Ly9jZHAxLnNuY2EuZ292LnNrL3NuY2E0L2NybC9zbmNhNC5jcmwwMaAvoC2GK2h0dHA6Ly9jZHAyLnNuY2EuZ292LnNrL3NuY2E0L2NybC9zbmNhNC5jcmwwCwYDVR0PBAQDAgZAMBYGA1UdJQEB/wQMMAoGCCsGAQUFBwMIMA0GCSqGSIb3DQEBCwUAA4ICAQBbfddjVEVgrrTE4EBBKdZdcY6K7bQ/FEK1oB6BMf9qBZ/XOfAStAtOloKPhBrz/6PBnZ/MSzmjpw0VA9Hip9mTehGpg3rp3J0jmOSkgseEKZWYhoeE+s4xMVVoAOQR5qyqjDavowWAzJAR0BZ1S1Jw35us54huejLAYlOKrL85VL4DpFqtPfbT7jYc97QWNqnaWHuztjRPgLqK5of7tczQHtUhqb7qNNc0MCdMdok40Hv9j8P8akQi9XomXYEzepKBFznREmfqJGGxMP3ktlIvZi7sUthsnPdFAQiTPXBWl4bZ1G6pITuDCMdMZKLGec/5KwcEUV1w2yTbfTtQPvYslWtmgo7pzilkHhQkmWKM8/Rd2WmweNBjmO75iM8G56jJZG57V1EOLeFd1vSS1ZOR4b7nblTTRSp0adCW7FIfo9BmMA9kzxurHkgRQk62eveDCv/AHcjJ85ScDk73TcwWwPQBwcR1561/5i5J7jOy+C7ynfxUS5vIH5O5fcAzWauaTdQO0iur7Khmj/1UWiR/ISOrfoG9WhMpmbuCrJ9IB7g7bLxs1Kat75b94/B6Kr4UPZXqX36OhV2X09VWDLZ7KaLK8dsAyiZgPf2yzobaP8hapbyeSzDpR4kISjvCx1P0iSuKM5FgmibfyV9vKmLGhs/lUWnnd/anEMCBBn2USA=="
+                    productionTime:
+                      type: string
+                      description: ProductionTime of the timestamp.
+                      example: "2023-08-01T12:37:47 +0200"
+                  required:
+                    - qualification
+                    - timestampType
+                    - subjectDN
+                    - certificateDer
+                    - productionTime
+              signedObjectsIds:
+                type: array
+                items:
+                  type: string
+                  description: List of IDs referencing files this signature have signed.
+                  example: "D-0D9E226205D94EDEBAFEDA4F2A9B17DEDD556529C0753C7F49C197DC8491B71A"
+            required:
+              - validationResult
+              - level
+              - claimedSigningTime
+              - bestSigningTime
+              - signingCertificate
+              - areQualifiedTimestamps
+              - signedObjectIds
+        signedObjects:
+          type: array
+          description: List of files in the container that are signed by at least one signature
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: ID of the file used to reference the file in signatures
+                example: "D-0D9E226205D94EDEBAFEDA4F2A9B17DEDD556529C0753C7F49C197DC8491B71A"
+              mimeType:
+                type: string
+                description: MimeType of the file
+                example: application/pdf
+              filename:
+                type: string
+                description: Filename of the file in the container. If the validated document is PAdES or standalone XAdES where filename is unknown, this attribute should be ignored.
+                example: Sro_119763_B.pdf
+            required:
+              - mimetype
+              - filename
+              - id
+        unsignedObjects:
+          type: array
+          description: List of files in the container that have not been referenced in any signature yet
+          items:
+            type: object
+            properties:
+              mimeType:
+                type: string
+                description: MimeType of the file
+                example: application/pdf
+              filename:
+                type: string
+                description: Filename of the file in the container. If the validated document is PAdES or standalone XAdES where filename is unknown, this attribute should be ignored.
+                example: Some_unsigned_document.pdf
+            required:
+              - mimetype
+              - filename
+      example:
+        value:
+          containerType: ASiC_E
+          signatureForm: XAdES
+          signatures:
+          - validationResult: TOTAL_PASSED
+            level: XAdES_BASELINE_LTA
+            claimedSigningTime: 2023-08-01T12:37:47 +0200
+            bestSigningTime: 2023-08-01T12:37:47 +0200
+            signingCertificate:
+              qualification: QESEAL
+              issuerDN: "OID.2.5.4.5=NTRCZ-26439395, O=\"První certifikační autorita, a.s.\", CN=I.CA Qualified CA/RSA 07/2015, C=CZ"
+              subjectDN: "OID.2.5.4.5=ICA - 10432139, OID.2.5.4.97=NTRSK-00166073, CN=Ministerstvo spravodlivosti SR, O=Ministerstvo spravodlivosti SR, C=SK"
+              certificateDer: "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"
+            areQualifiedTimestamps: true
+            timestamps:
+            - qualification: QTSA
+              timestampType: SIGNATURE_TIMESTAMP
+              subjectDN: "CN=NASES Time Stamp Authority 2, O=Národná agentúra pre sieťové a elektronické služby, OID.2.5.4.97=NTRSK-42156424, OU=SNCA, C=SK"
+              certificateDer: "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"
+              productionTime: 2023-08-01T12:37:47 +0200
+            - qualification: QTSA
+              timestampType: ARCHIVE_TIMESTAMP
+              subjectDN: "CN=Timestamp Unit 202301, OID.2.5.4.97=NTRBE-0671516647, O=QTSP: FPS Policy and Support - BOSA, L=Brussels, C=BE"
+              certificateDer: "MIIEaDCCA++gAwIBAgIUYgKXRHlVRnKUhBH9VqQi8YkYwxEwCgYIKoZIzj0EAwMwgbsxCzAJBgNVBAYTAkJFMREwDwYDVQQHDAhCcnVzc2VsczEwMC4GA1UECgwnS2luZ2RvbSBvZiBCZWxnaXVtIC0gRmVkZXJhbCBHb3Zlcm5tZW50MT8wPQYDVQQLDDZRVFNQOiBGUFMgUG9saWN5IGFuZCBTdXBwb3J0IC0gQk9TQSAoTlRSQkUtMDY3MTUxNjY0NykxDzANBgNVBAUTBjIwMjEwMTEVMBMGA1UEAwwMVGltZXN0YW1wIENBMB4XDTIyMTIwOTEwNTYwMloXDTI4MTIwOTEwNTYwMVowgYkxCzAJBgNVBAYTAkJFMREwDwYDVQQHDAhCcnVzc2VsczEsMCoGA1UECgwjUVRTUDogRlBTIFBvbGljeSBhbmQgU3VwcG9ydCAtIEJPU0ExGTAXBgNVBGEMEE5UUkJFLTA2NzE1MTY2NDcxHjAcBgNVBAMMFVRpbWVzdGFtcCBVbml0IDIwMjMwMTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABLmXpDLz9zw5cho43EAFbjEtjUpXD+tFEihjq7XzBldbtHQHV1cW9Ra+hpLjUa5CvJN+VWF9dEMECf1VZmAS/8ajggH/MIIB+zAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFOBOG9N1TbWHTgK2+qlaY8w8qpiZMHsGCCsGAQUFBwEBBG8wbTA6BggrBgEFBQcwAoYuaHR0cDovL2NydC5laWRwa2kuYmVsZ2l1bS5iZS90cy90c2NhMjAyMTAxLmNydDAvBggrBgEFBQcwAYYjaHR0cDovL29jc3AuZWlkcGtpLmJlbGdpdW0uYmUvZWlkLzAwVgYDVR0gBE8wTTBABgdgOA0GA4doMDUwMwYIKwYBBQUHAgEWJ2h0dHBzOi8vcmVwb3NpdG9yeS5laWRwa2kuYmVsZ2l1bS5iZS90czAJBgcEAIvsQAEBMBYGA1UdJQEB/wQMMAoGCCsGAQUFBwMIMG0GCCsGAQUFBwEDBGEwXzAIBgYEAI5GAQEwEwYGBACORgEGMAkGBwQAjkYBBgIwPgYGBACORgEFMDQwMhYsaHR0cHM6Ly9yZXBvc2l0b3J5LmVpZHBraS5iZWxnaXVtLmJlL3Bkcy10c3MTAmVuMD8GA1UdHwQ4MDYwNKAyoDCGLmh0dHA6Ly9jcmwuZWlkcGtpLmJlbGdpdW0uYmUvdHMvdHNjYTIwMjEwMS5jcmwwHQYDVR0OBBYEFJohWdg9YkmxbhVR1YZX+NeXq5aTMA4GA1UdDwEB/wQEAwIHgDAKBggqhkjOPQQDAwNnADBkAjAYALeaQLcKx7V9KnoYN36xjYXLzhbji3hkQMKqGQydMQjUrBp/xtr9UJjpd+qGxaoCMExzxfcWMa7bKav44FhXI9Mf8L5JVEpvzCwugzzjOVquOtX1m+DqAG7CQqhMweUVDQ=="
+              productionTime: 2024-08-02T13:01:24 +0200
+            signedObjectsIds:
+              D-0D9E226205D94EDEBAFEDA4F2A9B17DEDD556529C0753C7F49C197DC8491B71A
+          signedObjects:
+            - id: D-0D9E226205D94EDEBAFEDA4F2A9B17DEDD556529C0753C7F49C197DC8491B71A
+              mimeType: application/pdf
+              filename: Sro_119763_B.pdf
+          unsignedObjects:
+            - mimeType: application/pdf
+              filename: some_unsigned_document.pdf
+
+    BadRequestErrorResponseBody:
+      type: object
+      properties:
+        code:
+          type: string
+          example: BAD_REQUEST
+          description: Code that can be used to identify the error.
+        message:
+          type: string
+          example: Parameter missing.
+          description: Human readable error message.
+        details:
+          type: string
+          example: Document ID is missing in request.
+          description: Optional details.
+      required:
+        - code
+        - message
+
+    ErrorResponseBody:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - UNPROCESSABLE_INPUT
+            - UNSUPPORTED_SIGNATURE_LEVEL
+            - MULTIPLE_ORIGINAL_DOCUMENTS
+            - ORIGINAL_DOCUMENT_NOT_FOUND
+            - MALFORMED_INPUT
+            - EMPTY_BODY
+            - DATATOSIGN_MISMATCH
+            - CERTIFICATE_NOT_VALID
+            - FAILED_PARSING_MIMETYPE
+          description: |
+            Code that can be used to identify the error.
+            
+            `MULTIPLE_ORIGINAL_DOCUMENTS` will be removed in the future possibly.
+            
+            `DATATOSIGN_MISMATCH` applies to `/sign` request only.
+            
+            `CERTIFICATE_NOT_VALID` applies to `/datatosign` and `/sign` requests only.
+        message:
+          type: string
+          example: IllegalArgumentException parsing request body
+          description: Human readable error message.
+        details:
+          type: string
+          example: Document must be a PDF when using PAdES.
+          description: Optional details.
+      required:
+        - code
+        - message
+
+    EncryptionKeyNotProvidedErrorResponseBody:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - ENCRYPTION_KEY_MISSING
+            - ENCRYPTION_KEY_MALFORMED
+          description: Code that can be used to identify the error.
+        message:
+          type: string
+          example: Encryption key not provided.
+          description: Human readable error message.
+        details:
+          type: string
+          example: Encryption key must be provided either in X-Encryption-Key header or as encryptionKey query parameter.
+          description: Optional details.
+      required:
+        - code
+        - message
+
+    EncryptionKeyMismatchErrorResponseBody:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - ENCRYPTION_KEY_MISMATCH
+          description: Code that can be used to identify the error.
+        message:
+          type: string
+          example: Encryption key mismatch.
+          description: Human readable error message.
+        details:
+          type: string
+          example: Provided encryption key failed to decrypt document.
+          description: Optional details.
+      required:
+        - code
+        - message
+
+    InternalErrorResponseBody:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - INTERNAL_ERROR
+          description: Code that can be used to identify the error.
+        message:
+          type: string
+          example: Unexpected error while signing document.
+          description: Human readable error message.
+        details:
+          type: string
+          example: Something unexpected happened.
+          description: Optional details.
+      required:
+        - code
+        - message
+
+    BadGatewayErrorResponseBody:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - UNRECOGNIZED_DSS_ERROR
+            - SIGNING_FAILED
+            - INTERNAL_ERROR
+          description: Code that can be used to identify the error.
+        message:
+          type: string
+          example: Unexpected error while signing document.
+          description: Human readable error message.
+        details:
+          type: string
+          example: Something unexpected happened.
+          description: Optional details.
+      required:
+        - code
+        - message
+
+    InvalidSignatureErrorResponseBody:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - INVALID_SIGNATURE_VALUE
+            - SIGNATURE_NOT_IN_TACT
+          description: |
+            Code that can be used to identify the error.
+            
+            `INVALID_SIGNATURE_VALUE` - the `signedData` sent by client are not corresponding with dataToSign and certificate.
+            
+            `SIGNATURE_NOT_IN_TACT` - signature value is not valid for the signed document.
+        message:
+          type: string
+          example: Created signature is not valid.
+          description: Human readable error message.
+        details:
+          type: string
+          example: The signed data were not signed by the provided certificate.
+          description: Optional details.
+      required:
+        - code
+        - message
+
+  securitySchemes:
+    Header:
+      type: apiKey
+      in: header
+      name: X-Encryption-Key
+      description: |
+        AES256 encryption key in Base64 form (44 base64 characters == 32 bytes) that is used to encrypt and decrypt signing doucment.
+
+        Example: `EeESAfZQh9OTf5qZhHZtgaDJpYtxZD6TIOQJzRgRFgQ=`
+
+    Parameter:
+      type: apiKey
+      in: query
+      name: encryptionKey
+      description: |
+        AES256 encryption key in Base64 form (44 base64 characters == 32 bytes) that is used to encrypt and decrypt signing doucment.
+
+        Example: `EeESAfZQh9OTf5qZhHZtgaDJpYtxZD6TIOQJzRgRFgQ=`
+
+    Device JWT:
+      description: |
+        JWT token must be encoded using ES256 and device-specific key matching `sub` claim.
+        Maximum `exp` claim duration id 15 minutes.
+        `jti` claim is required and must be unique for the 15 minutes. 
+        `jti` claim must complain with regular expression: `/\A[0-9a-z\-_]{32,256}\z/i`
+
+        Example of `header` segment:
+
+              {
+                "alg": "ES256",
+              }
+
+        Example `payload` segment:
+
+              {
+                "sub": "123",
+                "exp": 1543437976,
+                "jti": "4dee8618-abbe-4dc3-83ba-e984d1396f9f"
+              }
+
+        Token must be present in either:
+        - header `Authorization: Bearer <api-token>`
+        - query parameter `?token=<api-token>`
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+    Integration JWT:
+      description: |
+        JWT token must be encoded using ES256 and integration-specific key matching `sub` claim.
+        Maximum `exp` claim duration id 15 minutes.
+        `jti` claim is required and must be unique for the 15 minutes. 
+        `jti` claim must complain with regular expression: `/\A[0-9a-z\-_]{32,256}\z/i`
+
+        Example of `header` segment:
+
+              {
+                "alg": "ES256",
+              }
+
+        Example `payload` segment:
+
+              {
+                "sub": "123",
+                "exp": 1543437976,
+                "jti": "4dee8618-abbe-4dc3-83ba-e984d1396f9f"
+              }
+
+        Token must be present in either:
+        - header `Authorization: Bearer <api-token>`
+        - query parameter `?token=<api-token>`
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  examples:
+    XAdES-ASiC_E-TXT:
+      value:
+        document:
+          content: "Testovací dokument"
+          filename: TextDocument.txt
+        parameters:
+          level: XAdES_BASELINE_B
+          container: ASiC_E
+        payloadMimeType: "text/plain"
+
+    XAdES-ASiC_E-Base64-HTML:
+      value:
+        document:
+          content: "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48R2VuZXJhbEFnZW5kYSB4bWxucz0iaHR0cDovL3NjaGVtYXMuZ292LnNrL2Zvcm0vQXBwLkdlbmVyYWxBZ2VuZGEvMS45Ij4KICA8c3ViamVjdD5Ob3bDqSBwb2RhbmllPC9zdWJqZWN0PgogIDx0ZXh0PlBvZMOhdmFtIHRvdG8gbm92w6kgcG9kYW5pZS48L3RleHQ+CjwvR2VuZXJhbEFnZW5kYT4="
+        parameters:
+          level: XAdES_BASELINE_B
+          container: ASiC_E
+          identifier: "http://data.gov.sk/doc/eform/App.GeneralAgenda/1.9"
+          containerXmlns: http://data.gov.sk/def/container/xmldatacontainer+xml/1.1
+          schema: "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48eHM6c2NoZW1hIGVsZW1lbnRGb3JtRGVmYXVsdD0icXVhbGlmaWVkIiBhdHRyaWJ1dGVGb3JtRGVmYXVsdD0idW5xdWFsaWZpZWQiIHhtbG5zOnhzPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYSIgdGFyZ2V0TmFtZXNwYWNlPSJodHRwOi8vc2NoZW1hcy5nb3Yuc2svZm9ybS9BcHAuR2VuZXJhbEFnZW5kYS8xLjkiIHhtbG5zPSJodHRwOi8vc2NoZW1hcy5nb3Yuc2svZm9ybS9BcHAuR2VuZXJhbEFnZW5kYS8xLjkiPgo8eHM6c2ltcGxlVHlwZSBuYW1lPSJ0ZXh0QXJlYSI+Cjx4czpyZXN0cmljdGlvbiBiYXNlPSJ4czpzdHJpbmciPgo8L3hzOnJlc3RyaWN0aW9uPgo8L3hzOnNpbXBsZVR5cGU+Cjx4czpzaW1wbGVUeXBlIG5hbWU9Im1lbm8iPgo8eHM6cmVzdHJpY3Rpb24gYmFzZT0ieHM6c3RyaW5nIj4KPC94czpyZXN0cmljdGlvbj4KPC94czpzaW1wbGVUeXBlPgoKCjx4czplbGVtZW50IG5hbWU9IkdlbmVyYWxBZ2VuZGEiPgo8eHM6Y29tcGxleFR5cGU+Cjx4czpzZXF1ZW5jZT4KPHhzOmVsZW1lbnQgbmFtZT0ic3ViamVjdCIgdHlwZT0ibWVubyIgbWluT2NjdXJzPSIwIiBuaWxsYWJsZT0idHJ1ZSIgLz4KPHhzOmVsZW1lbnQgbmFtZT0idGV4dCIgdHlwZT0idGV4dEFyZWEiIG1pbk9jY3Vycz0iMCIgbmlsbGFibGU9InRydWUiIC8+CjwveHM6c2VxdWVuY2U+CjwveHM6Y29tcGxleFR5cGU+CjwveHM6ZWxlbWVudD4KPC94czpzY2hlbWE+"
+          transformation: "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjx4c2w6c3R5bGVzaGVldCB2ZXJzaW9uPSIxLjAiICB4bWxuczp4c2w9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvWFNML1RyYW5zZm9ybSIgIHhtbG5zOmVnb25wPSJodHRwOi8vc2NoZW1hcy5nb3Yuc2svZm9ybS9BcHAuR2VuZXJhbEFnZW5kYS8xLjkiIGV4Y2x1ZGUtcmVzdWx0LXByZWZpeGVzPSJlZ29ucCI+DQo8eHNsOm91dHB1dCBtZXRob2Q9Imh0bWwiIGRvY3R5cGUtc3lzdGVtPSJodHRwOi8vd3d3LnczLm9yZy9UUi9odG1sNC9zdHJpY3QuZHRkIiBkb2N0eXBlLXB1YmxpYz0iLS8vVzNDLy9EVEQgSFRNTCA0LjAxLy9FTiIgaW5kZW50PSJubyIgb21pdC14bWwtZGVjbGFyYXRpb249InllcyIvPg0KPHhzbDp0ZW1wbGF0ZSBtYXRjaD0iLyI+DQo8aHRtbD4NCjxoZWFkPg0KPG1ldGEgaHR0cC1lcXVpdj0iWC1VQS1Db21wYXRpYmxlIiBjb250ZW50PSJJRT04IiAvPg0KPHRpdGxlPlbFoWVvYmVjbsOhIGFnZW5kYTwvdGl0bGU+DQo8bWV0YSBodHRwLWVxdWl2PSJDb250ZW50LVR5cGUiIGNvbnRlbnQ9InRleHQvaHRtbDsgY2hhcnNldD1VVEYtOCIvPg0KPG1ldGEgbmFtZT0ibGFuZ3VhZ2UiIGNvbnRlbnQ9InNrLVNLIi8+DQo8c3R5bGUgdHlwZT0idGV4dC9jc3MiPg0KYm9keSB7IA0KCWZvbnQtZmFtaWx5OiAnT3BlbiBTYW5zJywgJ1NlZ29lIFVJJywgJ1RyZWJ1Y2hldCBNUycsICdHZW5ldmEgQ0UnLCBsdWNpZGEsIHNhbnMtc2VyaWY7DQoJYmFja2dyb3VuZCA6ICNmZmZmZmYgIWltcG9ydGFudCA7DQp9DQoudWktdGFicyB7DQoJcGFkZGluZzogLjJlbTsNCglwb3NpdGlvbjogcmVsYXRpdmU7DQoJem9vbTogMTsNCn0JCQkJCQkJCQ0KLmNsZWFyIHsgY2xlYXI6IGJvdGg7IGhlaWdodDogMDt9DQoubGF5b3V0TWFpbiB7DQoJbWFyZ2luOiAwcHggYXV0bzsNCglwYWRkaW5nOiA1cHggNXB4IDVweCA1cHg7CQ0KfQkJCQkNCi5sYXlvdXRSb3cgeyBtYXJnaW4tYm90dG9tOiA1cHg7IH0JCQkJDQouY2FwdGlvbiB7IC8qd2lkdGg6IDEwMCU7IGJvcmRlci1ib3R0b206IHNvbGlkIDFweCBibGFjazsqLyB9DQoubm9jYXB0aW9uICZndDsgLmNhcHRpb24geyBib3JkZXI6IDBweCAhaW1wb3J0YW50OyB9DQoubm9jYXB0aW9uICZndDsgLmNhcHRpb24gc3BhbiB7DQoJYmFja2dyb3VuZDogbm9uZSAhaW1wb3J0YW50Ow0KCWRpc3BsYXk6IG5vbmU7DQp9IA0KLmNhcHRpb24gLnRpdGxlIHsgcGFkZGluZy1sZWZ0OiA1cHg7IH0NCi5oZWFkZXJjb3JyZWN0aW9uIHsJDQoJbWFyZ2luOiAwcHg7DQogICAgZm9udC1zaXplIDogMWVtOw0KICAgIGZvbnQtd2VpZ2h0OiBib2xkOw0KfQkJCQkNCi5sYWJlbFZpcyB7DQoJZmxvYXQ6IGxlZnQ7DQoJZm9udC13ZWlnaHQ6IGJvbGQ7DQoJZm9udC1mYW1pbHk6ICdPcGVuIFNhbnMnLCAnU2Vnb2UgVUknLCAnVHJlYnVjaGV0IE1TJywgJ0dlbmV2YSBDRScsIGx1Y2lkYSwgc2Fucy1zZXJpZjsNCglsaW5lLWhlaWdodDogMjVweDsNCgltYXJnaW46IDBweCAxOHB4IDBweCAwcHg7DQoJcGFkZGluZy1sZWZ0OiAzcHg7DQoJd2lkdGg6IDE5MHB4Ow0KCXdvcmQtd3JhcDogYnJlYWstd29yZDsNCiAgICBmb250LXNpemU6IDAuOGVtOw0KfQ0KLmNvbnRlbnRWaXMgeyAgICAJICAgICANCglmbG9hdDogbGVmdDsJDQoJbGluZS1oZWlnaHQ6IDI1cHg7DQoJbWFyZ2luOiAwcHg7DQoJcGFkZGluZzogMHB4Ow0KCXZlcnRpY2FsLWFsaWduOiB0b3A7DQogICAgZm9udC1zaXplOiAwLjc1ZW07CQkJDQp9DQoud29yZHdyYXAgeyANCiAgICB3aGl0ZS1zcGFjZTogcHJlLXdyYXA7ICAgICAgDQogICAgd2hpdGUtc3BhY2U6IC1tb3otcHJlLXdyYXA7IA0KICAgIHdoaXRlLXNwYWNlOiAtcHJlLXdyYXA7ICAgICANCiAgICB3aGl0ZS1zcGFjZTogLW8tcHJlLXdyYXA7ICAgDQogICAgd29yZC13cmFwOiBicmVhay13b3JkOyAgICAgIA0KfQkNCi51aS13aWRnZXQtY29udGVudCB7DQoJYmFja2dyb3VuZCA6IDUwJSA1MCUgcmVwZWF0LXggI2ZmZmZmZjsNCglib3JkZXIgOiAjZDRkNGQ0IHNvbGlkIDJweDsNCgljb2xvciA6ICM0ZjRlNGU7DQoJYm9yZGVyLXJhZGl1cyA6IDNweDsNCn0NCi51aS13aWRnZXQtaGVhZGVyIHsNCgljdXJzb3IgOiBwb2ludGVyOw0KCWZvbnQtc2l6ZSA6IDAuOGVtOw0KCWNvbG9yIDogIzQ5NDk0OTsNCglwYWRkaW5nLWxlZnQgOiAycHg7DQoJYm9yZGVyIDogI2VhZTllOCBzb2xpZCAxcHg7DQoJYmFja2dyb3VuZC1jb2xvciA6ICNlYWU5ZTg7DQoJbWFyZ2luLWJvdHRvbTogM3B4Ow0KCWJvcmRlci1yYWRpdXMgOiAzcHg7DQp9CQkJDQo8L3N0eWxlPg0KPC9oZWFkPg0KPGJvZHk+DQo8ZGl2IGlkPSJtYWluIiBjbGFzcz0ibGF5b3V0TWFpbiI+DQo8eHNsOmFwcGx5LXRlbXBsYXRlcy8+DQo8L2Rpdj4NCjwvYm9keT4NCjwvaHRtbD4NCjwveHNsOnRlbXBsYXRlPg0KPHhzbDp0ZW1wbGF0ZSBtYXRjaD0iL2Vnb25wOkdlbmVyYWxBZ2VuZGEiPg0KPGRpdiBjbGFzcz0ibGF5b3V0Um93IHVpLXRhYnMgdWktd2lkZ2V0LWNvbnRlbnQiID4NCjxkaXYgY2xhc3M9ImNhcHRpb24gdWktd2lkZ2V0LWhlYWRlciI+DQo8ZGl2IGNsYXNzPSJoZWFkZXJjb3JyZWN0aW9uIj5WxaFlb2JlY27DoSBhZ2VuZGE8L2Rpdj4NCjwvZGl2Pg0KPHhzbDphcHBseS10ZW1wbGF0ZXMgc2VsZWN0PSIuL2Vnb25wOnN1YmplY3QiLz4NCjx4c2w6YXBwbHktdGVtcGxhdGVzIHNlbGVjdD0iLi9lZ29ucDp0ZXh0Ii8+DQo8L2Rpdj4NCjwveHNsOnRlbXBsYXRlPg0KPHhzbDp0ZW1wbGF0ZSBtYXRjaD0iZWdvbnA6R2VuZXJhbEFnZW5kYS9lZ29ucDpzdWJqZWN0Ij4NCjx4c2w6aWYgdGVzdD0iLi90ZXh0KCkiPg0KPGRpdj48bGFiZWwgY2xhc3M9ImxhYmVsVmlzIj5QcmVkbWV0OiA8L2xhYmVsPjxzcGFuIGNsYXNzPSJjb250ZW50VmlzIHdvcmR3cmFwIj48eHNsOmNhbGwtdGVtcGxhdGUgbmFtZT0ic3RyaW5nLXJlcGxhY2UtYWxsIj48eHNsOndpdGgtcGFyYW0gbmFtZT0idGV4dCIgc2VsZWN0PSIuIiAvPjx4c2w6d2l0aC1wYXJhbSBuYW1lPSJyZXBsYWNlIiBzZWxlY3Q9IiclMEEnIiAvPjx4c2w6d2l0aC1wYXJhbSBuYW1lPSJieSIgc2VsZWN0PSInJiMxMzsmIzEwOyciIC8+PC94c2w6Y2FsbC10ZW1wbGF0ZT48L3NwYW4+PC9kaXY+PGRpdiBjbGFzcz0iY2xlYXIiPiYjeGEwOzwvZGl2PjwveHNsOmlmPg0KPC94c2w6dGVtcGxhdGU+DQo8eHNsOnRlbXBsYXRlIG1hdGNoPSJlZ29ucDpHZW5lcmFsQWdlbmRhL2Vnb25wOnRleHQiPg0KPHhzbDppZiB0ZXN0PSIuL3RleHQoKSI+DQo8ZGl2PjxsYWJlbCBjbGFzcz0ibGFiZWxWaXMiPlRleHQ6IDwvbGFiZWw+PHNwYW4gY2xhc3M9ImNvbnRlbnRWaXMgd29yZHdyYXAiPjx4c2w6Y2FsbC10ZW1wbGF0ZSBuYW1lPSJzdHJpbmctcmVwbGFjZS1hbGwiPjx4c2w6d2l0aC1wYXJhbSBuYW1lPSJ0ZXh0IiBzZWxlY3Q9Ii4iIC8+PHhzbDp3aXRoLXBhcmFtIG5hbWU9InJlcGxhY2UiIHNlbGVjdD0iJyUwQSciIC8+PHhzbDp3aXRoLXBhcmFtIG5hbWU9ImJ5IiBzZWxlY3Q9IicmIzEzOyYjMTA7JyIgLz48L3hzbDpjYWxsLXRlbXBsYXRlPjwvc3Bhbj48L2Rpdj48ZGl2IGNsYXNzPSJjbGVhciI+JiN4YTA7PC9kaXY+PC94c2w6aWY+DQo8L3hzbDp0ZW1wbGF0ZT4NCjx4c2w6dGVtcGxhdGUgbmFtZT0iZm9ybWF0VG9Ta0RhdGUiPg0KPHhzbDpwYXJhbSBuYW1lPSJkYXRlIiAvPg0KPHhzbDp2YXJpYWJsZSBuYW1lPSJkYXRlU3RyaW5nIiBzZWxlY3Q9InN0cmluZygkZGF0ZSkiIC8+DQo8eHNsOmNob29zZT4NCjx4c2w6d2hlbiB0ZXN0PSIkZGF0ZVN0cmluZyAhPSAnJyBhbmQgc3RyaW5nLWxlbmd0aCgkZGF0ZVN0cmluZyk9MTAgYW5kIHN0cmluZyhudW1iZXIoc3Vic3RyaW5nKCRkYXRlU3RyaW5nLCAxLCA0KSkpICE9ICdOYU4nICI+DQo8eHNsOnZhbHVlLW9mIHNlbGVjdD0iY29uY2F0KHN1YnN0cmluZygkZGF0ZVN0cmluZywgOSwgMiksICcuJywgc3Vic3RyaW5nKCRkYXRlU3RyaW5nLCA2LCAyKSwgJy4nLCBzdWJzdHJpbmcoJGRhdGVTdHJpbmcsIDEsIDQpKSIgLz4NCjwveHNsOndoZW4+DQo8eHNsOm90aGVyd2lzZT4NCjx4c2w6dmFsdWUtb2Ygc2VsZWN0PSIkZGF0ZVN0cmluZyI+PC94c2w6dmFsdWUtb2Y+DQo8L3hzbDpvdGhlcndpc2U+DQo8L3hzbDpjaG9vc2U+DQo8L3hzbDp0ZW1wbGF0ZT4NCjx4c2w6dGVtcGxhdGUgbmFtZT0iYm9vbGVhbkNoZWNrYm94VG9TdHJpbmciPg0KPHhzbDpwYXJhbSBuYW1lPSJib29sVmFsdWUiIC8+DQo8eHNsOnZhcmlhYmxlIG5hbWU9ImJvb2xWYWx1ZVN0cmluZyIgc2VsZWN0PSJzdHJpbmcoJGJvb2xWYWx1ZSkiIC8+DQo8eHNsOmNob29zZT4NCjx4c2w6d2hlbiB0ZXN0PSIkYm9vbFZhbHVlU3RyaW5nID0gJ3RydWUnICI+DQo8eHNsOnRleHQ+w4FubzwveHNsOnRleHQ+DQo8L3hzbDp3aGVuPg0KPHhzbDp3aGVuIHRlc3Q9IiRib29sVmFsdWVTdHJpbmcgPSAnZmFsc2UnICI+DQo8eHNsOnRleHQ+TmllPC94c2w6dGV4dD4NCjwveHNsOndoZW4+DQo8eHNsOndoZW4gdGVzdD0iJGJvb2xWYWx1ZVN0cmluZyA9ICcxJyAiPg0KPHhzbDp0ZXh0PsOBbm88L3hzbDp0ZXh0Pg0KPC94c2w6d2hlbj4NCjx4c2w6d2hlbiB0ZXN0PSIkYm9vbFZhbHVlU3RyaW5nID0gJzAnICI+DQo8eHNsOnRleHQ+TmllPC94c2w6dGV4dD4NCjwveHNsOndoZW4+DQo8eHNsOm90aGVyd2lzZT4NCjx4c2w6dmFsdWUtb2Ygc2VsZWN0PSIkYm9vbFZhbHVlU3RyaW5nIj48L3hzbDp2YWx1ZS1vZj4NCjwveHNsOm90aGVyd2lzZT4NCjwveHNsOmNob29zZT4NCjwveHNsOnRlbXBsYXRlPg0KPHhzbDp0ZW1wbGF0ZSBuYW1lPSJmb3JtYXRUaW1lVHJpbVNlY29uZHMiPg0KPHhzbDpwYXJhbSBuYW1lPSJ0aW1lIiAvPg0KPHhzbDp2YXJpYWJsZSBuYW1lPSJ0aW1lU3RyaW5nIiBzZWxlY3Q9InN0cmluZygkdGltZSkiIC8+DQo8eHNsOmlmIHRlc3Q9IiR0aW1lU3RyaW5nICE9ICcnIj4NCjx4c2w6dmFsdWUtb2Ygc2VsZWN0PSJzdWJzdHJpbmcoJHRpbWVTdHJpbmcsIDEsIDUpIiAvPg0KPC94c2w6aWY+DQo8L3hzbDp0ZW1wbGF0ZT4NCjx4c2w6dGVtcGxhdGUgbmFtZT0iZm9ybWF0VGltZSI+DQo8eHNsOnBhcmFtIG5hbWU9InRpbWUiIC8+DQo8eHNsOnZhcmlhYmxlIG5hbWU9InRpbWVTdHJpbmciIHNlbGVjdD0ic3RyaW5nKCR0aW1lKSIgLz4NCjx4c2w6aWYgdGVzdD0iJHRpbWVTdHJpbmcgIT0gJyciPg0KPHhzbDp2YWx1ZS1vZiBzZWxlY3Q9InN1YnN0cmluZygkdGltZVN0cmluZywgMSwgOCkiIC8+DQo8L3hzbDppZj4NCjwveHNsOnRlbXBsYXRlPg0KPHhzbDp0ZW1wbGF0ZSBuYW1lPSJzdHJpbmctcmVwbGFjZS1hbGwiPg0KPHhzbDpwYXJhbSBuYW1lPSJ0ZXh0Ii8+DQo8eHNsOnBhcmFtIG5hbWU9InJlcGxhY2UiLz4NCjx4c2w6cGFyYW0gbmFtZT0iYnkiLz4NCjx4c2w6Y2hvb3NlPg0KPHhzbDp3aGVuIHRlc3Q9ImNvbnRhaW5zKCR0ZXh0LCAkcmVwbGFjZSkiPg0KPHhzbDp2YWx1ZS1vZiBzZWxlY3Q9InN1YnN0cmluZy1iZWZvcmUoJHRleHQsJHJlcGxhY2UpIi8+DQo8eHNsOnZhbHVlLW9mIHNlbGVjdD0iJGJ5Ii8+DQo8eHNsOmNhbGwtdGVtcGxhdGUgbmFtZT0ic3RyaW5nLXJlcGxhY2UtYWxsIj4NCjx4c2w6d2l0aC1wYXJhbSBuYW1lPSJ0ZXh0IiBzZWxlY3Q9InN1YnN0cmluZy1hZnRlcigkdGV4dCwkcmVwbGFjZSkiLz4NCjx4c2w6d2l0aC1wYXJhbSBuYW1lPSJyZXBsYWNlIiBzZWxlY3Q9IiRyZXBsYWNlIi8+DQo8eHNsOndpdGgtcGFyYW0gbmFtZT0iYnkiIHNlbGVjdD0iJGJ5IiAvPg0KPC94c2w6Y2FsbC10ZW1wbGF0ZT4NCjwveHNsOndoZW4+DQo8eHNsOm90aGVyd2lzZT4NCjx4c2w6dmFsdWUtb2Ygc2VsZWN0PSIkdGV4dCIvPg0KPC94c2w6b3RoZXJ3aXNlPg0KPC94c2w6Y2hvb3NlPg0KPC94c2w6dGVtcGxhdGU+DQo8eHNsOnRlbXBsYXRlIG5hbWU9ImZvcm1hdFRvU2tEYXRlVGltZSI+DQo8eHNsOnBhcmFtIG5hbWU9ImRhdGVUaW1lIiAvPg0KPHhzbDp2YXJpYWJsZSBuYW1lPSJkYXRlVGltZVN0cmluZyIgc2VsZWN0PSJzdHJpbmcoJGRhdGVUaW1lKSIgLz4NCjx4c2w6Y2hvb3NlPg0KPHhzbDp3aGVuIHRlc3Q9IiRkYXRlVGltZVN0cmluZyE9ICcnIGFuZCBzdHJpbmctbGVuZ3RoKCRkYXRlVGltZVN0cmluZyk+MTggYW5kIHN0cmluZyhudW1iZXIoc3Vic3RyaW5nKCRkYXRlVGltZVN0cmluZywgMSwgNCkpKSAhPSAnTmFOJyAiPg0KPHhzbDp2YWx1ZS1vZiBzZWxlY3Q9ImNvbmNhdChzdWJzdHJpbmcoJGRhdGVUaW1lU3RyaW5nLCA5LCAyKSwgJy4nLCBzdWJzdHJpbmcoJGRhdGVUaW1lU3RyaW5nLCA2LCAyKSwgJy4nLCBzdWJzdHJpbmcoJGRhdGVUaW1lU3RyaW5nLCAxLCA0KSwnICcsIHN1YnN0cmluZygkZGF0ZVRpbWVTdHJpbmcsIDEyLCAyKSwnOicsIHN1YnN0cmluZygkZGF0ZVRpbWVTdHJpbmcsIDE1LCAyKSkiIC8+DQo8L3hzbDp3aGVuPg0KPHhzbDpvdGhlcndpc2U+DQo8eHNsOnZhbHVlLW9mIHNlbGVjdD0iJGRhdGVUaW1lU3RyaW5nIj48L3hzbDp2YWx1ZS1vZj4NCjwveHNsOm90aGVyd2lzZT4NCjwveHNsOmNob29zZT4NCjwveHNsOnRlbXBsYXRlPg0KPHhzbDp0ZW1wbGF0ZSBuYW1lPSJmb3JtYXRUb1NrRGF0ZVRpbWVTZWNvbmQiPg0KPHhzbDpwYXJhbSBuYW1lPSJkYXRlVGltZSIgLz4NCjx4c2w6dmFyaWFibGUgbmFtZT0iZGF0ZVRpbWVTdHJpbmciIHNlbGVjdD0ic3RyaW5nKCRkYXRlVGltZSkiIC8+DQo8eHNsOmNob29zZT4NCjx4c2w6d2hlbiB0ZXN0PSIkZGF0ZVRpbWVTdHJpbmchPSAnJyBhbmQgc3RyaW5nLWxlbmd0aCgkZGF0ZVRpbWVTdHJpbmcpPjE4IGFuZCBzdHJpbmcobnVtYmVyKHN1YnN0cmluZygkZGF0ZVRpbWVTdHJpbmcsIDEsIDQpKSkgIT0gJ05hTicgIj4NCjx4c2w6dmFsdWUtb2Ygc2VsZWN0PSJjb25jYXQoc3Vic3RyaW5nKCRkYXRlVGltZVN0cmluZywgOSwgMiksICcuJywgc3Vic3RyaW5nKCRkYXRlVGltZVN0cmluZywgNiwgMiksICcuJywgc3Vic3RyaW5nKCRkYXRlVGltZVN0cmluZywgMSwgNCksJyAnLCBzdWJzdHJpbmcoJGRhdGVUaW1lU3RyaW5nLCAxMiwgMiksJzonLCBzdWJzdHJpbmcoJGRhdGVUaW1lU3RyaW5nLCAxNSwgMiksJzonLCBzdWJzdHJpbmcoJGRhdGVUaW1lU3RyaW5nLCAxOCwgMikpIiAvPg0KPC94c2w6d2hlbj4NCjx4c2w6b3RoZXJ3aXNlPg0KPHhzbDp2YWx1ZS1vZiBzZWxlY3Q9IiRkYXRlVGltZVN0cmluZyI+PC94c2w6dmFsdWUtb2Y+DQo8L3hzbDpvdGhlcndpc2U+DQo8L3hzbDpjaG9vc2U+DQo8L3hzbDp0ZW1wbGF0ZT4NCjwveHNsOnN0eWxlc2hlZXQ+DQoNCg=="
+        payloadMimeType: application/xml;base64
+
+    XAdES-ASiC_E-Auto:
+      value:
+        document:
+          content: "<?xml version=\"1.0\" encoding=\"UTF-8\"?><GeneralAgenda xmlns=\"http://schemas.gov.sk/form/App.GeneralAgenda/1.9\">\n  <subject>Nové podanie</subject>\n  <text>Podávam toto nové podanie.</text>\n</GeneralAgenda>"
+          filename: document.xml
+        parameters:
+          autoLoadEform: true
+          level: XAdES_BASELINE_B
+        payloadMimeType: application/xml
+
+    PAdES-PDF:
+      value:
+        parameters:
+          level: PAdES_BASELINE_B
+        document:
+          content: "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dGFsb2cvUGFnZXMgNiAwIFIKL09wZW5BY3Rpb25bMSAwIFIgL1hZWiBudWxsIG51bGwgMF0KL0xhbmcoZW4tVVMpCj4+CmVuZG9iagoKMTUgMCBvYmoKPDwvQ3JlYXRvcjxGRUZGMDA1NzAwNzIwMDY5MDA3NDAwNjUwMDcyPgovUHJvZHVjZXI8RkVGRjAwNEMwMDY5MDA2MjAwNzIwMDY1MDA0RjAwNjYwMDY2MDA2OTAwNjMwMDY1MDAyMDAwMzYwMDJFMDAzND4KL0NyZWF0aW9uRGF0ZShEOjIwMjExMTA5MjAzMjUyKzAxJzAwJyk+PgplbmRvYmoKCnhyZWYKMCAxNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMTA1MTMgMDAwMDAgbiAKMDAwMDAwMDAxOSAwMDAwMCBuIAowMDAwMDAwMzE1IDAwMDAwIG4gCjAwMDAwMDAzMzUgMDAwMDAgbiAKMDAwMDAwMjA4MyAwMDAwMCBuIAowMDAwMDEwNjgyIDAwMDAwIG4gCjAwMDAwMDIxMDQgMDAwMDAgbiAKMDAwMDAwOTUyOSAwMDAwMCBuIAowMDAwMDA5NTUwIDAwMDAwIG4gCjAwMDAwMDk3NDUgMDAwMDAgbiAKMDAwMDAxMDEzNSAwMDAwMCBuIAowMDAwMDEwMzgxIDAwMDAwIG4gCjAwMDAwMTA0MTQgMDAwMDAgbiAKMDAwMDAxMDc4MSAwMDAwMCBuIAowMDAwMDEwODc4IDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSAxNi9Sb290IDE0IDAgUgovSW5mbyAxNSAwIFIKL0lEIFsgPDhGMDUyNjI1QTE1QzdBQkNBODQ2RUY5MDZBQzJGNDc4Pgo8OEYwNTI2MjVBMTVDN0FCQ0E4NDZFRjkwNkFDMkY0Nzg+IF0KL0RvY0NoZWNrc3VtIC9FNTVCMzQ1RUZEQzY5MkFFNTI4OEJFQ0Y5Nzg5NDgxNQo+PgpzdGFydHhyZWYKMTEwNTMKJSVFT0YK"
+          filename: document.pdf
+
+    XAdES-ASiC_E-DOCX:
+      value:
+        document:
+          content: "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"
+          filename: WordDocument.docx
+        parameters:
+          level: XAdES_BASELINE_B
+          container: ASiC_E
+        payloadMimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document; base64"
+
+    CAdES-ASiC_E-PNG_md:
+      value:
+        document:
+          content: "iVBORw0KGgoAAAANSUhEUgAAAOEAAADgCAMAAADCMfHtAAAA0lBMVEX///86Z+gRERHMMzMAAAAwYec1ZOhFb+nKKCja4vv1+P5WfOvy9f3KIyONpfFnh+zhjY0mXOfy8vIZGRk8PDz1+fnqra1/f3+goKBIc+r/+vrY4Pru8f3JyclsjO3n7PzP2PmYq/GFne/Azfe3xPWYmJhOTk7QPj6MjIzRUVHo6Oj00tLWZWXvu7u2trYjWuceHh5zc3PJGxvfh4enufQUVOaUqPF2lO5bgu1SeuvF0viuvfSqqqpGRkZZWVnhkpItLS03Nzf76urd3d3HAADmpKSaLwkeAAADH0lEQVR4nO3c21IaQRCA4eG0CMhR0SAQBDQmIhI8BZMYjMb3f6Wgd9u9F1sVKrM9/t9l1y41f1Fu1YyrzgEAAAAAAAAAAAAAAAAAAAD/103zo9Co+l7TdjXaUVypuet7TdvVKOXiIgqtodA+Cu2j0D4K7aPQPgrtC79wcrsQaoEV7o6kge8l/YNqvyKM3EiONjM12sxsOL4txbVXrrEQs0XDldtydud76Skdt9VTRT9pSg3Xi+Rs7HvpKVFIYfZRSGH2UUhh9lFIYfZRGEDhQv1GW/+Wu/1aKK8zU1juCd/cTW0VVxu7lbysbKXwfTqZSOPg3jYRZzKlVWCnieGfCFNoH4X2UWgfhfZRaB+F9lFo3+S2HbcIbX846ksV30tKS78yUk1622SQ6m2TXadurfj+qge9stCr9CM5++jucmKUu3P38rLcdKBuLU99F5bFsW6U66sT4VK6E+GoNB0s5AMp8l8olpQr68LUZ966MEchhRRSSCGFFFJIIYUUvpNC+crIZveU8m0TdetroZ75LlzVhFWl3xOj+4n+vxjNG9eUt95/H8hbNzPPha6qJM+2e2sGTcfSDzNrT0f9VVA7tNPE8E+EKbSPQvsotI9C+yi0j0L7KLSvsRBvmwS3Pzw+kaaB7fEBAAAAAACQDZen0s+u7zVt17IoPXR8r2m7lsV8XPEThcZQaN9h8IXhf4cU2sfPoX0U2hd+IU8a+8LfHybs8S0XdhR3pCRdZuVgY1jci8v/6q4LZ3GFtXvMi+uKn30vPaWhfqp0r3cKcfWW21PXWS5sycKdlvuapzCrKKQw+yikMPsopDD7KKQw+4bqxGKze6qLwrfdk2Sm8HE/7veyu/4ird3Dvrzu1PfS0+oqLukYI+my7Ol8UM6fXg6EuZvJ0cHMqdHBU+dUfdyz58Jz9bNUHM7+1OOuLo6ur+Ss5Qp1OZsnfNyl70L5PMzvDWdX8rl54fSzdO3OCnK2KVTPVwoppJBCCimkkEIKKaSQwiAKE/eHO3H11/2hmL3tD+Usi/vDzqHy/HTdEl7cXI5ac7dWs1lnqT5u6LnQhr+aFu8uA6PcXwAAAABJRU5ErkJggg=="
+          filename: "Image.png"
+        parameters:
+          level: CAdES_BASELINE_B
+          container: ASiC_E

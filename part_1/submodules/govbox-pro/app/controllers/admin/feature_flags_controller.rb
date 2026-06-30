@@ -1,0 +1,33 @@
+class Admin::FeatureFlagsController < ApplicationController
+  before_action :set_tenant
+
+  def index
+    authorize([:admin, :feature_flag])
+    @feature_flags = @tenant.list_available_features
+    @enabled_features = @tenant.feature_flags
+  end
+
+  def update
+    authorize([:admin, :feature_flag])
+
+    feature = params[:id].to_sym
+
+    if feature_flags_params[:enabled] == "true"
+      @tenant.enable_feature(feature)
+    else
+      @tenant.disable_feature(feature)
+    end
+
+    redirect_to admin_tenant_feature_flags_path
+  end
+
+  private
+
+  def set_tenant
+    @tenant = policy_scope([:admin, :feature_flag]).find(params[:tenant_id])
+  end
+
+  def feature_flags_params
+    params.require(:tenant).permit(:enabled)
+  end
+end

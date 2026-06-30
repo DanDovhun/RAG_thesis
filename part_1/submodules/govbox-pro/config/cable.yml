@@ -1,0 +1,11 @@
+development:
+  adapter: postgresql
+  url: <%= ENV['DATABASE_URL'] %>
+
+test:
+  adapter: test
+
+production:
+  adapter: postgresql
+  url: <%= ENV['DATABASE_URL'] %>
+  channel_prefix: govbox_pro_production
