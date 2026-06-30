@@ -1,1 +1,0 @@
-json.guid @document.id

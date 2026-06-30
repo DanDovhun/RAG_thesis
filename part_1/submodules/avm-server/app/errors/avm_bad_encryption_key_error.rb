@@ -1,2 +1,0 @@
-class AvmBadEncryptionKeyError < StandardError
-end

@@ -1,7 +1,0 @@
-{
-  "scripts": {
-    "dokku": {
-      "predeploy": "bundle exec rails assets:precompile db:migrate"
-    }
-  }
-}

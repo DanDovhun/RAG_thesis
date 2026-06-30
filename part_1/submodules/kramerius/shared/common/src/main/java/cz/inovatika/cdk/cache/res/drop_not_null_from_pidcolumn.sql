@@ -1,1 +1,0 @@
-ALTER TABLE query_cache ALTER COLUMN pid DROP NOT NULL;

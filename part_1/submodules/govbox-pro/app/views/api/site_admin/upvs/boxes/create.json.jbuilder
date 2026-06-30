@@ -1,1 +1,0 @@
-json.id @box.id

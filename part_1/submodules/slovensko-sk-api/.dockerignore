@@ -1,9 +1,0 @@
-.git
-
-.gitlab-ci.yml
-.gitlab
-
-/log/*
-/tmp/*
-
-/security/*

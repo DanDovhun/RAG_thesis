@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ns1:GetIdentityFault xmlns:ns1="http://schemas.gov.sk/identity/service/1.7">
-  <faultCode>00000000</faultCode>
-  <faultMessage>Nedefinovaná chyba!</faultMessage>
-</ns1:GetIdentityFault>

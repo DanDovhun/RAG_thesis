@@ -1,6 +1,0 @@
-<div id="submission-sender">
-  <% if @token&.valid? %>
-    <% url = URI.join(ENV['SLOVENSKO_SK_API_URL'], "logout?token=#{@token&.api_token}").to_s %>
-    <p class="govuk-body">Odosielateľ <%= link_to 'zmeniť', url %><br> <span class="govuk-heading-m"><strong><%= @token&.subject_name %></strong></span></p>
-  <% end %>
-</div>

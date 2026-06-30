@@ -1,9 +1,0 @@
-.webenv/
-__pycache__/
-*.pyc
-node_modules/
-dist/
-.env
-.DS_Store
-TODO.md
-ALTO_PROCESSING_WIKI_NOTES.txt

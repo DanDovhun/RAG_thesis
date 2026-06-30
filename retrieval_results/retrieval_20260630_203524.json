@@ -1,0 +1,25 @@
+[
+  {
+    "project": "submodules",
+    "collection": "submodules_mbert",
+    "mode": "bm25",
+    "query": "test query",
+    "hits": [
+      {
+        "score": 13.284780842248146,
+        "file_path": "/home/daniel/Documents/RAG_thesis/part_1/submodules/govbox-pro/test/models/searchable/message_thread_query_test.rb",
+        "file_name": "message_thread_query_test.rb",
+        "chunk_index": 1,
+        "content": "fulltext: 'hello world ending',\n      prefix_search: false,\n      filter_labels: ['tag one/with something', 'tag two'],\n      filter_out_labels: ['without this tag']\n    }\n  end\n\n  test \"parser no visible tags\" do\n    query = 'something -label:* else'\n    assert_equal Searchable::MessageThreadQuery.parse(query, user_tag_name: Current.user.author_tag&.name), {\n      fulltext: 'something else',\n      prefix_search: false,\n      filter_labels: [],\n      filter_out_labels: [\"*\"]\n    }\n  end\n\n  test \"parser no visible tags with other labels to filter out\" do\n    query = 'something -label:* else -label:two'\n    assert_equal Searchable::MessageThreadQuery.parse(query, user_tag_name: Current.user.author_tag&.name), {\n      fulltext: 'something else',\n      prefix_search: false,\n      filter_labels: [],\n      filter_out_labels: [\"*\", \"two\"]\n    }\n  end\n\n  test \"parser with prefix search\" do\n    query = 'someth* -label:*'\n    assert_equal Searchable::MessageThreadQuery.parse(query, user_tag_name: Current.user.author_tag&.name), {\n      fulltext: 'someth*',\n      prefix_search: true,\n      filter_labels: [],\n      filter_out_labels: [\"*\"]\n    }\n  end\n\n  test \"parser without prefix search for multiple words\" do\n    query = 'tell me someth*'\n    assert_equal Searchable::MessageThreadQuery.parse(query, user_tag_name: Current.user.author_tag&.name), {\n      fulltext: 'tell me someth*',\n      prefix_search: false,\n      filter_labels: [],\n      filter_out_labels: []\n    }\n  end\n\n  test \"parser author:me\" do\n    expected_author_tag = Current.user.author_tag&.name\n\n    assert_equal Searchable::MessageThreadQuery.parse('author:me NASES', user_tag_name: expected_author_tag), {\n  "
+      },
+      {
+        "score": 12.492763144601392,
+        "file_path": "/home/daniel/Documents/RAG_thesis/part_1/submodules/govbox-pro/test/models/searchable/message_thread_query_test.rb",
+        "file_name": "message_thread_query_test.rb",
+        "chunk_index": 2,
+        "content": "me someth*',\n      prefix_search: false,\n      filter_labels: [],\n      filter_out_labels: []\n    }\n  end\n\n  test \"parser author:me\" do\n    expected_author_tag = Current.user.author_tag&.name\n\n    assert_equal Searchable::MessageThreadQuery.parse('author:me NASES', user_tag_name: expected_author_tag), {\n      fulltext: 'NASES',\n      prefix_search: false,\n      filter_labels: [expected_author_tag],\n      filter_out_labels: []\n    }\n  end\n\n  test \"parser author:XYZ treated as fulltext\" do\n    assert_equal Searchable::MessageThreadQuery.parse('author:jano NASES', user_tag_name: Current.user.author_tag&.name), {\n      fulltext: 'author:jano NASES',\n      prefix_search: false,\n      filter_labels: [],\n      filter_out_labels: []\n    }\n  end\n\n  test \"parser mixed author:me and tag\" do\n    expected_author_tag = Current.user.author_tag&.name\n\n    query = 'label:(NASES) author:me žiadosť'\n    assert_equal Searchable::MessageThreadQuery.parse(query, user_tag_name: Current.user.author_tag&.name), {\n      fulltext: 'žiadosť',\n      prefix_search: false,\n      filter_labels: ['NASES', expected_author_tag],\n      filter_out_labels: []\n    }\n  end\n\n  test \"parser mixed author:XYZ and tag\" do\n    query = 'label:(NASES) author:jano žiadosť'\n    assert_equal Searchable::MessageThreadQuery.parse(query, user_tag_name: Current.user.author_tag&.name), {\n      fulltext: 'author:jano žiadosť',\n      prefix_search: false,\n      filter_labels: ['NASES'],\n      filter_out_labels: []\n    }\n  end\nend\n"
+      }
+      
+    ]
+  }
+]
