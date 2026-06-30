@@ -1,0 +1,72 @@
+[
+  {
+    "project": "altoEditorClient",
+    "collections": ["altoeditorclient_slovakbert", "altoeditorclient_czert", "altoeditorclient_xlmr", "altoeditorclient_mbert", "altoeditorclient_qwen3", "altoeditorclient_te3s"],
+    "queries": []
+  },
+  {
+    "project": "alto-processing",
+    "collections": ["alto_processing_slovakbert", "alto_processing_czert", "alto_processing_xlmr", "alto_processing_mbert", "alto_processing_qwen3", "alto_processing_te3s"],
+    "queries": []
+  },
+  {
+    "project": "ASJournals",
+    "collections": ["asjournals_slovakbert", "asjournals_czert", "asjournals_xlmr", "asjournals_mbert", "asjournals_qwen3", "asjournals_te3s"],
+    "queries": []
+  },
+  {
+    "project": "avm-server",
+    "collections": ["avm_server_slovakbert", "avm_server_czert", "avm_server_xlmr", "avm_server_mbert", "avm_server_qwen3", "avm_server_te3s"],
+    "queries": []
+  },
+  {
+    "project": "govbox-pro",
+    "collections": ["govbox_pro_slovakbert", "govbox_pro_czert", "govbox_pro_xlmr", "govbox_pro_mbert", "govbox_pro_qwen3", "govbox_pro_te3s"],
+    "queries": []
+  },
+  {
+    "project": "kramerius",
+    "collections": ["kramerius_slovakbert", "kramerius_czert", "kramerius_xlmr", "kramerius_mbert", "kramerius_qwen3", "kramerius_te3s"],
+    "queries": []
+  },
+  {
+    "project": "kramerius-docker-compose",
+    "collections": ["kramerius_docker_compose_slovakbert", "kramerius_docker_compose_czert", "kramerius_docker_compose_xlmr", "kramerius_docker_compose_mbert", "kramerius_docker_compose_qwen3", "kramerius_docker_compose_te3s"],
+    "queries": []
+  },
+  {
+    "project": "navody.digital",
+    "collections": ["navody.digital_slovakbert", "navody.digital_czert", "navody.digital_xlmr", "navody.digital_mbert", "navody.digital_qwen3", "navody.digital_te3s"],
+    "queries": []
+  },
+  {
+    "project": "navody-frontend",
+    "collections": ["navody_frontend_slovakbert", "navody_frontend_czert", "navody_frontend_xlmr", "navody_frontend_mbert", "navody_frontend_qwen3", "navody_frontend_te3s"],
+    "queries": []
+  },
+  {
+    "project": "poc-iam",
+    "collections": ["poc_iam_slovakbert", "poc_iam_czert", "poc_iam_xlmr", "poc_iam_mbert", "poc_iam_qwen3", "poc_iam_te3s"],
+    "queries": []
+  },
+  {
+    "project": "slovensko-sk-api",
+    "collections": ["slovensko_sk_api_slovakbert", "slovensko_sk_api_czert", "slovensko_sk_api_xlmr", "slovensko_sk_api_mbert", "slovensko_sk_api_qwen3", "slovensko_sk_api_te3s"],
+    "queries": []
+  },
+  {
+    "project": "slovensko-sk-login",
+    "collections": ["slovensko_sk_login_slovakbert", "slovensko_sk_login_czert", "slovensko_sk_login_xlmr", "slovensko_sk_login_mbert", "slovensko_sk_login_qwen3", "slovensko_sk_login_te3s"],
+    "queries": []
+  },
+  {
+    "project": "sprava-o-stave-egovernmentu",
+    "collections": ["sprava_o_stave_egovernmentu_slovakbert", "sprava_o_stave_egovernmentu_czert", "sprava_o_stave_egovernmentu_xlmr", "sprava_o_stave_egovernmentu_mbert", "sprava_o_stave_egovernmentu_qwen3", "sprava_o_stave_egovernmentu_te3s"],
+    "queries": []
+  },
+  {
+    "project": "www.slovensko.wtf",
+    "collections": ["www.slovensko.wtf_slovakbert", "www.slovensko.wtf_czert", "www.slovensko.wtf_xlmr", "www.slovensko.wtf_mbert", "www.slovensko.wtf_qwen3", "www.slovensko.wtf_te3s"],
+    "queries": []
+  }
+]

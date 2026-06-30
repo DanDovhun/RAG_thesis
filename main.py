@@ -1,6 +1,7 @@
 import argparse
 import csv
 import gc
+import json
 import logging
 import os
 import subprocess
@@ -72,7 +73,7 @@ file_types = {
     ".md", ".pdf", ".yaml", ".html", ".txt", ".rb", ".java", ".json",
     ".go", ".php", ".js", ".tx", ".cs", ".cshtml", ".csv", ".groovy", ".bat", ".sh",
 }
-dataset_dir = Path("part_1ter")
+dataset_dir = Path("part_1/submodules")
 
 # Natural-language prose formats — translation candidates. Source code and
 # structured/tabular formats (.json, .yaml, .csv, .java, ...) are excluded
@@ -170,6 +171,42 @@ def _collection_name(submodule: str, coll_alias: str) -> str:
     return f"{slugify(submodule)}_{coll_alias}"
 
 
+def _point_to_hit(point) -> dict:
+    payload = point.payload or {}
+    return {
+        "score": point.score,
+        "file_path": payload.get("file_path"),
+        "file_name": payload.get("file_name"),
+        "chunk_index": payload.get("chunk_index"),
+        "content": payload.get("content"),
+    }
+
+
+def _doc_to_hit(doc: Document) -> dict:
+    return {
+        "score": doc.score,
+        "file_path": doc.meta.get("file_path"),
+        "file_name": doc.meta.get("file_name"),
+        "chunk_index": doc.meta.get("chunk_index"),
+        "content": doc.content,
+    }
+
+
+RRF_K = 60
+
+
+def reciprocal_rank_fusion(dense_hits: list[dict], bm25_hits: list[dict], top_k: int) -> list[dict]:
+    """Merge dense and BM25 rankings via Reciprocal Rank Fusion, keyed by (file_path, chunk_index)."""
+    scores: dict[tuple, float] = {}
+    hits_by_key: dict[tuple, dict] = {}
+    for hits in (dense_hits, bm25_hits):
+        for rank, hit in enumerate(hits, start=1):
+            key = (hit["file_path"], hit["chunk_index"])
+            scores[key] = scores.get(key, 0.0) + 1.0 / (RRF_K + rank)
+            hits_by_key.setdefault(key, hit)
+    ranked_keys = sorted(scores, key=scores.get, reverse=True)[:top_k]
+    return [{**hits_by_key[key], "score": scores[key]} for key in ranked_keys]
+
 
 class OpenAIDocumentEmbedder:
     """Thin wrapper around the OpenAI Embeddings API with the same run() interface as Haystack embedders."""
@@ -224,6 +261,12 @@ class RAGPipeline:
         )
         self._initialised_submodules: set[str] = set()
         self._translation_cache: dict[Path, list[Document] | None] = {}
+        self._bm25_stores: dict[str, InMemoryDocumentStore] = {}
+        self._alias_to_cfg = {
+            cfg["coll_alias"]: cfg
+            for cfg in self.model_configs.values()
+            if not (cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25")
+        }
 
         translation_config = translation_config or {}
         self.translation_languages = set(translation_config.get("languages", []))
@@ -273,6 +316,68 @@ class RAGPipeline:
         if cfg.get("source") != "openai" and torch.cuda.is_available():
             gc.collect()
             torch.cuda.empty_cache()
+
+    def resolve_collection_model(self, project: str, collection: str) -> dict | None:
+        """Map a Qdrant collection name back to the dense model config that produced it."""
+        prefix = f"{slugify(project)}_"
+        if not collection.startswith(prefix):
+            return None
+        alias = collection[len(prefix):]
+        if alias.endswith("_en"):
+            alias = alias[: -len("_en")]
+        return self._alias_to_cfg.get(alias)
+
+    def search_dense(self, collection: str, model_name: str, query: str, top_k: int) -> list[dict]:
+        if model_name not in self.embedders:
+            self.load_embedder(model_name)
+        if model_name not in self.embedders:
+            log.warning("Embedder %s unavailable — skipping dense search on %s", model_name, collection)
+            return []
+        embedded = self.embedders[model_name].run(documents=[Document(content=query)])["documents"][0]
+        if embedded.embedding is None:
+            return []
+        response = self.qdrant.query_points(
+            collection_name=collection, query=embedded.embedding, limit=top_k, with_payload=True
+        )
+        return [_point_to_hit(p) for p in response.points]
+
+    def _build_bm25_store(self, collection: str) -> InMemoryDocumentStore:
+        store = InMemoryDocumentStore()
+        docs = []
+        next_offset = None
+        while True:
+            records, next_offset = self.qdrant.scroll(
+                collection_name=collection,
+                limit=500,
+                offset=next_offset,
+                with_payload=["content", "file_path", "file_name", "chunk_index"],
+                with_vectors=False,
+            )
+            for record in records:
+                payload = record.payload or {}
+                content = payload.get("content")
+                if not content:
+                    continue
+                docs.append(Document(content=content, meta={
+                    "file_path": payload.get("file_path"),
+                    "file_name": payload.get("file_name"),
+                    "chunk_index": payload.get("chunk_index"),
+                }))
+            if next_offset is None:
+                break
+        if docs:
+            DocumentWriter(document_store=store).run(documents=docs)
+        return store
+
+    def search_bm25(self, collection: str, query: str, top_k: int) -> list[dict]:
+        if collection not in self._bm25_stores:
+            if not self.qdrant.collection_exists(collection):
+                log.warning("Collection %r does not exist — skipping BM25 search", collection)
+                return []
+            log.info("Building BM25 index for %r ...", collection)
+            self._bm25_stores[collection] = self._build_bm25_store(collection)
+        hits = self._bm25_stores[collection].bm25_retrieval(query, top_k=top_k)
+        return [_doc_to_hit(d) for d in hits]
 
     def _embed_chunks(self, model_name: str, chunks: list[Document]) -> list[Document]:
         """Embed chunks, halving the sub-batch on each OOM until it succeeds or reaches size 1."""
@@ -576,14 +681,93 @@ def process_docs(args):
 
     log.info("Fail rate: %d / %d", len(failed_files), count)
 
+
+def load_queries_config(path: str) -> list[dict]:
+    """Load a JSON file of [{"project", "collections", "queries"}, ...]."""
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def run_retrieval(args) -> None:
+    """Run each project's queries against its listed collections and save the results."""
+    model_configs = load_model_configs()
+    rag = RAGPipeline(model_configs)
+    entries = load_queries_config(args.queries_file)
+
+    run_start = datetime.now()
+    results: list[dict] = []
+
+    for entry in entries:
+        project = entry["project"]
+        collections = entry["collections"]
+        for query in entry["queries"]:
+            for collection in collections:
+                dense_hits: list[dict] = []
+                bm25_hits: list[dict] = []
+
+                if args.mode in ("dense", "hybrid"):
+                    cfg = rag.resolve_collection_model(project, collection)
+                    if cfg is None:
+                        log.warning("Could not resolve embedder for collection %r (project %r)", collection, project)
+                    elif not rag.qdrant.collection_exists(collection):
+                        log.warning("Collection %r does not exist — skipping", collection)
+                    else:
+                        dense_hits = rag.search_dense(collection, cfg["name"], query, args.top_k)
+
+                if args.mode in ("bm25", "hybrid"):
+                    bm25_hits = rag.search_bm25(collection, query, args.top_k)
+
+                if args.mode == "dense":
+                    hits = dense_hits
+                elif args.mode == "bm25":
+                    hits = bm25_hits
+                else:
+                    hits = reciprocal_rank_fusion(dense_hits, bm25_hits, args.top_k)
+
+                log.info("[%s/%s] %r → %d hit(s)", project, collection, query, len(hits))
+                for rank, hit in enumerate(hits, start=1):
+                    snippet = (hit["content"] or "").replace("\n", " ")[:120]
+                    log.info(
+                        "  #%d  score=%.4f  %s [chunk %s]  %s",
+                        rank, hit["score"] or 0.0, hit["file_name"], hit["chunk_index"], snippet,
+                    )
+
+                results.append({
+                    "project": project,
+                    "collection": collection,
+                    "mode": args.mode,
+                    "query": query,
+                    "hits": hits,
+                })
+
+    out_dir = Path("retrieval_results")
+    out_dir.mkdir(exist_ok=True)
+    out_path = out_dir / f"retrieval_{run_start.strftime('%Y%m%d_%H%M%S')}.json"
+    with out_path.open("w", encoding="utf-8") as fh:
+        json.dump(results, fh, ensure_ascii=False, indent=2)
+    log.info("Retrieval results saved to %s", out_path)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--reset", action="store_true", help="Delete all Qdrant collections before indexing")
     parser.add_argument("--translate", action="store_true", help="Translates documents to English")
+    parser.add_argument("--retrieve", action="store_true", help="Run retrieval queries instead of indexing")
+    parser.add_argument(
+        "--queries-file", default="queries.json",
+        help="JSON file of [{project, collections, queries}, ...] to run in --retrieve mode",
+    )
+    parser.add_argument(
+        "--mode", choices=["dense", "bm25", "hybrid"], default="dense",
+        help="Retrieval mode for --retrieve",
+    )
+    parser.add_argument("--top-k", type=int, default=5, help="Number of results to return per query")
     args = parser.parse_args()
 
-
-    process_docs(args)
+    if args.retrieve:
+        run_retrieval(args)
+    else:
+        process_docs(args)
 
 if __name__ == "__main__":
     main()
