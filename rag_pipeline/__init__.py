@@ -1,5 +1,6 @@
 from .pipeline import (
     OpenAIDocumentEmbedder,
+    PGVECTOR_CONN_STR,
     QDRANT_URL,
     RAGPipeline,
     get_file_metadata,
@@ -10,6 +11,7 @@ from .pipeline import (
 
 __all__ = [
     "OpenAIDocumentEmbedder",
+    "PGVECTOR_CONN_STR",
     "QDRANT_URL",
     "RAGPipeline",
     "get_file_metadata",

@@ -16,18 +16,30 @@ from haystack.components.converters import HTMLToDocument, PyPDFToDocument, Text
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack.components.preprocessors import DocumentSplitter
 from haystack.components.writers import DocumentWriter
+from haystack.document_stores.errors import DocumentStoreError, DuplicateDocumentError
 from haystack.document_stores.in_memory import InMemoryDocumentStore
-from haystack.utils import ComponentDevice
+from haystack.document_stores.types import DuplicatePolicy
+from haystack.utils import ComponentDevice, Secret
+from haystack_integrations.document_stores.pgvector import PgvectorDocumentStore
 from langdetect import DetectorFactory, LangDetectException, detect
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
-from qdrant_client.models import Distance, PointStruct, VectorParams
+from qdrant_client.models import Distance, FieldCondition, Filter, MatchValue, PointStruct, VectorParams
 
 DetectorFactory.seed = 0
 
 log = logging.getLogger(__name__)
 
 QDRANT_URL = "http://localhost:6333"
+
+# Matches the `pgvector` service in compose.yml (host port 5433 → container 5432,
+# user/password postgres/postgres, db vectordb). PgvectorDocumentStore reads its
+# connection string from the PG_CONN_STR env var, so seed it with this default
+# unless the environment (e.g. .env) already overrides it.
+PGVECTOR_CONN_STR = os.environ.get(
+    "PG_CONN_STR", "postgresql://postgres:postgres@localhost:5433/vectordb"
+)
+os.environ.setdefault("PG_CONN_STR", PGVECTOR_CONN_STR)
 
 EMBEDDING_DIMS = {
     "gerulata/slovakbert": 768,
@@ -226,6 +238,7 @@ class RAGPipeline:
         self.embedders: dict[str, SentenceTransformersDocumentEmbedder] = {}
         self.bm25_store: InMemoryDocumentStore | None = None
         self.qdrant = QdrantClient(url=QDRANT_URL, timeout=60)
+        self._pg_stores: dict[str, PgvectorDocumentStore] = {}
         self.splitter = DocumentSplitter(
             split_by="word", split_length=CHUNK_SIZE, split_overlap=CHUNK_OVERLAP
         )
@@ -379,6 +392,63 @@ class RAGPipeline:
                 vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
             )
 
+    def _get_pg_store(self, table_name: str, model_id: str | None) -> PgvectorDocumentStore:
+        """Lazily create (and cache) the Pgvector table backing one Qdrant-equivalent collection."""
+        if table_name not in self._pg_stores:
+            self._pg_stores[table_name] = PgvectorDocumentStore(
+                connection_string=Secret.from_env_var("PG_CONN_STR"),
+                table_name=table_name,
+                embedding_dimension=EMBEDDING_DIMS.get(model_id, 768),
+            )
+        return self._pg_stores[table_name]
+
+    def _qdrant_has_document(self, collection: str, file_path: str) -> bool:
+        """Whether any chunk of `file_path` is already stored in this Qdrant collection."""
+        if not self.qdrant.collection_exists(collection):
+            return False
+        try:
+            records, _ = self.qdrant.scroll(
+                collection_name=collection,
+                scroll_filter=Filter(must=[FieldCondition(key="file_path", match=MatchValue(value=file_path))]),
+                limit=1,
+                with_payload=False,
+                with_vectors=False,
+            )
+            return len(records) > 0
+        except UnexpectedResponse as e:
+            log.warning(
+                "[qdrant] Existence check failed for %r in %r: %s — assuming not present", file_path, collection, e
+            )
+            return False
+
+    def _pgvector_has_document(self, table_name: str, file_path: str, model_id: str | None) -> bool:
+        """Whether any chunk of `file_path` is already stored in this Pgvector table."""
+        try:
+            store = self._get_pg_store(table_name, model_id)
+            docs = store.filter_documents(filters={"field": "meta.file_path", "operator": "==", "value": file_path})
+            return len(docs) > 0
+        except DocumentStoreError as e:
+            log.warning(
+                "[pgvector] Existence check failed for %r in table %r: %s — assuming not present",
+                file_path, table_name, e,
+            )
+            self._pg_stores.pop(table_name, None)
+            return False
+
+    def _write_pgvector(self, table_name: str, model_id: str | None, documents: list[Document]) -> bool:
+        """Mirror embedded chunks into Pgvector. Returns True on success; logs and returns False on any failure."""
+        if not documents:
+            return True
+        try:
+            store = self._get_pg_store(table_name, model_id)
+            store.write_documents(documents, policy=DuplicatePolicy.OVERWRITE)
+            return True
+        except DocumentStoreError as e:
+            log.warning("[pgvector] Failed to write %d document(s) to table %r: %s", len(documents), table_name, e)
+            # Drop the cached store so a stale/broken connection is retried fresh next time.
+            self._pg_stores.pop(table_name, None)
+            return False
+
     def _ensure_submodule_collections(self, submodule: str) -> None:
         if submodule in self._initialised_submodules:
             return
@@ -435,37 +505,50 @@ class RAGPipeline:
             log.warning("[%s] Skipping translated chunks for %s — %s", model_name, filepath, e)
             return
 
-        embedded = self._embed_chunks(model_name, chunks)
         collection = f"{_collection_name(submodule, cfg['coll_alias'])}_en"
         self._ensure_collection(collection, cfg.get("model_id"))
 
-        total = len(chunks)
-        points = [
-            PointStruct(
-                id=str(uuid.uuid4()),
-                vector=chunk.embedding,
-                payload={
-                    "content": chunk.content,
-                    "file_path": abs_path,
-                    "file_name": filepath.name,
-                    "file_type": file_ext,
-                    "chunk_index": i,
-                    "chunk_count": total,
-                    "language": "en",
-                    "source_language": chunk.meta.get("source_language"),
-                    "authors": file_meta["authors"],
-                    "created_at": file_meta["created_at"],
-                    "modified_at": file_meta["modified_at"],
-                    "model_name": model_name,
-                    "model_id": cfg.get("model_id"),
-                    "translated": True,
-                },
+        in_qdrant = self._qdrant_has_document(collection, abs_path)
+        in_pgvector = self._pgvector_has_document(collection, abs_path, cfg.get("model_id"))
+        if in_qdrant and in_pgvector:
+            log.info(
+                "[%s] Translated %s already present in Qdrant and Pgvector — skipping", model_name, filepath.name
             )
-            for i, chunk in enumerate(embedded)
-            if chunk.embedding is not None
-        ]
+            return
+
+        embedded = self._embed_chunks(model_name, chunks)
+
+        total = len(chunks)
+        points: list[PointStruct] = []
+        pg_documents: list[Document] = []
+        for i, chunk in enumerate(embedded):
+            if chunk.embedding is None:
+                continue
+            payload = {
+                "content": chunk.content,
+                "file_path": abs_path,
+                "file_name": filepath.name,
+                "file_type": file_ext,
+                "chunk_index": i,
+                "chunk_count": total,
+                "language": "en",
+                "source_language": chunk.meta.get("source_language"),
+                "authors": file_meta["authors"],
+                "created_at": file_meta["created_at"],
+                "modified_at": file_meta["modified_at"],
+                "model_name": model_name,
+                "model_id": cfg.get("model_id"),
+                "translated": True,
+            }
+            if not in_qdrant:
+                points.append(PointStruct(id=str(uuid.uuid4()), vector=chunk.embedding, payload=payload))
+            if not in_pgvector:
+                pg_documents.append(Document(content=chunk.content, embedding=chunk.embedding, meta=payload))
+
         if points:
             self.qdrant.upsert(collection_name=collection, points=points)
+        if pg_documents:
+            self._write_pgvector(collection, cfg.get("model_id"), pg_documents)
 
     def index_document(self, filepath: Path, model_name: str, file_meta: dict) -> dict:
         log.info(f"Processing: {filepath}")
@@ -495,8 +578,12 @@ class RAGPipeline:
             return {"status": "skipped", "reason": "no_content", "chunks": 0, "elapsed_s": elapsed, "file_size_bytes": file_size}
 
         if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
-            DocumentWriter(document_store=self.bm25_store).run(documents=docs)
             elapsed = time.perf_counter() - t0
+            try:
+                DocumentWriter(document_store=self.bm25_store).run(documents=docs)
+            except DuplicateDocumentError as e:
+                log.warning("[%s] Skipping %s — already present in BM25 store: %s", model_name, filepath, e)
+                return {"status": "skipped", "reason": "duplicate_bm25", "chunks": 0, "elapsed_s": elapsed, "file_size_bytes": file_size}
             return {"status": "bm25", "chunks": len(docs), "elapsed_s": elapsed, "file_size_bytes": file_size}
 
         if model_name not in self.embedders:
@@ -512,48 +599,79 @@ class RAGPipeline:
             return {"status": "skipped", "reason": str(e), "chunks": 0, "elapsed_s": elapsed, "file_size_bytes": file_size}
 
         total = len(chunks)
-        embedded = self._embed_chunks(model_name, chunks)
         collection = _collection_name(submodule, cfg["coll_alias"])
 
-        points = [
-            PointStruct(
-                id=str(uuid.uuid4()),
-                vector=chunk.embedding,
-                payload={
-                    "content": chunk.content,
-                    "file_path": abs_path,
-                    "file_name": filepath.name,
-                    "file_type": file_ext,
-                    "chunk_index": i,
-                    "chunk_count": total,
-                    "language": detect_language(chunk.content or ""),
-                    "authors": file_meta["authors"],
-                    "created_at": file_meta["created_at"],
-                    "modified_at": file_meta["modified_at"],
-                    "model_name": model_name,
-                    "model_id": cfg.get("model_id"),
-                },
-            )
-            for i, chunk in enumerate(embedded)
-            if chunk.embedding is not None
-        ]
+        in_qdrant = self._qdrant_has_document(collection, abs_path)
+        in_pgvector = self._pgvector_has_document(collection, abs_path, cfg.get("model_id"))
 
-        if points:
+        if in_qdrant and in_pgvector:
+            log.info("[%s] Skipping %s — already indexed in Qdrant and Pgvector", model_name, filepath)
+            self._index_translation(filepath, docs, model_name, cfg, submodule, file_meta, abs_path, file_ext)
+            elapsed = time.perf_counter() - t0
+            return {
+                "status": "already_indexed", "chunks": total, "elapsed_s": elapsed, "file_size_bytes": file_size,
+                "qdrant_status": "skipped_exists", "pgvector_status": "skipped_exists",
+            }
+
+        embedded = self._embed_chunks(model_name, chunks)
+
+        points: list[PointStruct] = []
+        pg_documents: list[Document] = []
+        for i, chunk in enumerate(embedded):
+            if chunk.embedding is None:
+                continue
+            payload = {
+                "content": chunk.content,
+                "file_path": abs_path,
+                "file_name": filepath.name,
+                "file_type": file_ext,
+                "chunk_index": i,
+                "chunk_count": total,
+                "language": detect_language(chunk.content or ""),
+                "authors": file_meta["authors"],
+                "created_at": file_meta["created_at"],
+                "modified_at": file_meta["modified_at"],
+                "model_name": model_name,
+                "model_id": cfg.get("model_id"),
+            }
+            if not in_qdrant:
+                points.append(PointStruct(id=str(uuid.uuid4()), vector=chunk.embedding, payload=payload))
+            if not in_pgvector:
+                pg_documents.append(Document(content=chunk.content, embedding=chunk.embedding, meta=payload))
+
+        if in_qdrant:
+            log.info("[%s] %s already present in Qdrant collection %r — skipping upload", model_name, filepath.name, collection)
+            qdrant_status = "skipped_exists"
+        elif points:
             try:
                 log.info("Uploading to database")
                 self.qdrant.upsert(collection_name=collection, points=points)
 
             except UnexpectedResponse as e:
                 log.warning(e)
-                points = split(points, 10)
-                log.info(f"Split points to {len(points)} of {len(points[0])}")
+                point_batches = split(points, 10)
+                log.info(f"Split points to {len(point_batches)} of {len(point_batches[0])}")
 
-                for point in points:
-                    self.qdrant.upsert(collection_name=collection, points=point)
+                for point_batch in point_batches:
+                    self.qdrant.upsert(collection_name=collection, points=point_batch)
 
             log.info(f"Processed {filepath}")
+            qdrant_status = "written"
+        else:
+            qdrant_status = "skipped"
+
+        if in_pgvector:
+            log.info("[%s] %s already present in Pgvector table %r — skipping upload", model_name, filepath.name, collection)
+            pgvector_status = "skipped_exists"
+        elif pg_documents:
+            pgvector_status = "written" if self._write_pgvector(collection, cfg.get("model_id"), pg_documents) else "failed"
+        else:
+            pgvector_status = "skipped"
 
         self._index_translation(filepath, docs, model_name, cfg, submodule, file_meta, abs_path, file_ext)
 
         elapsed = time.perf_counter() - t0
-        return {"status": "indexed", "chunks": total, "elapsed_s": elapsed, "file_size_bytes": file_size}
+        return {
+            "status": "indexed", "chunks": total, "elapsed_s": elapsed, "file_size_bytes": file_size,
+            "qdrant_status": qdrant_status, "pgvector_status": pgvector_status,
+        }

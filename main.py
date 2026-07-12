@@ -35,6 +35,7 @@ import torch
 from qdrant_client import QdrantClient
 
 from rag_pipeline import (
+    PGVECTOR_CONN_STR,
     QDRANT_URL,
     RAGPipeline,
     get_file_metadata,
@@ -47,16 +48,30 @@ file_types = {
     ".md", ".pdf", ".yaml", ".html", ".txt", ".rb", ".java", ".json",
     ".go", ".php", ".js", ".tx", ".cs", ".cshtml", ".csv", ".groovy", ".bat", ".sh",
 }
-dataset_dir = Path("part_1/submodules")
+dataset_dir = Path("submodules")
+
+
+def _mask_conn_str(conn_str: str) -> str:
+    """Redact the password portion of a postgresql:// connection string for logging."""
+    creds, _, rest = conn_str.partition("@")
+    if "://" not in creds or ":" not in creds.split("://", 1)[1]:
+        return conn_str
+    scheme, userinfo = creds.split("://", 1)
+    user, _, _password = userinfo.partition(":")
+    return f"{scheme}://{user}:***@{rest}"
 
 
 def process_docs(args):
     failed_files = []
+    pgvector_failures = []
     count = 0
     """Iterates through documents and sends them off to the function to be processed into a vector database"""
     submodules = [d.name for d in dataset_dir.iterdir() if d.is_dir()]
     model_configs = load_model_configs()
     translation_config = load_translation_config()
+
+    log.info("Qdrant target: %s", QDRANT_URL)
+    log.info("Pgvector target: %s", _mask_conn_str(PGVECTOR_CONN_STR))
 
     if args.reset:
         client = QdrantClient(url=QDRANT_URL, timeout=60)
@@ -89,11 +104,18 @@ def process_docs(args):
             try:
                 log.info("[%s] Indexing: %s  (%.1f KB)", model_name, filepath, filepath.stat().st_size / 1024)
                 result = rag.index_document(filepath, model_name, file_meta)
+                qdrant_status = result.get("qdrant_status", "n/a")
+                pgvector_status = result.get("pgvector_status", "n/a")
                 log.info(
-                    "[%s] %s → status=%s  chunks=%d  elapsed=%.3fs  size=%d B",
+                    "[%s] %s → status=%s  chunks=%d  elapsed=%.3fs  size=%d B  qdrant=%s  pgvector=%s",
                     model_name, filepath.name, result["status"], result["chunks"],
-                    result["elapsed_s"], result["file_size_bytes"],
+                    result["elapsed_s"], result["file_size_bytes"], qdrant_status, pgvector_status,
                 )
+                if pgvector_status == "failed":
+                    pgvector_failures.append({
+                        "model_name": model_name, "filepath": str(filepath),
+                        "error": "pgvector write failed — see log above for details",
+                    })
                 metrics_rows.append({
                     "model_name": model_name,
                     "filepath": str(filepath),
@@ -102,6 +124,8 @@ def process_docs(args):
                     "status": result["status"],
                     "chunks": result["chunks"],
                     "elapsed_s": round(result["elapsed_s"], 4),
+                    "qdrant_status": qdrant_status,
+                    "pgvector_status": pgvector_status,
                 })
                 count += 1
 
@@ -124,7 +148,7 @@ def process_docs(args):
     metrics_dir.mkdir(exist_ok=True)
     csv_path = metrics_dir / f"run_{run_start.strftime('%Y%m%d_%H%M%S')}.csv"
 
-    fieldnames = ["run_start", "run_end", "model_name", "filepath", "file_name", "file_size_bytes", "status", "chunks", "elapsed_s"]
+    fieldnames = ["run_start", "run_end", "model_name", "filepath", "file_name", "file_size_bytes", "status", "chunks", "elapsed_s", "qdrant_status", "pgvector_status"]
     with csv_path.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=fieldnames)
         writer.writeheader()
@@ -140,6 +164,17 @@ def process_docs(args):
             writer.writeheader()
             writer.writerows(failed_files)
         log.warning("%d file(s) failed — see %s", len(failed_files), failed_path)
+
+    if pgvector_failures:
+        pgvector_failed_path = metrics_dir / f"pgvector_failed_{run_start.strftime('%Y%m%d_%H%M%S')}.csv"
+        with pgvector_failed_path.open("w", newline="", encoding="utf-8") as fh:
+            writer = csv.DictWriter(fh, fieldnames=["model_name", "filepath", "error"])
+            writer.writeheader()
+            writer.writerows(pgvector_failures)
+        log.warning(
+            "%d file(s) failed to write to Pgvector (Qdrant indexing was unaffected) — see %s",
+            len(pgvector_failures), pgvector_failed_path,
+        )
 
     log.info("Fail rate: %d / %d", len(failed_files), count)
 
