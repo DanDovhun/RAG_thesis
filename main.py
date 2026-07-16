@@ -180,7 +180,7 @@ def process_docs(args):
 
 
 def load_queries_config(path: str) -> list[dict]:
-    """Load a JSON file of [{"project", "collections", "queries"}, ...]."""
+    """Load a JSON file of [{"project", "collections", "queries": [{"query", "relevant_files"}, ...]}, ...]."""
     with open(path, encoding="utf-8") as fh:
         return json.load(fh)
 
@@ -197,7 +197,9 @@ def run_retrieval(args) -> None:
     for entry in entries:
         project = entry["project"]
         collections = entry["collections"]
-        for query in entry["queries"]:
+        for query_entry in entry["queries"]:
+            query = query_entry["query"]
+            relevant_files = query_entry.get("relevant_files", [])
             for collection in collections:
                 dense_hits: list[dict] = []
                 bm25_hits: list[dict] = []
@@ -234,6 +236,7 @@ def run_retrieval(args) -> None:
                     "collection": collection,
                     "mode": args.mode,
                     "query": query,
+                    "relevant_files": relevant_files,
                     "hits": hits,
                 })
 

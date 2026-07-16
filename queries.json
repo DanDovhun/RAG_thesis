@@ -2,71 +2,225 @@
   {
     "project": "altoEditorClient",
     "collections": ["altoeditorclient_slovakbert", "altoeditorclient_czert", "altoeditorclient_xlmr", "altoeditorclient_mbert", "altoeditorclient_qwen3", "altoeditorclient_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "What port does the local development server for altoEditorClient run on?", "relevant_files": ["submodules/altoEditorClient/README.md"]},
+      {"query": "What version of Angular CLI was used to generate the altoEditorClient project?", "relevant_files": ["submodules/altoEditorClient/README.md"]},
+      {"query": "Which major version of @angular/core does altoEditorClient depend on?", "relevant_files": ["submodules/altoEditorClient/package.json"]},
+      {"query": "What version range of rxjs does altoEditorClient use?", "relevant_files": ["submodules/altoEditorClient/package.json"]},
+      {"query": "Which target URL does the dev proxy forward /api requests to?", "relevant_files": ["submodules/altoEditorClient/proxy.conf.json"]},
+      {"query": "What target does the proxy config use for Keycloak auth realm requests?", "relevant_files": ["submodules/altoEditorClient/proxy.conf.json"]},
+      {"query": "What is the latest git tag recorded for altoEditorClient?", "relevant_files": ["submodules/altoEditorClient/git-info.json"]},
+      {"query": "What is the default language configured in altoEditorClient's default config file?", "relevant_files": ["submodules/altoEditorClient/src/assets/config.json"]},
+      {"query": "What is the default auth base URL configured in altoEditorClient?", "relevant_files": ["submodules/altoEditorClient/src/assets/config.json"]},
+      {"query": "What ECMAScript target does altoEditorClient's TypeScript compiler use?", "relevant_files": ["submodules/altoEditorClient/tsconfig.json"]}
+    ]
   },
   {
     "project": "alto-processing",
     "collections": ["alto_processing_slovakbert", "alto_processing_czert", "alto_processing_xlmr", "alto_processing_mbert", "alto_processing_qwen3", "alto_processing_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "What port does the alto-processing app listen on by default?", "relevant_files": ["submodules/alto-processing/start.sh"]},
+      {"query": "What version of FastAPI does alto-processing require?", "relevant_files": ["submodules/alto-processing/requirements.txt"]},
+      {"query": "What version of the openai Python package is pinned in alto-processing?", "relevant_files": ["submodules/alto-processing/requirements.txt"]},
+      {"query": "What license is declared for alto-processing's Node package?", "relevant_files": ["submodules/alto-processing/package.json"]},
+      {"query": "What is the configured default LLM model for alto-processing?", "relevant_files": ["submodules/alto-processing/config/models.json"]},
+      {"query": "What is the API base URL for the openrouter provider in alto-processing?", "relevant_files": ["submodules/alto-processing/config/providers.json"]},
+      {"query": "Which alto-processing provider has API base https://chat.ai.e-infra.cz/api, and does it support the responses API?", "relevant_files": ["submodules/alto-processing/config/providers.json"]},
+      {"query": "What URL is the alto-processing app reachable at after local manual startup?", "relevant_files": ["submodules/alto-processing/README.md"]},
+      {"query": "What single command starts alto-processing in Docker?", "relevant_files": ["submodules/alto-processing/README.md"]},
+      {"query": "What integer value represents the \"merge\" page-linking decision in alto-processing?", "relevant_files": ["submodules/alto-processing/README.md"]}
+    ]
   },
   {
     "project": "ASJournals",
     "collections": ["asjournals_slovakbert", "asjournals_czert", "asjournals_xlmr", "asjournals_mbert", "asjournals_qwen3", "asjournals_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "Under what license is the AS Journals application distributed?", "relevant_files": ["submodules/ASJournals/README.md"]},
+      {"query": "Which digital library system does AS Journals connect to for article data?", "relevant_files": ["submodules/ASJournals/README.md"]},
+      {"query": "Which version of Angular CLI was used to generate the AS Journals client project?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/client/README.md"]},
+      {"query": "What version of @angular/animations does the AS Journals searchapp client use?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/client/package.json"]},
+      {"query": "What version of TinyMCE is bundled with AS Journals?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/webapp/tinymce/package.json"]},
+      {"query": "On what date was TinyMCE version 6.7.0 released?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/webapp/tinymce/CHANGELOG.md"]},
+      {"query": "What is the ISSN of the journal \"Právník\" in the AS Journals magazines list?", "relevant_files": ["submodules/ASJournals/solr9/magazines/magazines.json"]},
+      {"query": "What is the default Solr host URL in the AS Journals server configuration?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/resources/cz/incad/k5journals/searchapp/server_config.json"]},
+      {"query": "Which facet fields are used to filter the journal list on the AS Journals portal?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/client/src/assets/config.json"]},
+      {"query": "Which Solr cores does the AS Journals IndexerK7 class index data into?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/java/cz/incad/k5journals/searchapp/IndexerK7.java"]}
+    ]
   },
   {
     "project": "avm-server",
     "collections": ["avm_server_slovakbert", "avm_server_czert", "avm_server_xlmr", "avm_server_mbert", "avm_server_qwen3", "avm_server_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "What license does the AVM Server project use?", "relevant_files": ["submodules/avm-server/README.md"]},
+      {"query": "What condition does DeleteExpiredDocumentsJob use to select documents for deletion?", "relevant_files": ["submodules/avm-server/app/jobs/delete_expired_documents_job.rb"]},
+      {"query": "What background job removes expired authentication tokens in AVM Server?", "relevant_files": ["submodules/avm-server/app/jobs/delete_expired_tokens_job.rb"]},
+      {"query": "What does the POST /documents endpoint do in the AVM Server API?", "relevant_files": ["submodules/avm-server/public/openapi.yaml"]},
+      {"query": "What is the AVM Server API version declared in its OpenAPI spec?", "relevant_files": ["submodules/avm-server/public/openapi.yaml"]},
+      {"query": "What error does Document#decrypt_content raise when the encryption key is invalid?", "relevant_files": ["submodules/avm-server/app/models/document.rb"]},
+      {"query": "Which device notification platforms does AVM Server's Device model support?", "relevant_files": ["submodules/avm-server/app/models/device.rb"]},
+      {"query": "Which origins are allowed by AVM Server's CORS configuration?", "relevant_files": ["submodules/avm-server/config/initializers/cors.rb"]},
+      {"query": "What member routes are defined for the documents resource in AVM Server?", "relevant_files": ["submodules/avm-server/config/routes.rb"]},
+      {"query": "What does the AVM Server root path redirect to by default?", "relevant_files": ["submodules/avm-server/config/routes.rb"]}
+    ]
   },
   {
     "project": "govbox-pro",
     "collections": ["govbox_pro_slovakbert", "govbox_pro_czert", "govbox_pro_xlmr", "govbox_pro_mbert", "govbox_pro_qwen3", "govbox_pro_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "Which environment variable sets administrator emails in GovBox Pro?", "relevant_files": ["submodules/govbox-pro/configuration.md"]},
+      {"query": "Under which license is GovBox Pro distributed?", "relevant_files": ["submodules/govbox-pro/README.md"]},
+      {"query": "Which company authored GovBox Pro?", "relevant_files": ["submodules/govbox-pro/README.md"]},
+      {"query": "What command creates a local env file for GovBox Pro development?", "relevant_files": ["submodules/govbox-pro/DEVELOPER.md"]},
+      {"query": "What command starts the local database for GovBox Pro?", "relevant_files": ["submodules/govbox-pro/DEVELOPER.md"]},
+      {"query": "Which library does GovBox Pro use for asynchronous job processing?", "relevant_files": ["submodules/govbox-pro/DEVELOPER.md"]},
+      {"query": "What does the failing_jobs health-check action query for in GovBox Pro?", "relevant_files": ["submodules/govbox-pro/app/controllers/health_check_controller.rb"]},
+      {"query": "What is the name and version of GovBox Pro's Helm chart?", "relevant_files": ["submodules/govbox-pro/chart/Chart.yaml"]},
+      {"query": "What is the default replica count in GovBox Pro's Helm chart values?", "relevant_files": ["submodules/govbox-pro/chart/values.yaml"]},
+      {"query": "What command does GovBox Pro's npm build script run for its JS assets?", "relevant_files": ["submodules/govbox-pro/package.json"]}
+    ]
   },
   {
     "project": "kramerius",
     "collections": ["kramerius_slovakbert", "kramerius_czert", "kramerius_xlmr", "kramerius_mbert", "kramerius_qwen3", "kramerius_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "Under what license is Kramerius distributed?", "relevant_files": ["submodules/kramerius/LICENSE.md"]},
+      {"query": "Who is the main development coordinator of Kramerius?", "relevant_files": ["submodules/kramerius/README.md"]},
+      {"query": "How do you build the search.war file in Kramerius?", "relevant_files": ["submodules/kramerius/BUILD-README.txt"]},
+      {"query": "How do you build and run the search-index module in Kramerius?", "relevant_files": ["submodules/kramerius/processes/search-index/BUILD-README.txt"]},
+      {"query": "What does the oai4solr7 OAI plugin replace in Kramerius?", "relevant_files": ["submodules/kramerius/installation/oai4solr7/README.md"]},
+      {"query": "How many UUIDs are listed in Kramerius's dnnt.csv file?", "relevant_files": ["submodules/kramerius/installation/csv/dnnt.csv"]},
+      {"query": "Which directory takes precedence if the solr7x search config and the installation search directory differ in Kramerius?", "relevant_files": ["submodules/kramerius/installation/solr-7.x_8x/info.txt"]},
+      {"query": "What is the purpose of the SolrAccess interface in Kramerius?", "relevant_files": ["submodules/kramerius/shared/common/src/main/java/cz/incad/kramerius/SolrAccess.java"]},
+      {"query": "What REST path is Kramerius's EndpointFolders class mapped to?", "relevant_files": ["submodules/kramerius/folders/src/main/java/cz/inovatika/folders/jersey/EndpointFolders.java"]},
+      {"query": "What configuration name constant does Kramerius's JAXBPlugin Gradle plugin define?", "relevant_files": ["submodules/kramerius/buildSrc/src/main/groovy/org/gradle/JAXBPlugin.groovy"]}
+    ]
   },
   {
     "project": "kramerius-docker-compose",
     "collections": ["kramerius_docker_compose_slovakbert", "kramerius_docker_compose_czert", "kramerius_docker_compose_xlmr", "kramerius_docker_compose_mbert", "kramerius_docker_compose_qwen3", "kramerius_docker_compose_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "Which services does the kramerius-docker-compose deployment start?", "relevant_files": ["submodules/kramerius-docker-compose/README.md"]},
+      {"query": "What version is recorded for the Kramerius secured-channel image?", "relevant_files": ["submodules/kramerius-docker-compose/channel/version.txt"]},
+      {"query": "What CDK_HOSTNAME and port mapping does the Linux run-image script use?", "relevant_files": ["submodules/kramerius-docker-compose/channel/run-image.sh"]},
+      {"query": "What CDK_HOSTNAME value does the Windows run-image batch script use?", "relevant_files": ["submodules/kramerius-docker-compose/channel/run-image.bat"]},
+      {"query": "What is the default Kramerius API URL used by the NKP log generation script?", "relevant_files": ["submodules/kramerius-docker-compose/scripts/generateLogs.sh"]},
+      {"query": "Which process defid does the SDNNT sync script trigger?", "relevant_files": ["submodules/kramerius-docker-compose/scripts/sdnnt_sync.sh"]},
+      {"query": "Which API endpoint does the SDNNT apply script query?", "relevant_files": ["submodules/kramerius-docker-compose/scripts/sdnnt_apply.sh"]},
+      {"query": "Which subdirectories does the channel's Apache startup script create under the ssl directory?", "relevant_files": ["submodules/kramerius-docker-compose/channel/start-apache.sh"]},
+      {"query": "What is the Keycloak client resource id configured for Kramerius in the docker-compose setup?", "relevant_files": ["submodules/kramerius-docker-compose/mnt/import/.kramerius4/keycloak.json"]},
+      {"query": "What is the access token lifespan configured in the Kramerius Keycloak realm export?", "relevant_files": ["submodules/kramerius-docker-compose/_app/realm-export.json"]}
+    ]
   },
   {
     "project": "navody.digital",
     "collections": ["navody.digital_slovakbert", "navody.digital_czert", "navody.digital_xlmr", "navody.digital_mbert", "navody.digital_qwen3", "navody.digital_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "What command starts the Návody.digital app locally?", "relevant_files": ["submodules/navody.digital/README.md"]},
+      {"query": "What command runs before deployment on Dokku for Návody.digital?", "relevant_files": ["submodules/navody.digital/app.json"]},
+      {"query": "Which JS library provides the anti-bot captcha functionality in Návody.digital's frontend?", "relevant_files": ["submodules/navody.digital/package.json"]},
+      {"query": "What does Návody.digital's health check endpoint verify before reporting the app as healthy?", "relevant_files": ["submodules/navody.digital/app/controllers/health_controller.rb"]},
+      {"query": "What are the two valid types of a Task in Návody.digital?", "relevant_files": ["submodules/navody.digital/app/models/task.rb"]},
+      {"query": "What are the possible publication statuses of a Journey in Návody.digital?", "relevant_files": ["submodules/navody.digital/app/models/journey.rb"]},
+      {"query": "How does Návody.digital's search feature process a user's query before searching?", "relevant_files": ["submodules/navody.digital/app/controllers/searches_controller.rb"]},
+      {"query": "Where does user feedback get sent when submitted through Návody.digital's feedback form?", "relevant_files": ["submodules/navody.digital/app/controllers/feedbacks_controller.rb"]},
+      {"query": "What does Návody.digital's devcontainer post-create command script do?", "relevant_files": ["submodules/navody.digital/.devcontainer/postCreateCommand.sh"]},
+      {"query": "What format and delimiter does Návody.digital's countries reference dataset use?", "relevant_files": ["submodules/navody.digital/db/data/countries.csv"]}
+    ]
   },
   {
     "project": "navody-frontend",
     "collections": ["navody_frontend_slovakbert", "navody_frontend_czert", "navody_frontend_xlmr", "navody_frontend_mbert", "navody_frontend_qwen3", "navody_frontend_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "Who holds the copyright stated in navody-frontend's LICENSE, and what year?", "relevant_files": ["submodules/navody-frontend/LICENSE.txt"]},
+      {"query": "What are the main and sass entry-point files declared in navody-frontend's published package?", "relevant_files": ["submodules/navody-frontend/package/package.json"]},
+      {"query": "What is the name field value in navody-frontend's root package.json?", "relevant_files": ["submodules/navody-frontend/package.json"]},
+      {"query": "What exact Node.js engine version does navody-frontend's root package.json specify?", "relevant_files": ["submodules/navody-frontend/package.json"]},
+      {"query": "Whose Code of Conduct does navody-frontend follow?", "relevant_files": ["submodules/navody-frontend/CODE_OF_CONDUCT.md"]},
+      {"query": "What indentation and whitespace convention does navody-frontend's CONTRIBUTING.md specify?", "relevant_files": ["submodules/navody-frontend/CONTRIBUTING.md"]},
+      {"query": "What new feature was introduced in navody-frontend version 3.11.0?", "relevant_files": ["submodules/navody-frontend/CHANGELOG.md"]},
+      {"query": "What component was introduced in navody-frontend version 3.10.0?", "relevant_files": ["submodules/navody-frontend/CHANGELOG.md"]},
+      {"query": "Which Heroku buildpack is declared in navody-frontend's app.json?", "relevant_files": ["submodules/navody-frontend/app.json"]},
+      {"query": "What does navody-frontend's bin/check-nvmrc.js script do when the running Node major version doesn't match .nvmrc?", "relevant_files": ["submodules/navody-frontend/bin/check-nvmrc.js"]}
+    ]
   },
   {
     "project": "poc-iam",
     "collections": ["poc_iam_slovakbert", "poc_iam_czert", "poc_iam_xlmr", "poc_iam_mbert", "poc_iam_qwen3", "poc_iam_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "What is the purpose of the poc-iam project?", "relevant_files": ["submodules/poc-iam/README.md"]},
+      {"query": "What is the high-level architecture of poc-iam's STS service?", "relevant_files": ["submodules/poc-iam/README.md"]},
+      {"query": "What are the main components of poc-iam's STS application?", "relevant_files": ["submodules/poc-iam/README.md"]},
+      {"query": "What security limitations does poc-iam's README disclose for this proof-of-concept?", "relevant_files": ["submodules/poc-iam/README.md"]},
+      {"query": "What does the STSApp class do in poc-iam?", "relevant_files": ["submodules/poc-iam/src/main/java/digital/slovensko/poc/migalotros/STSApp.java"]},
+      {"query": "How does RedisCertValidator validate a client certificate in poc-iam?", "relevant_files": ["submodules/poc-iam/src/main/java/digital/slovensko/poc/migalotros/RedisCertValidator.java"]},
+      {"query": "What does AddUPVSSamlAssertionsHandler add to a SAML assertion in poc-iam?", "relevant_files": ["submodules/poc-iam/src/main/java/digital/slovensko/poc/migalotros/AddUPVSSamlAssertionsHandler.java"]},
+      {"query": "What is the hardcoded keystore password in poc-iam's STSConfiguration?", "relevant_files": ["submodules/poc-iam/src/main/java/digital/slovensko/poc/migalotros/STSConfiguration.java"]},
+      {"query": "At what endpoint path is poc-iam's STS service published?", "relevant_files": ["submodules/poc-iam/src/main/java/digital/slovensko/poc/migalotros/STSConfiguration.java"]},
+      {"query": "What issuer value does poc-iam's STS use for issued tokens?", "relevant_files": ["submodules/poc-iam/src/main/java/digital/slovensko/poc/migalotros/STSConfiguration.java"]}
+    ]
   },
   {
     "project": "slovensko-sk-api",
     "collections": ["slovensko_sk_api_slovakbert", "slovensko_sk_api_czert", "slovensko_sk_api_xlmr", "slovensko_sk_api_mbert", "slovensko_sk_api_qwen3", "slovensko_sk_api_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "What is the slovensko.sk API component and what services does it provide?", "relevant_files": ["submodules/slovensko-sk-api/README.md"]},
+      {"query": "What steps are required to install and start the slovensko.sk API component?", "relevant_files": ["submodules/slovensko-sk-api/INSTALL.md"]},
+      {"query": "How do you check the health status of a running slovensko.sk API instance?", "relevant_files": ["submodules/slovensko-sk-api/INSTALL.md"]},
+      {"query": "What does the /login endpoint do in the slovensko.sk API?", "relevant_files": ["submodules/slovensko-sk-api/public/openapi.yaml"]},
+      {"query": "Which endpoint is used to add a timestamp to a document in the slovensko.sk API's CEP service?", "relevant_files": ["submodules/slovensko-sk-api/public/openapi.yaml"]},
+      {"query": "What does the /api/cuet/documents/publish_document endpoint do in the slovensko.sk API?", "relevant_files": ["submodules/slovensko-sk-api/public/openapi.yaml"]},
+      {"query": "What checks does the /health endpoint perform on the slovensko.sk API component?", "relevant_files": ["submodules/slovensko-sk-api/app/controllers/health_controller.rb"]},
+      {"query": "What is the maximum token expiration window enforced by slovensko.sk API's ApiTokenAuthenticator?", "relevant_files": ["submodules/slovensko-sk-api/app/services/api_token_authenticator.rb"]},
+      {"query": "What does the DownloadFormTemplatesJob background job do in the slovensko.sk API?", "relevant_files": ["submodules/slovensko-sk-api/app/jobs/download_form_templates_job.rb"]},
+      {"query": "What does the signatures_info method of CepSigner determine in the slovensko.sk API?", "relevant_files": ["submodules/slovensko-sk-api/app/services/cep_signer.rb"]}
+    ]
   },
   {
     "project": "slovensko-sk-login",
     "collections": ["slovensko_sk_login_slovakbert", "slovensko_sk_login_czert", "slovensko_sk_login_xlmr", "slovensko_sk_login_mbert", "slovensko_sk_login_qwen3", "slovensko_sk_login_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "Which programming languages and frameworks have sample slovensko.sk login implementations in this repo?", "relevant_files": ["submodules/slovensko-sk-login/README.md"]},
+      {"query": "What host and port do the slovensko-sk-login example Service Provider implementations run on by default?", "relevant_files": ["submodules/slovensko-sk-login/README.md"]},
+      {"query": "How does the plain PHP slovensko-sk-login example configure SAML message signing and encryption requirements?", "relevant_files": ["submodules/slovensko-sk-login/php/index.php"]},
+      {"query": "How does the Laravel slovensko-sk-login example handle SAML tenants during login?", "relevant_files": ["submodules/slovensko-sk-login/laravel/app/Http/Controllers/SamlAuthController.php"]},
+      {"query": "What is the session timeout duration used in the Ruby on Rails slovensko-sk-login example?", "relevant_files": ["submodules/slovensko-sk-login/ruby-on-rails/app/controllers/upvs_controller.rb"]},
+      {"query": "What path prefix does the Ruby on Rails slovensko-sk-login example use for its SAML OmniAuth routes?", "relevant_files": ["submodules/slovensko-sk-login/ruby-on-rails/config/initializers/omniauth.rb"]},
+      {"query": "How does the Java OneLogin slovensko-sk-login example's login servlet initiate SAML login?", "relevant_files": ["submodules/slovensko-sk-login/java-onelogin/src/main/java/com/archimetes/cgpcon/websso/LoginServlet.java"]},
+      {"query": "Where does the Java OneLogin slovensko-sk-login example load its SAML configuration properties from?", "relevant_files": ["submodules/slovensko-sk-login/java-onelogin/src/main/java/com/archimetes/cgpcon/websso/Settings.java"]},
+      {"query": "How does the ASP.NET Core slovensko-sk-login example's Login page trigger SAML authentication?", "relevant_files": ["submodules/slovensko-sk-login/asp-net-core/RazorPages/Pages/Login.cshtml.cs"]},
+      {"query": "What SAML request signing behavior does the ASP.NET Core slovensko-sk-login example enforce?", "relevant_files": ["submodules/slovensko-sk-login/asp-net-core/RazorPages/Program.cs"]}
+    ]
   },
   {
     "project": "sprava-o-stave-egovernmentu",
     "collections": ["sprava_o_stave_egovernmentu_slovakbert", "sprava_o_stave_egovernmentu_czert", "sprava_o_stave_egovernmentu_xlmr", "sprava_o_stave_egovernmentu_mbert", "sprava_o_stave_egovernmentu_qwen3", "sprava_o_stave_egovernmentu_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "Which eGovernment program is rated \"Zlyháva\" on all four evaluation criteria?", "relevant_files": ["submodules/sprava-o-stave-egovernmentu/programy-egovernmentu.html"]},
+      {"query": "How is the \"Transparentnosť projektov\" program rated in the eGovernment report?", "relevant_files": ["submodules/sprava-o-stave-egovernmentu/programy-egovernmentu.html"]},
+      {"query": "Which eGovernment programs does the report evaluate?", "relevant_files": ["submodules/sprava-o-stave-egovernmentu/programy-egovernmentu.html"]},
+      {"query": "What four criteria and rating states are used to evaluate each eGovernment program in the report?", "relevant_files": ["submodules/sprava-o-stave-egovernmentu/programy-egovernmentu.html"]},
+      {"query": "How does the report rate the \"My Data\" eGovernment program?", "relevant_files": ["submodules/sprava-o-stave-egovernmentu/index.html"]},
+      {"query": "Which two projects funded the creation of the eGovernment report?", "relevant_files": ["submodules/sprava-o-stave-egovernmentu/index.html"]},
+      {"query": "What is the registered address and IČO of Slovensko.Digital?", "relevant_files": ["submodules/sprava-o-stave-egovernmentu/index.html"]},
+      {"query": "Which prior years' eGovernment reports are linked besides 2025?", "relevant_files": ["submodules/sprava-o-stave-egovernmentu/index.html"]},
+      {"query": "What are the eGovernment report site's brand color hex codes and CSS framework?", "relevant_files": ["submodules/sprava-o-stave-egovernmentu/styleguide.html"]},
+      {"query": "What typeface is used for headings on the eGovernment report site, and how many cells can a nested grid-x hold?", "relevant_files": ["submodules/sprava-o-stave-egovernmentu/styleguide.html"]}
+    ]
   },
   {
     "project": "www.slovensko.wtf",
     "collections": ["www.slovensko.wtf_slovakbert", "www.slovensko.wtf_czert", "www.slovensko.wtf_xlmr", "www.slovensko.wtf_mbert", "www.slovensko.wtf_qwen3", "www.slovensko.wtf_te3s"],
-    "queries": []
+    "queries": [
+      {"query": "What is the title of the www.slovensko.wtf index page?", "relevant_files": ["submodules/www.slovensko.wtf/index.html"]},
+      {"query": "How much has Slovakia spent on informatization since 2007, according to www.slovensko.wtf?", "relevant_files": ["submodules/www.slovensko.wtf/index.html"]},
+      {"query": "What is the Open Graph site name declared on www.slovensko.wtf?", "relevant_files": ["submodules/www.slovensko.wtf/index.html"]},
+      {"query": "What canonical URL is declared via og:url on www.slovensko.wtf?", "relevant_files": ["submodules/www.slovensko.wtf/index.html"]},
+      {"query": "What YouTube video ID does the www.slovensko.wtf page embed?", "relevant_files": ["submodules/www.slovensko.wtf/index.html"]},
+      {"query": "Where does www.slovensko.wtf redirect the user after the embedded video finishes?", "relevant_files": ["submodules/www.slovensko.wtf/index.html"]},
+      {"query": "What Google Analytics tracking ID is configured on www.slovensko.wtf?", "relevant_files": ["submodules/www.slovensko.wtf/index.html"]},
+      {"query": "What language attribute is set on the html element of www.slovensko.wtf?", "relevant_files": ["submodules/www.slovensko.wtf/index.html"]},
+      {"query": "What favicon file does www.slovensko.wtf's index.html reference?", "relevant_files": ["submodules/www.slovensko.wtf/index.html"]},
+      {"query": "What image URL is used for social-sharing previews of www.slovensko.wtf?", "relevant_files": ["submodules/www.slovensko.wtf/index.html"]}
+    ]
   }
 ]

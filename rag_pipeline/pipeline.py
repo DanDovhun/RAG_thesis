@@ -149,7 +149,7 @@ def get_file_metadata(filepath: Path) -> dict:
 
 
 def _collection_name(submodule: str, coll_alias: str) -> str:
-    return f"{slugify(submodule)}_{coll_alias}"
+    return f"{slugify(submodule)}_{coll_alias}_hybrid"
 
 
 def _point_to_hit(point) -> dict:
