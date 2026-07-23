@@ -1,9 +1,12 @@
 import gc
 import logging
 import os
+import re
 import subprocess
 import time
 import uuid
+import zlib
+from collections import Counter
 from datetime import datetime
 from pathlib import Path
 
@@ -15,16 +18,18 @@ from haystack import Document
 from haystack.components.converters import HTMLToDocument, PyPDFToDocument, TextFileToDocument
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack.components.preprocessors import DocumentSplitter
-from haystack.components.writers import DocumentWriter
-from haystack.document_stores.errors import DocumentStoreError, DuplicateDocumentError
-from haystack.document_stores.in_memory import InMemoryDocumentStore
+from haystack.document_stores.errors import DocumentStoreError
 from haystack.document_stores.types import DuplicatePolicy
 from haystack.utils import ComponentDevice, Secret
 from haystack_integrations.document_stores.pgvector import PgvectorDocumentStore
 from langdetect import DetectorFactory, LangDetectException, detect
+from sentence_transformers import SparseEncoder
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
-from qdrant_client.models import Distance, FieldCondition, Filter, MatchValue, PointStruct, VectorParams
+from qdrant_client.models import (
+    Distance, FieldCondition, Filter, MatchValue, Modifier, PointStruct,
+    SparseVector, SparseVectorParams, VectorParams,
+)
 
 DetectorFactory.seed = 0
 
@@ -63,6 +68,21 @@ CHUNK_SIZE = 300
 CHUNK_OVERLAP = 50
 
 RRF_K = 60
+
+_BM25_TOKEN_RE = re.compile(r"(?u)\b\w+\b")
+
+
+def _bm25_sparse_vector(text: str) -> SparseVector:
+    """Build a term-frequency sparse vector, hashed into Qdrant's u32 index space.
+
+    Qdrant's IDF modifier turns these raw counts into real BM25-style scores at
+    query time using its own collection statistics, so no shared vocabulary needs
+    to be maintained across indexing runs.
+    """
+    counts = Counter(_BM25_TOKEN_RE.findall((text or "").lower()))
+    indices = [zlib.crc32(tok.encode("utf-8")) & 0x7FFFFFFF for tok in counts]
+    values = [float(v) for v in counts.values()]
+    return SparseVector(indices=indices, values=values)
 
 
 def split(a, n):
@@ -163,16 +183,6 @@ def _point_to_hit(point) -> dict:
     }
 
 
-def _doc_to_hit(doc: Document) -> dict:
-    return {
-        "score": doc.score,
-        "file_path": doc.meta.get("file_path"),
-        "file_name": doc.meta.get("file_name"),
-        "chunk_index": doc.meta.get("chunk_index"),
-        "content": doc.content,
-    }
-
-
 def reciprocal_rank_fusion(dense_hits: list[dict], bm25_hits: list[dict], top_k: int) -> list[dict]:
     """Merge dense and BM25 rankings via Reciprocal Rank Fusion, keyed by (file_path, chunk_index)."""
     scores: dict[tuple, float] = {}
@@ -236,7 +246,6 @@ class RAGPipeline:
         self.model_configs = {cfg["name"]: cfg for cfg in model_configs}
         self.dataset_dir = dataset_dir
         self.embedders: dict[str, SentenceTransformersDocumentEmbedder] = {}
-        self.bm25_store: InMemoryDocumentStore | None = None
         self.qdrant = QdrantClient(url=QDRANT_URL, timeout=60)
         self._pg_stores: dict[str, PgvectorDocumentStore] = {}
         self.splitter = DocumentSplitter(
@@ -244,12 +253,22 @@ class RAGPipeline:
         )
         self._initialised_submodules: set[str] = set()
         self._translation_cache: dict[Path, list[Document] | None] = {}
-        self._bm25_stores: dict[str, InMemoryDocumentStore] = {}
         self._alias_to_cfg = {
             cfg["coll_alias"]: cfg
             for cfg in self.model_configs.values()
             if not (cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25")
         }
+        self._bm25_cfg = next(
+            (cfg for cfg in self.model_configs.values()
+             if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25"),
+            None,
+        )
+        self._splade_cfg = next(
+            (cfg for cfg in self.model_configs.values()
+             if cfg.get("type") == "sparse"
+             and not (cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25")),
+            None,
+        )
 
         translation_config = translation_config or {}
         self.translation_languages = set(translation_config.get("languages", []))
@@ -263,13 +282,6 @@ class RAGPipeline:
             if translation_config.get("enabled"):
                 log.warning("Translation enabled in config but DEEPL_API_KEY is not set — skipping translation")
 
-        for cfg in model_configs:
-            self._setup_model(cfg)
-
-    def _setup_model(self, cfg: dict) -> None:
-        if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
-            self.bm25_store = InMemoryDocumentStore()
-
     def load_embedder(self, name: str) -> None:
         cfg = self.model_configs[name]
         if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
@@ -281,7 +293,16 @@ class RAGPipeline:
                 return
             self.embedders[name] = OpenAIDocumentEmbedder(model_id=cfg["model_id"], api_key=api_key)
             return
-        device = ComponentDevice.from_str("cuda:0" if torch.cuda.is_available() else "cpu")
+        device_str = "cuda:0" if torch.cuda.is_available() else "cpu"
+        if cfg.get("type") == "sparse":
+            # Learned sparse embedder (e.g. SPLADE) — outputs a vector over the model's
+            # own vocabulary rather than a fixed-size dense embedding.
+            try:
+                self.embedders[name] = SparseEncoder(cfg["model_id"], device=device_str, trust_remote_code=True)
+            except Exception as e:
+                log.warning("[%s] Failed to load sparse embedder %s: %s", name, cfg["model_id"], e)
+            return
+        device = ComponentDevice.from_str(device_str)
         embedder = SentenceTransformersDocumentEmbedder(
             model=cfg["model_id"], trust_remote_code=True, device=device,
             model_kwargs={"torch_dtype": torch.float16},
@@ -299,6 +320,12 @@ class RAGPipeline:
         if cfg.get("source") != "openai" and torch.cuda.is_available():
             gc.collect()
             torch.cuda.empty_cache()
+
+    def sparse_collection_name(self, submodule: str) -> str | None:
+        """The Qdrant collection name holding persisted BM25 sparse vectors for `submodule`."""
+        if self._bm25_cfg is None:
+            return None
+        return _collection_name(submodule, self._bm25_cfg["coll_alias"])
 
     def resolve_collection_model(self, project: str, collection: str) -> dict | None:
         """Map a Qdrant collection name back to the dense model config that produced it."""
@@ -324,43 +351,50 @@ class RAGPipeline:
         )
         return [_point_to_hit(p) for p in response.points]
 
-    def _build_bm25_store(self, collection: str) -> InMemoryDocumentStore:
-        store = InMemoryDocumentStore()
-        docs = []
-        next_offset = None
-        while True:
-            records, next_offset = self.qdrant.scroll(
-                collection_name=collection,
-                limit=500,
-                offset=next_offset,
-                with_payload=["content", "file_path", "file_name", "chunk_index"],
-                with_vectors=False,
-            )
-            for record in records:
-                payload = record.payload or {}
-                content = payload.get("content")
-                if not content:
-                    continue
-                docs.append(Document(content=content, meta={
-                    "file_path": payload.get("file_path"),
-                    "file_name": payload.get("file_name"),
-                    "chunk_index": payload.get("chunk_index"),
-                }))
-            if next_offset is None:
-                break
-        if docs:
-            DocumentWriter(document_store=store).run(documents=docs)
-        return store
+    def search_bm25(self, project: str, query: str, top_k: int) -> list[dict]:
+        """Query the persisted, Qdrant-native BM25 sparse collection for `project`."""
+        collection = self.sparse_collection_name(project)
+        if collection is None:
+            log.warning("No BM25 model enabled in embedder_config.toml — skipping BM25 search")
+            return []
+        if not self.qdrant.collection_exists(collection):
+            log.warning("Collection %r does not exist — skipping BM25 search", collection)
+            return []
+        response = self.qdrant.query_points(
+            collection_name=collection,
+            query=_bm25_sparse_vector(query),
+            using=self._bm25_cfg["coll_alias"],
+            limit=top_k,
+            with_payload=True,
+        )
+        return [_point_to_hit(p) for p in response.points]
 
-    def search_bm25(self, collection: str, query: str, top_k: int) -> list[dict]:
-        if collection not in self._bm25_stores:
-            if not self.qdrant.collection_exists(collection):
-                log.warning("Collection %r does not exist — skipping BM25 search", collection)
-                return []
-            log.info("Building BM25 index for %r ...", collection)
-            self._bm25_stores[collection] = self._build_bm25_store(collection)
-        hits = self._bm25_stores[collection].bm25_retrieval(query, top_k=top_k)
-        return [_doc_to_hit(d) for d in hits]
+    def search_splade(self, project: str, query: str, top_k: int) -> list[dict]:
+        """Query the persisted learned-sparse (e.g. SPLADE) collection for `project`."""
+        if self._splade_cfg is None:
+            log.warning("No learned sparse model (e.g. SPLADE) enabled in embedder_config.toml — skipping search")
+            return []
+        model_name = self._splade_cfg["name"]
+        if model_name not in self.embedders:
+            self.load_embedder(model_name)
+        if model_name not in self.embedders:
+            log.warning("Sparse embedder %r unavailable — skipping sparse search", model_name)
+            return []
+        collection = _collection_name(project, self._splade_cfg["coll_alias"])
+        if not self.qdrant.collection_exists(collection):
+            log.warning("Collection %r does not exist — skipping sparse search", collection)
+            return []
+        sparse_vectors = self._encode_sparse(model_name, [query])
+        if not sparse_vectors:
+            return []
+        response = self.qdrant.query_points(
+            collection_name=collection,
+            query=sparse_vectors[0],
+            using=self._splade_cfg["coll_alias"],
+            limit=top_k,
+            with_payload=True,
+        )
+        return [_point_to_hit(p) for p in response.points]
 
     def _embed_chunks(self, model_name: str, chunks: list[Document]) -> list[Document]:
         """Embed chunks, halving the sub-batch on each OOM until it succeeds or reaches size 1."""
@@ -383,6 +417,71 @@ class RAGPipeline:
                 sub_batch_size = max(1, sub_batch_size // 2)
                 log.warning("[%s] OOM — retrying embedding with sub-batch size %d", model_name, sub_batch_size)
 
+    def _encode_sparse(self, model_name: str, texts: list[str]) -> list[SparseVector]:
+        """Encode texts with a learned sparse embedder (e.g. SPLADE), halving the batch on OOM."""
+        if not texts:
+            return []
+        encoder = self.embedders[model_name]
+        batch_size = len(texts)
+        while True:
+            try:
+                results: list[SparseVector] = []
+                for i in range(0, len(texts), batch_size):
+                    batch = texts[i : i + batch_size]
+                    tensor = encoder.encode(batch, convert_to_sparse_tensor=True).coalesce().cpu()
+                    rows, cols = tensor.indices()
+                    values = tensor.values()
+                    for row in range(len(batch)):
+                        mask = rows == row
+                        results.append(SparseVector(
+                            indices=cols[mask].tolist(), values=values[mask].float().tolist(),
+                        ))
+                return results
+            except torch.OutOfMemoryError:
+                if batch_size == 1:
+                    raise
+                gc.collect()
+                torch.cuda.empty_cache()
+                batch_size = max(1, batch_size // 2)
+                log.warning("[%s] OOM — retrying sparse encoding with batch size %d", model_name, batch_size)
+
+    def _upsert_sparse_chunks(
+        self, collection: str, vector_name: str, model_name: str, model_id: str | None,
+        filepath: Path, abs_path: str, file_ext: str, file_meta: dict,
+        chunks: list[Document], sparse_vectors: list[SparseVector],
+    ) -> str:
+        """Build payloads/points for pre-computed sparse vectors and upsert them. Returns qdrant_status."""
+        total = len(chunks)
+        points: list[PointStruct] = []
+        for i, (chunk, sparse_vec) in enumerate(zip(chunks, sparse_vectors)):
+            payload = {
+                "content": chunk.content,
+                "file_path": abs_path,
+                "file_name": filepath.name,
+                "file_type": file_ext,
+                "chunk_index": i,
+                "chunk_count": total,
+                "language": detect_language(chunk.content or ""),
+                "authors": file_meta["authors"],
+                "created_at": file_meta["created_at"],
+                "modified_at": file_meta["modified_at"],
+                "model_name": model_name,
+                "model_id": model_id,
+            }
+            points.append(PointStruct(id=str(uuid.uuid4()), vector={vector_name: sparse_vec}, payload=payload))
+
+        if not points:
+            return "skipped"
+        try:
+            self.qdrant.upsert(collection_name=collection, points=points)
+        except UnexpectedResponse as e:
+            log.warning(e)
+            point_batches = split(points, 10)
+            log.info(f"Split points to {len(point_batches)} of {len(point_batches[0])}")
+            for point_batch in point_batches:
+                self.qdrant.upsert(collection_name=collection, points=point_batch)
+        return "written"
+
     def _ensure_collection(self, name: str, model_id: str | None) -> None:
         if not self.qdrant.collection_exists(name):
             dim = EMBEDDING_DIMS.get(model_id, 768)
@@ -390,6 +489,18 @@ class RAGPipeline:
             self.qdrant.create_collection(
                 collection_name=name,
                 vectors_config=VectorParams(size=dim, distance=Distance.COSINE),
+            )
+
+    def _ensure_sparse_collection(self, name: str, vector_name: str, modifier: "Modifier | None") -> None:
+        """Create a sparse-only Qdrant collection. BM25 needs the IDF modifier (raw term counts are
+        scored server-side); learned sparse embedders like SPLADE already encode term importance in
+        their values, so they're stored with no modifier."""
+        if not self.qdrant.collection_exists(name):
+            log.info("Creating sparse collection %r (vector=%r)", name, vector_name)
+            self.qdrant.create_collection(
+                collection_name=name,
+                vectors_config={},
+                sparse_vectors_config={vector_name: SparseVectorParams(modifier=modifier)},
             )
 
     def _get_pg_store(self, table_name: str, model_id: str | None) -> PgvectorDocumentStore:
@@ -454,6 +565,14 @@ class RAGPipeline:
             return
         for cfg in self.model_configs.values():
             if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
+                self._ensure_sparse_collection(
+                    _collection_name(submodule, cfg["coll_alias"]), cfg["coll_alias"], Modifier.IDF,
+                )
+                continue
+            if cfg.get("type") == "sparse":
+                self._ensure_sparse_collection(
+                    _collection_name(submodule, cfg["coll_alias"]), cfg["coll_alias"], None,
+                )
                 continue
             self._ensure_collection(_collection_name(submodule, cfg["coll_alias"]), cfg.get("model_id"))
         self._initialised_submodules.add(submodule)
@@ -578,13 +697,77 @@ class RAGPipeline:
             return {"status": "skipped", "reason": "no_content", "chunks": 0, "elapsed_s": elapsed, "file_size_bytes": file_size}
 
         if cfg.get("source") == "haystack" and cfg.get("model_id") == "bm25":
-            elapsed = time.perf_counter() - t0
             try:
-                DocumentWriter(document_store=self.bm25_store).run(documents=docs)
-            except DuplicateDocumentError as e:
-                log.warning("[%s] Skipping %s — already present in BM25 store: %s", model_name, filepath, e)
-                return {"status": "skipped", "reason": "duplicate_bm25", "chunks": 0, "elapsed_s": elapsed, "file_size_bytes": file_size}
-            return {"status": "bm25", "chunks": len(docs), "elapsed_s": elapsed, "file_size_bytes": file_size}
+                chunks = self.splitter.run(documents=docs)["documents"]
+            except ValueError as e:
+                elapsed = time.perf_counter() - t0
+                log.warning("[%s] Skipping %s — %s", model_name, filepath, e)
+                return {"status": "skipped", "reason": str(e), "chunks": 0, "elapsed_s": elapsed, "file_size_bytes": file_size}
+
+            total = len(chunks)
+            collection = _collection_name(submodule, cfg["coll_alias"])
+
+            if self._qdrant_has_document(collection, abs_path):
+                log.info(
+                    "[%s] %s already present in Qdrant collection %r — skipping upload",
+                    model_name, filepath.name, collection,
+                )
+                elapsed = time.perf_counter() - t0
+                return {
+                    "status": "already_indexed", "chunks": total, "elapsed_s": elapsed, "file_size_bytes": file_size,
+                    "qdrant_status": "skipped_exists", "pgvector_status": "n/a",
+                }
+
+            sparse_vectors = [_bm25_sparse_vector(chunk.content) for chunk in chunks]
+            qdrant_status = self._upsert_sparse_chunks(
+                collection, cfg["coll_alias"], model_name, cfg.get("model_id"),
+                filepath, abs_path, file_ext, file_meta, chunks, sparse_vectors,
+            )
+            elapsed = time.perf_counter() - t0
+            return {
+                "status": "indexed", "chunks": total, "elapsed_s": elapsed, "file_size_bytes": file_size,
+                "qdrant_status": qdrant_status, "pgvector_status": "n/a",
+            }
+
+        if cfg.get("type") == "sparse":
+            # Learned sparse embedder (e.g. SPLADE) — same shape as the BM25 branch above,
+            # but the sparse vector comes from running the model instead of term hashing.
+            if model_name not in self.embedders:
+                elapsed = time.perf_counter() - t0
+                log.warning("[%s] Skipping %s — embedder not loaded (check model access/token?)", model_name, filepath)
+                return {"status": "skipped", "reason": "embedder_not_loaded", "chunks": 0, "elapsed_s": elapsed, "file_size_bytes": file_size}
+
+            try:
+                chunks = self.splitter.run(documents=docs)["documents"]
+            except ValueError as e:
+                elapsed = time.perf_counter() - t0
+                log.warning("[%s] Skipping %s — %s", model_name, filepath, e)
+                return {"status": "skipped", "reason": str(e), "chunks": 0, "elapsed_s": elapsed, "file_size_bytes": file_size}
+
+            total = len(chunks)
+            collection = _collection_name(submodule, cfg["coll_alias"])
+
+            if self._qdrant_has_document(collection, abs_path):
+                log.info(
+                    "[%s] %s already present in Qdrant collection %r — skipping upload",
+                    model_name, filepath.name, collection,
+                )
+                elapsed = time.perf_counter() - t0
+                return {
+                    "status": "already_indexed", "chunks": total, "elapsed_s": elapsed, "file_size_bytes": file_size,
+                    "qdrant_status": "skipped_exists", "pgvector_status": "n/a",
+                }
+
+            sparse_vectors = self._encode_sparse(model_name, [chunk.content or "" for chunk in chunks])
+            qdrant_status = self._upsert_sparse_chunks(
+                collection, cfg["coll_alias"], model_name, cfg.get("model_id"),
+                filepath, abs_path, file_ext, file_meta, chunks, sparse_vectors,
+            )
+            elapsed = time.perf_counter() - t0
+            return {
+                "status": "indexed", "chunks": total, "elapsed_s": elapsed, "file_size_bytes": file_size,
+                "qdrant_status": qdrant_status, "pgvector_status": "n/a",
+            }
 
         if model_name not in self.embedders:
             elapsed = time.perf_counter() - t0

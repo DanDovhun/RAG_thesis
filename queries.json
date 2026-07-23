@@ -12,7 +12,11 @@
       {"query": "What is the latest git tag recorded for altoEditorClient?", "relevant_files": ["submodules/altoEditorClient/git-info.json"]},
       {"query": "What is the default language configured in altoEditorClient's default config file?", "relevant_files": ["submodules/altoEditorClient/src/assets/config.json"]},
       {"query": "What is the default auth base URL configured in altoEditorClient?", "relevant_files": ["submodules/altoEditorClient/src/assets/config.json"]},
-      {"query": "What ECMAScript target does altoEditorClient's TypeScript compiler use?", "relevant_files": ["submodules/altoEditorClient/tsconfig.json"]}
+      {"query": "What ECMAScript target does altoEditorClient's TypeScript compiler use?", "relevant_files": ["submodules/altoEditorClient/tsconfig.json"]},
+      {"query": "In altoEditorClient, under what condition does the AuthInterceptor emit a 'token_expired' event on the interceptresponse EventEmitter instead of attaching the Authorization header to the request?", "relevant_files": ["submodules/altoEditorClient/src/app/auth-interceptor.ts"]},
+      {"query": "What does the Utils.getElementByPos method in altoEditorClient return when no ALTO word element matches the given HPOS and VPOS attribute values?", "relevant_files": ["submodules/altoEditorClient/src/app/shared/utils.ts"]},
+      {"query": "What two string values does the BATCH_TYPES enum define in altoEditorClient's shared constants.ts file?", "relevant_files": ["submodules/altoEditorClient/src/app/shared/constants.ts"]},
+      {"query": "In altoEditorClient's NavbarComponent, what happens once the countdown to AuthService.tokenDeadline reaches zero or below?", "relevant_files": ["submodules/altoEditorClient/src/app/components/navbar/navbar.component.ts"]}
     ]
   },
   {
@@ -28,7 +32,11 @@
       {"query": "Which alto-processing provider has API base https://chat.ai.e-infra.cz/api, and does it support the responses API?", "relevant_files": ["submodules/alto-processing/config/providers.json"]},
       {"query": "What URL is the alto-processing app reachable at after local manual startup?", "relevant_files": ["submodules/alto-processing/README.md"]},
       {"query": "What single command starts alto-processing in Docker?", "relevant_files": ["submodules/alto-processing/README.md"]},
-      {"query": "What integer value represents the \"merge\" page-linking decision in alto-processing?", "relevant_files": ["submodules/alto-processing/README.md"]}
+      {"query": "What integer value represents the \"merge\" page-linking decision in alto-processing?", "relevant_files": ["submodules/alto-processing/README.md"]},
+      {"query": "In alto-processing's TokenAuthMiddleware, which request paths are always allowed through without a valid auth cookie or bearer token?", "relevant_files": ["submodules/alto-processing/app/middleware/auth.py"]},
+      {"query": "In alto-processing's agent diff application logic, what happens to a document block whose type is 'note' when a diff tries to change or remove it?", "relevant_files": ["submodules/alto-processing/app/core/agent_runner.py"]},
+      {"query": "When alto-processing automatically selects a book's cover page, which page type string has the highest priority in the selection order?", "relevant_files": ["submodules/alto-processing/app/routers/api.py"]},
+      {"query": "In alto-processing's AltoProcessor._detect_api_version, what Kramerius API version is returned as the fallback when the base URL doesn't match the v7.0 client API pattern?", "relevant_files": ["submodules/alto-processing/app/core/main_processor.py"]}
     ]
   },
   {
@@ -44,7 +52,11 @@
       {"query": "What is the ISSN of the journal \"Právník\" in the AS Journals magazines list?", "relevant_files": ["submodules/ASJournals/solr9/magazines/magazines.json"]},
       {"query": "What is the default Solr host URL in the AS Journals server configuration?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/resources/cz/incad/k5journals/searchapp/server_config.json"]},
       {"query": "Which facet fields are used to filter the journal list on the AS Journals portal?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/client/src/assets/config.json"]},
-      {"query": "Which Solr cores does the AS Journals IndexerK7 class index data into?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/java/cz/incad/k5journals/searchapp/IndexerK7.java"]}
+      {"query": "Which Solr cores does the AS Journals IndexerK7 class index data into?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/java/cz/incad/k5journals/searchapp/IndexerK7.java"]},
+      {"query": "What time format does the formatInterval method in AS Journals' FormatUtils class produce when converting a duration given in milliseconds?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/java/cz/incad/FormatUtils.java"]},
+      {"query": "In the AS Journals Angular client, which route does AuthGuard's checkLogin method navigate an unauthenticated user to, and what does it preserve when doing so?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/client/src/app/services/auth-guard.ts"]},
+      {"query": "In the AS Journals Searcher class, what Solr sort field does getMagazines use when the request's lang parameter is set to something other than 'cs'?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/java/cz/incad/k5journals/searchapp/Searcher.java"]},
+      {"query": "How does the removeDiacritics method in AS Journals' Utils class strip diacritical marks from a string?", "relevant_files": ["submodules/ASJournals/searchapp/src/main/client/src/app/services/utils.ts"]}
     ]
   },
   {
@@ -60,7 +72,11 @@
       {"query": "Which device notification platforms does AVM Server's Device model support?", "relevant_files": ["submodules/avm-server/app/models/device.rb"]},
       {"query": "Which origins are allowed by AVM Server's CORS configuration?", "relevant_files": ["submodules/avm-server/config/initializers/cors.rb"]},
       {"query": "What member routes are defined for the documents resource in AVM Server?", "relevant_files": ["submodules/avm-server/config/routes.rb"]},
-      {"query": "What does the AVM Server root path redirect to by default?", "relevant_files": ["submodules/avm-server/config/routes.rb"]}
+      {"query": "What does the AVM Server root path redirect to by default?", "relevant_files": ["submodules/avm-server/config/routes.rb"]},
+      {"query": "What does AVM Server's Token.write method return when the create call fails because the key/namespace pair already exists?", "relevant_files": ["submodules/avm-server/app/models/token.rb"]},
+      {"query": "How does AVM Server's Integration model retry parsing a public_key value that fails as a raw OpenSSL EC key?", "relevant_files": ["submodules/avm-server/app/models/integration.rb"]},
+      {"query": "Under what condition does AVM Server's DocumentsController show action respond with HTTP status 304 instead of returning the document?", "relevant_files": ["submodules/avm-server/app/controllers/api/v1/documents_controller.rb"]},
+      {"query": "What TTL does AVM Server's FcmNotifier set on Android push notifications when prompting a device to sign a document?", "relevant_files": ["submodules/avm-server/app/lib/fcm_notifier.rb"]}
     ]
   },
   {
@@ -76,7 +92,11 @@
       {"query": "What does the failing_jobs health-check action query for in GovBox Pro?", "relevant_files": ["submodules/govbox-pro/app/controllers/health_check_controller.rb"]},
       {"query": "What is the name and version of GovBox Pro's Helm chart?", "relevant_files": ["submodules/govbox-pro/chart/Chart.yaml"]},
       {"query": "What is the default replica count in GovBox Pro's Helm chart values?", "relevant_files": ["submodules/govbox-pro/chart/values.yaml"]},
-      {"query": "What command does GovBox Pro's npm build script run for its JS assets?", "relevant_files": ["submodules/govbox-pro/package.json"]}
+      {"query": "What command does GovBox Pro's npm build script run for its JS assets?", "relevant_files": ["submodules/govbox-pro/package.json"]},
+      {"query": "How does the Filter model in GovBox Pro determine the position value assigned to a newly created filter?", "relevant_files": ["submodules/govbox-pro/app/models/filter.rb"]},
+      {"query": "In GovBox Pro, what does the Automation::Rule#conditions_met? method check before the rule's actions are run for an event?", "relevant_files": ["submodules/govbox-pro/app/models/automation/rule.rb"]},
+      {"query": "What three conditions does the authorizable_delivery_notification? method check on a Message in GovBox Pro?", "relevant_files": ["submodules/govbox-pro/app/models/message.rb"]},
+      {"query": "How does the official_name method on the Box model in GovBox Pro extract a box's display name from its stored name?", "relevant_files": ["submodules/govbox-pro/app/models/box.rb"]}
     ]
   },
   {
@@ -92,7 +112,11 @@
       {"query": "Which directory takes precedence if the solr7x search config and the installation search directory differ in Kramerius?", "relevant_files": ["submodules/kramerius/installation/solr-7.x_8x/info.txt"]},
       {"query": "What is the purpose of the SolrAccess interface in Kramerius?", "relevant_files": ["submodules/kramerius/shared/common/src/main/java/cz/incad/kramerius/SolrAccess.java"]},
       {"query": "What REST path is Kramerius's EndpointFolders class mapped to?", "relevant_files": ["submodules/kramerius/folders/src/main/java/cz/inovatika/folders/jersey/EndpointFolders.java"]},
-      {"query": "What configuration name constant does Kramerius's JAXBPlugin Gradle plugin define?", "relevant_files": ["submodules/kramerius/buildSrc/src/main/groovy/org/gradle/JAXBPlugin.groovy"]}
+      {"query": "What configuration name constant does Kramerius's JAXBPlugin Gradle plugin define?", "relevant_files": ["submodules/kramerius/buildSrc/src/main/groovy/org/gradle/JAXBPlugin.groovy"]},
+      {"query": "In Kramerius's DeepZoomFullImageScaleFactor enum, what is the smallest allowed scale factor value for a full image, and what enum constant represents it?", "relevant_files": ["submodules/kramerius/shared/common/src/main/java/cz/incad/kramerius/imaging/DeepZoomFullImageScaleFactor.java"]},
+      {"query": "What REST path does Kramerius's admin WorkModeResource class map to, and what HTTP methods does it expose for reading and updating the work mode?", "relevant_files": ["submodules/kramerius/rest/src/main/java/cz/incad/kramerius/rest/apiNew/admin/v70/WorkModeResource.java"]},
+      {"query": "In Kramerius's SDNNTCheckUtils class, which fedora object models are listed in SKIPPING_MODELS so that dostupnost/license checks against Solr are skipped for them?", "relevant_files": ["submodules/kramerius/processes/sdnnt/src/main/java/cz/inovatika/sdnnt/utils/SDNNTCheckUtils.java"]},
+      {"query": "In Kramerius's FolderDatabase class, what SQL ORDER BY clause does the getFolders(String userId) method use to sort a user's folders?", "relevant_files": ["submodules/kramerius/folders/src/main/java/cz/inovatika/folders/db/FolderDatabase.java"]}
     ]
   },
   {
@@ -108,7 +132,10 @@
       {"query": "Which API endpoint does the SDNNT apply script query?", "relevant_files": ["submodules/kramerius-docker-compose/scripts/sdnnt_apply.sh"]},
       {"query": "Which subdirectories does the channel's Apache startup script create under the ssl directory?", "relevant_files": ["submodules/kramerius-docker-compose/channel/start-apache.sh"]},
       {"query": "What is the Keycloak client resource id configured for Kramerius in the docker-compose setup?", "relevant_files": ["submodules/kramerius-docker-compose/mnt/import/.kramerius4/keycloak.json"]},
-      {"query": "What is the access token lifespan configured in the Kramerius Keycloak realm export?", "relevant_files": ["submodules/kramerius-docker-compose/_app/realm-export.json"]}
+      {"query": "What is the access token lifespan configured in the Kramerius Keycloak realm export?", "relevant_files": ["submodules/kramerius-docker-compose/_app/realm-export.json"]},
+      {"query": "What Docker image name and version source does the channel's build-channel.sh script use to build the kramerius-secured-channel image in the kramerius-docker-compose project?", "relevant_files": ["submodules/kramerius-docker-compose/channel/build-channel.sh"]},
+      {"query": "Which client certificate and key files does the channel's test_certificate.sh script pass to curl when testing the CDK hostname connection in the kramerius-docker-compose project?", "relevant_files": ["submodules/kramerius-docker-compose/channel/baked/scripts/test_certificate.sh"]},
+      {"query": "Which API endpoint path does the channel's test_user.sh script query against the CDK hostname in the kramerius-docker-compose project?", "relevant_files": ["submodules/kramerius-docker-compose/channel/baked/scripts/test_user.sh"]}
     ]
   },
   {
@@ -124,7 +151,11 @@
       {"query": "How does Návody.digital's search feature process a user's query before searching?", "relevant_files": ["submodules/navody.digital/app/controllers/searches_controller.rb"]},
       {"query": "Where does user feedback get sent when submitted through Návody.digital's feedback form?", "relevant_files": ["submodules/navody.digital/app/controllers/feedbacks_controller.rb"]},
       {"query": "What does Návody.digital's devcontainer post-create command script do?", "relevant_files": ["submodules/navody.digital/.devcontainer/postCreateCommand.sh"]},
-      {"query": "What format and delimiter does Návody.digital's countries reference dataset use?", "relevant_files": ["submodules/navody.digital/db/data/countries.csv"]}
+      {"query": "What format and delimiter does Návody.digital's countries reference dataset use?", "relevant_files": ["submodules/navody.digital/db/data/countries.csv"]},
+      {"query": "How does Návody.digital's DeadlineResolver decide whether to add a year to a recurring deadline's due date?", "relevant_files": ["submodules/navody.digital/app/lib/deadline_resolver.rb"]},
+      {"query": "What happens when a user completes or undoes a task through Návody.digital's TasksController?", "relevant_files": ["submodules/navody.digital/app/controllers/tasks_controller.rb"]},
+      {"query": "What job does Návody.digital's ScheduleLawCheckJob queue for each law record?", "relevant_files": ["submodules/navody.digital/app/jobs/legal/schedule_law_check_job.rb"]},
+      {"query": "Which background job metrics does Návody.digital's StatsReporter send to CloudWatch every quarter hour?", "relevant_files": ["submodules/navody.digital/app/services/stats_reporter.rb"]}
     ]
   },
   {
@@ -140,7 +171,11 @@
       {"query": "What new feature was introduced in navody-frontend version 3.11.0?", "relevant_files": ["submodules/navody-frontend/CHANGELOG.md"]},
       {"query": "What component was introduced in navody-frontend version 3.10.0?", "relevant_files": ["submodules/navody-frontend/CHANGELOG.md"]},
       {"query": "Which Heroku buildpack is declared in navody-frontend's app.json?", "relevant_files": ["submodules/navody-frontend/app.json"]},
-      {"query": "What does navody-frontend's bin/check-nvmrc.js script do when the running Node major version doesn't match .nvmrc?", "relevant_files": ["submodules/navody-frontend/bin/check-nvmrc.js"]}
+      {"query": "What does navody-frontend's bin/check-nvmrc.js script do when the running Node major version doesn't match .nvmrc?", "relevant_files": ["submodules/navody-frontend/bin/check-nvmrc.js"]},
+      {"query": "In navody-frontend's tools/_px-to-rem.scss, what calculation does the govuk-px-to-rem function perform to convert a pixel value into rems?", "relevant_files": ["submodules/navody-frontend/src/govuk/tools/_px-to-rem.scss"]},
+      {"query": "In navody-frontend's helpers/_shape-arrow.scss, what approximation value does the private _govuk-equilateral-height function use for the square root of three, and what clip-path polygon does the govuk-shape-arrow mixin apply when the direction is 'up'?", "relevant_files": ["submodules/navody-frontend/src/govuk/helpers/_shape-arrow.scss"]},
+      {"query": "In navody-frontend's helpers/_focused.scss, what box-shadow value does the govuk-focused-text mixin apply and what does it do to the element's text-decoration?", "relevant_files": ["submodules/navody-frontend/src/govuk/helpers/_focused.scss"]},
+      {"query": "In navody-frontend's character-count.js, how often does the handleFocus method poll for textarea value changes via setInterval, and what does handleBlur do with that interval?", "relevant_files": ["submodules/navody-frontend/src/govuk/components/character-count/character-count.js"]}
     ]
   },
   {
@@ -172,7 +207,11 @@
       {"query": "What checks does the /health endpoint perform on the slovensko.sk API component?", "relevant_files": ["submodules/slovensko-sk-api/app/controllers/health_controller.rb"]},
       {"query": "What is the maximum token expiration window enforced by slovensko.sk API's ApiTokenAuthenticator?", "relevant_files": ["submodules/slovensko-sk-api/app/services/api_token_authenticator.rb"]},
       {"query": "What does the DownloadFormTemplatesJob background job do in the slovensko.sk API?", "relevant_files": ["submodules/slovensko-sk-api/app/jobs/download_form_templates_job.rb"]},
-      {"query": "What does the signatures_info method of CepSigner determine in the slovensko.sk API?", "relevant_files": ["submodules/slovensko-sk-api/app/services/cep_signer.rb"]}
+      {"query": "What does the signatures_info method of CepSigner determine in the slovensko.sk API?", "relevant_files": ["submodules/slovensko-sk-api/app/services/cep_signer.rb"]},
+      {"query": "What are the default and valid per_page range values enforced by the Pagination concern in the slovensko.sk API?", "relevant_files": ["submodules/slovensko-sk-api/app/controllers/concerns/pagination.rb"]},
+      {"query": "How long is the token expiration window set by OboTokenAuthenticator's generate_long_lasting_token method in the slovensko.sk API?", "relevant_files": ["submodules/slovensko-sk-api/app/services/obo_token_authenticator.rb"]},
+      {"query": "What validation does EdeskMessageParser perform on the Object element of an ED_DELIVERY_NOTIFICATION message in the slovensko.sk API?", "relevant_files": ["submodules/slovensko-sk-api/app/services/edesk_message_parser.rb"]},
+      {"query": "What keystore type does the KeyStore class in the slovensko.sk API use by default when loading a Java keystore?", "relevant_files": ["submodules/slovensko-sk-api/lib/keystore.rb"]}
     ]
   },
   {
@@ -188,7 +227,11 @@
       {"query": "How does the Java OneLogin slovensko-sk-login example's login servlet initiate SAML login?", "relevant_files": ["submodules/slovensko-sk-login/java-onelogin/src/main/java/com/archimetes/cgpcon/websso/LoginServlet.java"]},
       {"query": "Where does the Java OneLogin slovensko-sk-login example load its SAML configuration properties from?", "relevant_files": ["submodules/slovensko-sk-login/java-onelogin/src/main/java/com/archimetes/cgpcon/websso/Settings.java"]},
       {"query": "How does the ASP.NET Core slovensko-sk-login example's Login page trigger SAML authentication?", "relevant_files": ["submodules/slovensko-sk-login/asp-net-core/RazorPages/Pages/Login.cshtml.cs"]},
-      {"query": "What SAML request signing behavior does the ASP.NET Core slovensko-sk-login example enforce?", "relevant_files": ["submodules/slovensko-sk-login/asp-net-core/RazorPages/Program.cs"]}
+      {"query": "What SAML request signing behavior does the ASP.NET Core slovensko-sk-login example enforce?", "relevant_files": ["submodules/slovensko-sk-login/asp-net-core/RazorPages/Program.cs"]},
+      {"query": "What digest algorithm does the ts-node-saml-minimal slovensko-sk-login example configure for SAML signing, and why does it avoid upgrading to SHA-512?", "relevant_files": ["submodules/slovensko-sk-login/ts-node-saml-minimal/src/saml.ts"]},
+      {"query": "How does the Java OneLogin slovensko-sk-login example's SingleLogoutServiceServlet process an incoming SAML single logout request from the identity provider?", "relevant_files": ["submodules/slovensko-sk-login/java-onelogin/src/main/java/com/archimetes/cgpcon/websso/SingleLogoutServiceServlet.java"]},
+      {"query": "How does the Laravel slovensko-sk-login example's ResolveTenant middleware determine and bootstrap the SAML tenant for an incoming request?", "relevant_files": ["submodules/slovensko-sk-login/laravel/app/Http/Middleware/ResolveTenant.php"]},
+      {"query": "What timestamp validations does the Ruby on Rails slovensko-sk-login example perform when parsing subject and actor information out of a UPVS SAML response?", "relevant_files": ["submodules/slovensko-sk-login/ruby-on-rails/app/models/upvs.rb"]}
     ]
   },
   {

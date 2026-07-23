@@ -77,7 +77,7 @@ def process_docs(args):
         client = QdrantClient(url=QDRANT_URL, timeout=60)
         for collection in client.get_collections().collections:
             log.info("Deleting collection: %s", collection.name)
-            client.delete_collection(collection.name)
+            client.delete_coly7u8lection(collection.name)
 
     rag = RAGPipeline(model_configs, translation_config, dataset_dir=dataset_dir)
 
@@ -141,6 +141,13 @@ def process_docs(args):
         if i + 1 < len(model_names):
             rag.load_embedder(model_names[i + 1])
 
+    _save_run_metrics(run_start, metrics_rows, failed_files, pgvector_failures, count)
+
+
+def _save_run_metrics(
+    run_start: datetime, metrics_rows: list[dict], failed_files: list[dict],
+    pgvector_failures: list[dict], count: int,
+) -> None:
     run_end = datetime.now()
     log.info("Run finished at %s  (total %.1fs)", run_end.isoformat(), (run_end - run_start).total_seconds())
 
@@ -179,6 +186,80 @@ def process_docs(args):
     log.info("Fail rate: %d / %d", len(failed_files), count)
 
 
+def process_sparse(args):
+    """Index the same document set as process_docs, but only the BM25 sparse vectors.
+
+    Skips dense embedders entirely — useful for backfilling sparse vectors into
+    Qdrant without re-running the much slower dense embedding models.
+    """
+    failed_files = []
+    count = 0
+    submodules = [d.name for d in dataset_dir.iterdir() if d.is_dir()]
+    model_configs = load_model_configs()
+    sparse_configs = [cfg for cfg in model_configs if cfg["type"] == "sparse"]
+    if not sparse_configs:
+        log.warning("No sparse models enabled in embedder_config.toml — nothing to do")
+        return
+
+    log.info("Qdrant target: %s", QDRANT_URL)
+
+    rag = RAGPipeline(model_configs, dataset_dir=dataset_dir)
+
+    if args.reset:
+        client = QdrantClient(url=QDRANT_URL, timeout=60)
+        for submodule in submodules:
+            collection = rag.sparse_collection_name(submodule)
+            if collection and client.collection_exists(collection):
+                log.info("Deleting collection: %s", collection)
+                client.delete_collection(collection)
+
+    files = [
+        (filepath, get_file_metadata(filepath))
+        for filepath in dataset_dir.rglob("*")
+        if filepath.is_file() and (filepath.suffix in file_types or filepath.stem == "License")
+    ]
+    log.info("Loaded %d files across %d submodules", len(files), len(submodules))
+
+    run_start = datetime.now()
+    log.info("Sparse-only run started at %s", run_start.isoformat())
+
+    metrics_rows: list[dict] = []
+
+    for cfg in sparse_configs:
+        model_name = cfg["name"]
+        log.info("=== Sparse model: %s ===", model_name)
+        rag.load_embedder(model_name)  # no-op for BM25; loads the SparseEncoder for learned sparse models
+        for filepath, file_meta in files:
+            try:
+                log.info("[%s] Indexing: %s  (%.1f KB)", model_name, filepath, filepath.stat().st_size / 1024)
+                result = rag.index_document(filepath, model_name, file_meta)
+                qdrant_status = result.get("qdrant_status", "n/a")
+                log.info(
+                    "[%s] %s → status=%s  chunks=%d  elapsed=%.3fs  size=%d B  qdrant=%s",
+                    model_name, filepath.name, result["status"], result["chunks"],
+                    result["elapsed_s"], result["file_size_bytes"], qdrant_status,
+                )
+                metrics_rows.append({
+                    "model_name": model_name,
+                    "filepath": str(filepath),
+                    "file_name": filepath.name,
+                    "file_size_bytes": result["file_size_bytes"],
+                    "status": result["status"],
+                    "chunks": result["chunks"],
+                    "elapsed_s": round(result["elapsed_s"], 4),
+                    "qdrant_status": qdrant_status,
+                    "pgvector_status": "n/a",
+                })
+                count += 1
+            except Exception as e:
+                log.warning("Can't process %s with %s: %s", filepath, model_name, e)
+                failed_files.append({"model_name": model_name, "filepath": str(filepath), "error": str(e)})
+                continue
+        rag.unload_embedder(model_name)
+
+    _save_run_metrics(run_start, metrics_rows, failed_files, [], count)
+
+
 def load_queries_config(path: str) -> list[dict]:
     """Load a JSON file of [{"project", "collections", "queries": [{"query", "relevant_files"}, ...]}, ...]."""
     with open(path, encoding="utf-8") as fh:
@@ -214,12 +295,18 @@ def run_retrieval(args) -> None:
                         dense_hits = rag.search_dense(collection, cfg["name"], query, args.top_k)
 
                 if args.mode in ("bm25", "hybrid"):
-                    bm25_hits = rag.search_bm25(collection, query, args.top_k)
+                    bm25_hits = rag.search_bm25(project, query, args.top_k)
+
+                splade_hits: list[dict] = []
+                if args.mode == "splade":
+                    splade_hits = rag.search_splade(project, query, args.top_k)
 
                 if args.mode == "dense":
                     hits = dense_hits
                 elif args.mode == "bm25":
                     hits = bm25_hits
+                elif args.mode == "splade":
+                    hits = splade_hits
                 else:
                     hits = reciprocal_rank_fusion(dense_hits, bm25_hits, args.top_k)
 
@@ -254,11 +341,15 @@ def main():
     parser.add_argument("--translate", action="store_true", help="Translates documents to English")
     parser.add_argument("--retrieve", action="store_true", help="Run retrieval queries instead of indexing")
     parser.add_argument(
+        "--sparse-only", action="store_true",
+        help="Index only BM25 sparse vectors (skips dense embedders)",
+    )
+    parser.add_argument(
         "--queries-file", default="queries.json",
         help="JSON file of [{project, collections, queries}, ...] to run in --retrieve mode",
     )
     parser.add_argument(
-        "--mode", choices=["dense", "bm25", "hybrid"], default="dense",
+        "--mode", choices=["dense", "bm25", "splade", "hybrid"], default="dense",
         help="Retrieval mode for --retrieve",
     )
     parser.add_argument("--top-k", type=int, default=5, help="Number of results to return per query")
@@ -266,6 +357,8 @@ def main():
 
     if args.retrieve:
         run_retrieval(args)
+    elif args.sparse_only:
+        process_sparse(args)
     else:
         process_docs(args)
 

@@ -84,14 +84,14 @@ notes       = "Applied to EN machine-translated versions of cs/sk documents"
 # Sparse vectorisers
 # ---------------------------------------------------------------------------
 
-# [[sparse]]
-# name        = "SPLADE-v3"
-# coll_alias  = "splade"
-# model_id    = "naver/splade-v3"
-# language    = "multilingual"
-# source      = "huggingface"
-# enabled     = true
-# notes       = "Primary sparse vectoriser"
+[[sparse]]
+name        = "SPLADE-v3"
+coll_alias  = "splade"
+model_id    = "naver/splade-v3"
+language    = "multilingual"
+source      = "huggingface"
+enabled     = true
+notes       = "Primary sparse vectoriser; gated model — requires an HF token with the license accepted at huggingface.co/naver/splade-v3"
 
 [[sparse]]
 name        = "BM25"
