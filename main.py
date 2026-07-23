@@ -38,6 +38,7 @@ from rag_pipeline import (
     PGVECTOR_CONN_STR,
     QDRANT_URL,
     RAGPipeline,
+    evaluate_context_metrics,
     get_file_metadata,
     load_model_configs,
     load_translation_config,
@@ -281,9 +282,11 @@ def run_retrieval(args) -> None:
         for query_entry in entry["queries"]:
             query = query_entry["query"]
             relevant_files = query_entry.get("relevant_files", [])
+            reference_answer = query_entry.get("reference_answer")
             for collection in collections:
                 dense_hits: list[dict] = []
                 bm25_hits: list[dict] = []
+                dense_model_name: str | None = None
 
                 if args.mode in ("dense", "hybrid"):
                     cfg = rag.resolve_collection_model(project, collection)
@@ -292,7 +295,8 @@ def run_retrieval(args) -> None:
                     elif not rag.qdrant.collection_exists(collection):
                         log.warning("Collection %r does not exist — skipping", collection)
                     else:
-                        dense_hits = rag.search_dense(collection, cfg["name"], query, args.top_k)
+                        dense_model_name = cfg["name"]
+                        dense_hits = rag.search_dense(collection, dense_model_name, query, args.top_k)
 
                 if args.mode in ("bm25", "hybrid"):
                     bm25_hits = rag.search_bm25(project, query, args.top_k)
@@ -303,14 +307,26 @@ def run_retrieval(args) -> None:
 
                 if args.mode == "dense":
                     hits = dense_hits
+                    embedder = dense_model_name
                 elif args.mode == "bm25":
                     hits = bm25_hits
+                    embedder = rag.bm25_model_name
                 elif args.mode == "splade":
                     hits = splade_hits
+                    embedder = rag.splade_model_name
                 else:
                     hits = reciprocal_rank_fusion(dense_hits, bm25_hits, args.top_k)
+                    embedder = "+".join(n for n in (dense_model_name, rag.bm25_model_name) if n) or None
 
-                log.info("[%s/%s] %r → %d hit(s)", project, collection, query, len(hits))
+                scores = evaluate_context_metrics(query, hits, relevant_files, reference_answer)
+
+                log.info(
+                    "[%s/%s] embedder=%s %r → %d hit(s)  precision=%.3f  recall=%.3f  answer_in_ctx=%s",
+                    project, collection, embedder, query, len(hits),
+                    scores["context_precision"] or 0.0,
+                    scores["context_recall"] or 0.0,
+                    scores["answer_in_context"],
+                )
                 for rank, hit in enumerate(hits, start=1):
                     snippet = (hit["content"] or "").replace("\n", " ")[:120]
                     log.info(
@@ -322,9 +338,14 @@ def run_retrieval(args) -> None:
                     "project": project,
                     "collection": collection,
                     "mode": args.mode,
+                    "embedder": embedder,
                     "query": query,
                     "relevant_files": relevant_files,
+                    "reference_answer": reference_answer,
                     "hits": hits,
+                    "context_precision": scores["context_precision"],
+                    "context_recall": scores["context_recall"],
+                    "answer_in_context": scores["answer_in_context"],
                 })
 
     out_dir = Path("retrieval_results")

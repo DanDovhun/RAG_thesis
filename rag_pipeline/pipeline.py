@@ -196,6 +196,71 @@ def reciprocal_rank_fusion(dense_hits: list[dict], bm25_hits: list[dict], top_k:
     return [{**hits_by_key[key], "score": scores[key]} for key in ranked_keys]
 
 
+def _normalize_path(path: str) -> str:
+    return str(Path(path).resolve())
+
+
+def evaluate_context_metrics(
+    query: str,
+    hits: list[dict],
+    relevant_files: list[str],
+    reference_answer: str | None = None,
+) -> dict:
+    """Score retrieved hits against ground truth at file-path granularity.
+
+    A chunk is relevant iff its source file resolves to one of `relevant_files`.
+
+    - context_precision: average precision (AP) over the ranked hit list.
+      Rewards finding relevant chunks earlier in the ranking.
+    - context_recall: fraction of relevant_files that have at least one chunk in hits.
+    - answer_in_context: True/False whether any retrieved chunk contains
+      `reference_answer` (case-insensitive substring). None if no reference_answer given.
+
+    All metrics are None when hits or relevant_files are empty.
+    """
+    if not hits or not relevant_files:
+        return {"context_precision": None, "context_recall": None, "answer_in_context": None}
+
+    reference = {_normalize_path(p) for p in relevant_files}
+    relevance = [
+        1 if _normalize_path(hit["file_path"]) in reference else 0
+        for hit in hits
+        if hit.get("file_path")
+    ]
+
+    if not relevance:
+        return {"context_precision": None, "context_recall": None, "answer_in_context": None}
+
+    # Average precision over the ranked list
+    hits_so_far = 0
+    precision_sum = 0.0
+    for rank, rel in enumerate(relevance, start=1):
+        if rel:
+            hits_so_far += 1
+            precision_sum += hits_so_far / rank
+    n_relevant = sum(relevance)
+    context_precision = precision_sum / n_relevant if n_relevant else 0.0
+
+    # Fraction of relevant files covered by at least one retrieved chunk
+    retrieved_files = {_normalize_path(hit["file_path"]) for hit in hits if hit.get("file_path")}
+    context_recall = len(reference & retrieved_files) / len(reference)
+
+    # Whether the actual answer string appears verbatim in any retrieved chunk
+    answer_in_context: bool | None = None
+    if reference_answer is not None:
+        needle = reference_answer.lower()
+        answer_in_context = any(
+            needle in (hit.get("content") or "").lower()
+            for hit in hits
+        )
+
+    return {
+        "context_precision": context_precision,
+        "context_recall": context_recall,
+        "answer_in_context": answer_in_context,
+    }
+
+
 class OpenAIDocumentEmbedder:
     """Thin wrapper around the OpenAI Embeddings API with the same run() interface as Haystack embedders."""
 
@@ -326,6 +391,14 @@ class RAGPipeline:
         if self._bm25_cfg is None:
             return None
         return _collection_name(submodule, self._bm25_cfg["coll_alias"])
+
+    @property
+    def bm25_model_name(self) -> str | None:
+        return self._bm25_cfg["name"] if self._bm25_cfg else None
+
+    @property
+    def splade_model_name(self) -> str | None:
+        return self._splade_cfg["name"] if self._splade_cfg else None
 
     def resolve_collection_model(self, project: str, collection: str) -> dict | None:
         """Map a Qdrant collection name back to the dense model config that produced it."""

@@ -12,3 +12,9 @@ trafilatura
 langdetect
 deepl
 pypdf
+ragas==0.2.15
+rapidfuzz
+langchain==0.3.14
+langchain-community==0.3.14
+langchain-core==0.3.29
+langchain-openai==0.2.14

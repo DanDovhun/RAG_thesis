@@ -44,3 +44,26 @@ git submodule update --init --recursive
 
 ## Ollama
 https://github.com/mythrantic/ollama-docker
+
+# Running
+## Indexing documents
+Embed and upload all submodule documents into Qdrant/Pgvector for every enabled model in `embedder_config.toml`:
+```sh
+python3 main.py
+```
+Flags:
+- `--reset` — delete all Qdrant collections first
+- `--translate` — also machine-translate prose documents to English via DeepL and index the translations
+- `--sparse-only` — index only BM25 sparse vectors, skipping the (slower) dense embedders
+
+## Running retrieval
+Run the queries defined in `queries.json` against their collections and save the results:
+```sh
+python3 main.py --retrieve
+```
+Flags:
+- `--queries-file` — JSON file of `[{project, collections, queries}, ...]` to run (default `queries.json`)
+- `--mode` — retrieval mode: `dense` (default), `bm25`, `splade`, or `hybrid` (RRF fusion of dense + BM25)
+- `--top-k` — number of hits to return per query (default `5`)
+
+Each query's hits are also scored against that query's `relevant_files` ground truth using RAGAS's non-LLM context precision (are relevant files ranked near the top?) and context recall (were all relevant files found?) metrics. Scores are logged per query and saved alongside the hits. Results are written to `retrieval_results/retrieval_<timestamp>.json`.
