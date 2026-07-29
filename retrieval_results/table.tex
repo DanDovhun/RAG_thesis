@@ -1,0 +1,34 @@
+\begin{table}[H]
+\centering
+\caption{Effect of retrieval depth $k$ on mean RAGAS context precision and recall, aggregated across all repositories. BM25 is the sparse lexical baseline. Best value per column in bold.}
+\label{tab:topk}
+\scriptsize
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Embedder} & \textbf{$k{=}3$} & \textbf{$k{=}5$} & \textbf{$k{=}7$} & \textbf{$k{=}9$} & \textbf{$k{=}11$} \\
+\hline
+\multicolumn{6}{c}{\textit{Context precision}} \\
+\hline
+te3-small & \textbf{0.66} & \textbf{0.65} & \textbf{0.66} & \textbf{0.65} & \textbf{0.64} \\
+Qwen3 & 0.56 & 0.56 & 0.56 & 0.55 & 0.54 \\
+mBERT & 0.13 & 0.14 & 0.15 & 0.14 & 0.15 \\
+SlovakBERT & 0.13 & 0.13 & 0.12 & 0.13 & 0.14 \\
+XLM-R & 0.05 & 0.06 & 0.07 & 0.07 & 0.07 \\
+Czert & 0.05 & 0.05 & 0.06 & 0.06 & 0.06 \\
+\hline
+BM25 \textit{(sparse)} & 0.25 & 0.26 & 0.27 & 0.25 & 0.23 \\
+\hline
+\multicolumn{6}{c}{\textit{Context recall}} \\
+\hline
+te3-small & \textbf{0.72} & \textbf{0.78} & \textbf{0.82} & \textbf{0.83} & \textbf{0.86} \\
+Qwen3 & 0.62 & 0.69 & 0.76 & 0.77 & 0.80 \\
+mBERT & 0.17 & 0.25 & 0.27 & 0.30 & 0.32 \\
+SlovakBERT & 0.15 & 0.20 & 0.21 & 0.23 & 0.26 \\
+XLM-R & 0.09 & 0.13 & 0.18 & 0.19 & 0.21 \\
+Czert & 0.08 & 0.08 & 0.14 & 0.16 & 0.16 \\
+\hline
+BM25 \textit{(sparse)} & 0.40 & 0.50 & 0.56 & 0.60 & 0.64 \\
+\hline
+\end{tabular}
+\end{table}

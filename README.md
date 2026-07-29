@@ -17,7 +17,9 @@ MODELS_DIR="models"
 QDRANT_STORAGE="/qdrant_storage"    
 PGVECTOR_STORAGE="/pgvector_storage"
 DEEPL_API_KEY="<API_KEY>"
+OPENAI_API_KEY="<API_KEY>"
 ```
+`OPENAI_API_KEY` (or `OPENAI_KEY`) is required for the OpenAI dense embedder and for generating reference answers / scoring retrieval with RAGAS (see below).
 
 ## Python environment
 To create a virtual environment and install dependencies run: `setup.bat` on Windows and `chmod +x setup.sh && ./setup.sh` on MacOS and Linux. 
@@ -56,6 +58,16 @@ Flags:
 - `--translate` — also machine-translate prose documents to English via DeepL and index the translations
 - `--sparse-only` — index only BM25 sparse vectors, skipping the (slower) dense embedders
 
+## Generating reference answers
+RAGAS's context precision/recall scoring (below) needs a ground-truth answer per query. Auto-generate them once (an LLM reads each query's `relevant_files` and writes a concise answer) and save them into the queries file:
+```sh
+python3 main.py --generate-answers
+```
+Flags:
+- `--queries-file` — JSON file to read and update in place (default `queries.json`)
+
+This calls the OpenAI API once per query and writes a `reference_answer` field back into each query entry. Queries that already have a `reference_answer` are skipped, so it's safe to re-run after adding new queries. Requires `OPENAI_API_KEY`/`OPENAI_KEY`.
+
 ## Running retrieval
 Run the queries defined in `queries.json` against their collections and save the results:
 ```sh
@@ -66,4 +78,4 @@ Flags:
 - `--mode` — retrieval mode: `dense` (default), `bm25`, `splade`, or `hybrid` (RRF fusion of dense + BM25)
 - `--top-k` — number of hits to return per query (default `5`)
 
-Each query's hits are also scored against that query's `relevant_files` ground truth using RAGAS's non-LLM context precision (are relevant files ranked near the top?) and context recall (were all relevant files found?) metrics. Scores are logged per query and saved alongside the hits. Results are written to `retrieval_results/retrieval_<timestamp>.json`.
+Each query's retrieved chunks are also scored with RAGAS's standard LLM-judged Context Precision and Context Recall metrics: an LLM compares each chunk's actual text against the query and that query's `reference_answer` (see above) — context_precision rewards relevant chunks ranked earlier, context_recall checks whether all the information in the reference answer was actually retrieved. Both come back as `None` if the query has no `reference_answer` yet or `OPENAI_API_KEY`/`OPENAI_KEY` isn't set. This makes one or more OpenAI API calls per query per collection, so a full run over `queries.json` adds up — expect real cost/latency, not just a local computation. Scores are logged per query and saved alongside the hits. Results are written to `retrieval_results/retrieval_<timestamp>.json`.

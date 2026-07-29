@@ -39,6 +39,7 @@ from rag_pipeline import (
     QDRANT_URL,
     RAGPipeline,
     evaluate_context_metrics,
+    extract_file_text,
     get_file_metadata,
     load_model_configs,
     load_translation_config,
@@ -267,6 +268,78 @@ def load_queries_config(path: str) -> list[dict]:
         return json.load(fh)
 
 
+# Cap per-file context fed to the answer-generation LLM to bound cost/context length —
+# generous enough for READMEs/configs/source files, not the whole of huge generated files.
+_REFERENCE_ANSWER_MAX_CHARS_PER_FILE = 8000
+
+
+def generate_reference_answers(args) -> None:
+    """Auto-generate a ground-truth `reference_answer` per query in the queries file.
+
+    Feeds an LLM the query plus the full text of its `relevant_files` and asks for a
+    concise, extractive answer. Persists answers back into the same JSON file so
+    `evaluate_context_metrics`'s RAGAS LLM judge has real ground truth to score
+    retrieved chunks against, instead of only knowing which files should be relevant.
+    Queries that already have a `reference_answer` are left untouched (safe to re-run
+    after adding new queries).
+    """
+    api_key = os.environ.get("OPENAI_KEY") or os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        log.error("OPENAI_KEY/OPENAI_API_KEY not set — cannot generate reference answers")
+        return
+    client = openai.OpenAI(api_key=api_key)
+
+    entries = load_queries_config(args.queries_file)
+    generated = 0
+    for entry in entries:
+        for query_entry in entry["queries"]:
+            if query_entry.get("reference_answer"):
+                continue
+
+            query = query_entry["query"]
+            file_texts = []
+            for relative_path in query_entry.get("relevant_files", []):
+                try:
+                    text = extract_file_text(relative_path)
+                except Exception as e:
+                    log.warning("Could not read %s for %r: %s", relative_path, query, e)
+                    continue
+                if text:
+                    file_texts.append(f"### {relative_path}\n{text[:_REFERENCE_ANSWER_MAX_CHARS_PER_FILE]}")
+
+            if not file_texts:
+                log.warning("No readable relevant_files for %r — skipping", query)
+                continue
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "Answer the question using only the information in the provided file "
+                            "content. Write a detailed paragraph (at least 4-5 sentences): give the "
+                            "direct answer first, then add the surrounding facts, values, and context "
+                            "from the file that support or relate to it. Every sentence must be a "
+                            "distinct, verifiable fact actually present in the file content — don't "
+                            "pad with restatements or vague filler. If the content doesn't contain the "
+                            "answer, say so explicitly."
+                        ),
+                    },
+                    {"role": "user", "content": f"Question: {query}\n\n" + "\n\n".join(file_texts)},
+                ],
+            )
+            answer = response.choices[0].message.content.strip()
+            query_entry["reference_answer"] = answer
+            generated += 1
+            log.info("[%d] %r → %s", generated, query, answer[:150])
+
+    with open(args.queries_file, "w", encoding="utf-8") as fh:
+        json.dump(entries, fh, ensure_ascii=False, indent=2)
+        fh.write("\n")
+    log.info("Generated %d reference answer(s), saved to %s", generated, args.queries_file)
+
+
 def run_retrieval(args) -> None:
     """Run each project's queries against its listed collections and save the results."""
     model_configs = load_model_configs()
@@ -318,14 +391,12 @@ def run_retrieval(args) -> None:
                     hits = reciprocal_rank_fusion(dense_hits, bm25_hits, args.top_k)
                     embedder = "+".join(n for n in (dense_model_name, rag.bm25_model_name) if n) or None
 
-                scores = evaluate_context_metrics(query, hits, relevant_files, reference_answer)
+                scores = evaluate_context_metrics(query, hits, reference_answer)
 
                 log.info(
-                    "[%s/%s] embedder=%s %r → %d hit(s)  precision=%.3f  recall=%.3f  answer_in_ctx=%s",
+                    "[%s/%s] embedder=%s %r → %d hit(s)  context_precision=%s  context_recall=%s",
                     project, collection, embedder, query, len(hits),
-                    scores["context_precision"] or 0.0,
-                    scores["context_recall"] or 0.0,
-                    scores["answer_in_context"],
+                    scores["context_precision"], scores["context_recall"],
                 )
                 for rank, hit in enumerate(hits, start=1):
                     snippet = (hit["content"] or "").replace("\n", " ")[:120]
@@ -345,7 +416,6 @@ def run_retrieval(args) -> None:
                     "hits": hits,
                     "context_precision": scores["context_precision"],
                     "context_recall": scores["context_recall"],
-                    "answer_in_context": scores["answer_in_context"],
                 })
 
     out_dir = Path("retrieval_results")
@@ -361,6 +431,10 @@ def main():
     parser.add_argument("--reset", action="store_true", help="Delete all Qdrant collections before indexing")
     parser.add_argument("--translate", action="store_true", help="Translates documents to English")
     parser.add_argument("--retrieve", action="store_true", help="Run retrieval queries instead of indexing")
+    parser.add_argument(
+        "--generate-answers", action="store_true",
+        help="Auto-generate reference_answer values in --queries-file via an LLM, then exit",
+    )
     parser.add_argument(
         "--sparse-only", action="store_true",
         help="Index only BM25 sparse vectors (skips dense embedders)",
@@ -378,6 +452,8 @@ def main():
 
     if args.retrieve:
         run_retrieval(args)
+    elif args.generate_answers:
+        generate_reference_answers(args)
     elif args.sparse_only:
         process_sparse(args)
     else:

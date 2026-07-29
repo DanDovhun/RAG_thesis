@@ -1,3 +1,4 @@
+import asyncio
 import gc
 import logging
 import os
@@ -22,7 +23,11 @@ from haystack.document_stores.errors import DocumentStoreError
 from haystack.document_stores.types import DuplicatePolicy
 from haystack.utils import ComponentDevice, Secret
 from haystack_integrations.document_stores.pgvector import PgvectorDocumentStore
+from langchain_openai import ChatOpenAI
 from langdetect import DetectorFactory, LangDetectException, detect
+from ragas import SingleTurnSample
+from ragas.llms import LangchainLLMWrapper
+from ragas.metrics import LLMContextPrecisionWithReference, LLMContextRecall
 from sentence_transformers import SparseEncoder
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
@@ -168,6 +173,22 @@ def get_file_metadata(filepath: Path) -> dict:
     return {"authors": authors, "created_at": created_at, "modified_at": modified_at}
 
 
+def extract_file_text(path: str | Path) -> str:
+    """Extract a file's full text using the same converters index_document uses for
+    embedding, so callers (e.g. reference-answer generation) see the same content
+    that actually gets chunked and indexed, rather than raw on-disk bytes."""
+    filepath = Path(path)
+    ext = filepath.suffix.lower()
+    if ext == ".html":
+        converter = HTMLToDocument()
+    elif ext == ".pdf":
+        converter = PyPDFToDocument()
+    else:
+        converter = TextFileToDocument()
+    docs = converter.run(sources=[filepath])["documents"]
+    return "\n".join(d.content for d in docs if d.content)
+
+
 def _collection_name(submodule: str, coll_alias: str) -> str:
     return f"{slugify(submodule)}_{coll_alias}_hybrid"
 
@@ -196,69 +217,81 @@ def reciprocal_rank_fusion(dense_hits: list[dict], bm25_hits: list[dict], top_k:
     return [{**hits_by_key[key], "score": scores[key]} for key in ranked_keys]
 
 
-def _normalize_path(path: str) -> str:
-    return str(Path(path).resolve())
+_ragas_llm: LangchainLLMWrapper | None = None
+_ragas_llm_warned = False
 
 
-def evaluate_context_metrics(
-    query: str,
-    hits: list[dict],
-    relevant_files: list[str],
-    reference_answer: str | None = None,
-) -> dict:
-    """Score retrieved hits against ground truth at file-path granularity.
+def _get_ragas_llm() -> LangchainLLMWrapper | None:
+    """Lazily build the OpenAI-backed judge LLM used for RAGAS's LLM context metrics.
 
-    A chunk is relevant iff its source file resolves to one of `relevant_files`.
-
-    - context_precision: average precision (AP) over the ranked hit list.
-      Rewards finding relevant chunks earlier in the ranking.
-    - context_recall: fraction of relevant_files that have at least one chunk in hits.
-    - answer_in_context: True/False whether any retrieved chunk contains
-      `reference_answer` (case-insensitive substring). None if no reference_answer given.
-
-    All metrics are None when hits or relevant_files are empty.
+    Reuses the OPENAI_KEY/OPENAI_API_KEY env vars already used by OpenAIDocumentEmbedder.
+    Returns None (and warns once) when no key is configured, so evaluation degrades to
+    "unscored" rather than crashing a retrieval run.
     """
-    if not hits or not relevant_files:
-        return {"context_precision": None, "context_recall": None, "answer_in_context": None}
+    global _ragas_llm, _ragas_llm_warned
+    if _ragas_llm is not None:
+        return _ragas_llm
+    api_key = os.environ.get("OPENAI_KEY") or os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        if not _ragas_llm_warned:
+            log.warning("OPENAI_KEY not set — skipping LLM-judged context precision/recall")
+            _ragas_llm_warned = True
+        return None
+    _ragas_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-4o-mini", api_key=api_key))
+    return _ragas_llm
 
-    reference = {_normalize_path(p) for p in relevant_files}
-    relevance = [
-        1 if _normalize_path(hit["file_path"]) in reference else 0
-        for hit in hits
-        if hit.get("file_path")
-    ]
 
-    if not relevance:
-        return {"context_precision": None, "context_recall": None, "answer_in_context": None}
+_context_precision_metric: LLMContextPrecisionWithReference | None = None
+_context_recall_metric: LLMContextRecall | None = None
 
-    # Average precision over the ranked list
-    hits_so_far = 0
-    precision_sum = 0.0
-    for rank, rel in enumerate(relevance, start=1):
-        if rel:
-            hits_so_far += 1
-            precision_sum += hits_so_far / rank
-    n_relevant = sum(relevance)
-    context_precision = precision_sum / n_relevant if n_relevant else 0.0
 
-    # Fraction of relevant files covered by at least one retrieved chunk
-    retrieved_files = {_normalize_path(hit["file_path"]) for hit in hits if hit.get("file_path")}
-    context_recall = len(reference & retrieved_files) / len(reference)
+def _get_ragas_metrics() -> tuple[LLMContextPrecisionWithReference, LLMContextRecall] | tuple[None, None]:
+    global _context_precision_metric, _context_recall_metric
+    llm = _get_ragas_llm()
+    if llm is None:
+        return None, None
+    if _context_precision_metric is None:
+        _context_precision_metric = LLMContextPrecisionWithReference(llm=llm)
+        _context_recall_metric = LLMContextRecall(llm=llm)
+    return _context_precision_metric, _context_recall_metric
 
-    # Whether the actual answer string appears verbatim in any retrieved chunk
-    answer_in_context: bool | None = None
-    if reference_answer is not None:
-        needle = reference_answer.lower()
-        answer_in_context = any(
-            needle in (hit.get("content") or "").lower()
-            for hit in hits
-        )
 
-    return {
-        "context_precision": context_precision,
-        "context_recall": context_recall,
-        "answer_in_context": answer_in_context,
-    }
+async def _score_llm_metrics(sample: SingleTurnSample) -> tuple[float, float]:
+    precision_metric, recall_metric = _get_ragas_metrics()
+    return await asyncio.gather(
+        precision_metric.single_turn_ascore(sample),
+        recall_metric.single_turn_ascore(sample),
+    )
+
+
+def evaluate_context_metrics(query: str, hits: list[dict], reference_answer: str | None) -> dict:
+    """Judge retrieved chunks against the query using RAGAS's standard LLM-based
+    Context Precision and Context Recall metrics.
+
+    Each retrieved chunk's actual text is compared directly against the query and a
+    ground-truth `reference_answer` by an LLM — not by matching file paths or chunk
+    text against source documents. `reference_answer` is normally auto-generated per
+    query from its `relevant_files` (see main.py's generate_reference_answers), since
+    queries.json only records ground truth as whole files, not hand-written answers.
+
+    - context_precision: LLMContextPrecisionWithReference — for each retrieved chunk,
+      an LLM judges whether it was useful in arriving at reference_answer; average
+      precision is then computed over that ranked list of verdicts.
+    - context_recall: LLMContextRecall — reference_answer is decomposed into claims,
+      each checked by the LLM for whether it's attributable to the retrieved chunks.
+
+    Both are None when there are no hits, no reference_answer, or no LLM is configured
+    (missing OPENAI_KEY/OPENAI_API_KEY).
+    """
+    retrieved = [hit["content"] for hit in hits if hit.get("content")]
+    if not retrieved or not reference_answer:
+        return {"context_precision": None, "context_recall": None}
+    if _get_ragas_llm() is None:
+        return {"context_precision": None, "context_recall": None}
+
+    sample = SingleTurnSample(user_input=query, retrieved_contexts=retrieved, reference=reference_answer)
+    precision, recall = asyncio.run(_score_llm_metrics(sample))
+    return {"context_precision": precision, "context_recall": recall}
 
 
 class OpenAIDocumentEmbedder:
