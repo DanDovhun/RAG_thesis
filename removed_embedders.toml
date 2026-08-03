@@ -1,0 +1,18 @@
+
+[[dense]]
+name        = "SlovakBERT"
+coll_alias  = "slovakbert"
+model_id    = "gerulata/slovakbert"
+language    = "sk"
+source      = "huggingface"
+enabled     = true
+notes       = "Monolingual Slovak BERT; Ulčar et al. (2021) — monolingual models outperform cross-lingual transfer when corpus is sufficient"
+
+[[dense]]
+name        = "czert-bert-base-cased"
+coll_alias  = "czert"
+model_id    = "UWB-AIR/Czert-B-base-cased"
+language    = "cs"
+source      = "huggingface"
+enabled     = true
+notes       = "Monolingual Czech BERT"

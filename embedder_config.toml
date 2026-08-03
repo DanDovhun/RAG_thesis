@@ -7,24 +7,23 @@
 # ---------------------------------------------------------------------------
 # Dense embedders — language-specific
 # ---------------------------------------------------------------------------
-
 [[dense]]
-name        = "SlovakBERT"
-coll_alias  = "slovakbert"
-model_id    = "gerulata/slovakbert"
+name        = "e5-sk-small"
+coll_alias  = "e5sksmall"
+model_id    = "slovak-nlp/e5-sk-small"
 language    = "sk"
 source      = "huggingface"
 enabled     = true
-notes       = "Monolingual Slovak BERT; Ulčar et al. (2021) — monolingual models outperform cross-lingual transfer when corpus is sufficient"
+notes       = "Vocabulary-trimmed, fine-tuned Multilingual E5 for Slovak; SkMTEB (Slovak NLP community)"
 
 [[dense]]
-name        = "czert-bert-base-cased"
-coll_alias  = "czert"
-model_id    = "UWB-AIR/Czert-B-base-cased"
+name        = "simcse-small-e-czech"
+coll_alias  = "simcsecz"
+model_id    = "Seznam/simcse-small-e-czech"
 language    = "cs"
 source      = "huggingface"
 enabled     = true
-notes       = "Monolingual Czech BERT"
+notes       = "Small-E-Czech (Electra) fine-tuned with SimCSE objective; Seznam.cz"
 
 # ---------------------------------------------------------------------------
 # Dense embedders — cross-lingual baselines
@@ -36,7 +35,7 @@ coll_alias  = "xlmr"
 model_id    = "FacebookAI/xlm-roberta-base"
 language    = "multilingual"
 source      = "huggingface"
-enabled     = true
+enabled     = false
 notes       = "Cross-lingual transfer baseline for cs/sk; Ulčar et al. (2021) — typologically similar language transfer outperforms English transfer"
 
 [[dense]]
@@ -45,7 +44,7 @@ coll_alias  = "mbert"
 model_id    = "google-bert/bert-base-multilingual-cased"
 language    = "multilingual"
 source      = "huggingface"
-enabled     = true
+enabled     = false
 notes       = "Multilingual BERT baseline"
 
 # ---------------------------------------------------------------------------
@@ -58,7 +57,7 @@ coll_alias  = "qwen3"
 model_id    = "Qwen/Qwen3-Embedding-0.6B"
 language    = "en"
 source      = "huggingface"
-enabled     = true
+enabled     = false
 batch_size  = 4
 notes       = "Applied to EN machine-translated versions of cs/sk documents"
 
@@ -68,7 +67,7 @@ coll_alias  = "te3s"
 model_id    = "text-embedding-3-small"
 language    = "en"
 source      = "openai"
-enabled     = true
+enabled     = false
 notes       = "Applied to EN machine-translated versions of cs/sk documents"
 
 #[[dense]]
@@ -90,7 +89,7 @@ coll_alias  = "splade"
 model_id    = "naver/splade-v3"
 language    = "multilingual"
 source      = "huggingface"
-enabled     = true
+enabled     = false
 notes       = "Primary sparse vectoriser; gated model — requires an HF token with the license accepted at huggingface.co/naver/splade-v3"
 
 [[sparse]]
@@ -99,7 +98,7 @@ coll_alias  = "bm25"
 model_id    = "bm25"
 language    = "language-agnostic"
 source      = "haystack"
-enabled     = true
+enabled     = false
 notes       = "Lexical baseline; language-agnostic token matching"
 
 # ---------------------------------------------------------------------------

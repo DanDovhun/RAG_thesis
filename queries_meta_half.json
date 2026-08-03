@@ -1,0 +1,3678 @@
+[
+  {
+    "project": "altoEditorClient",
+    "collections": [
+      "altoeditorclient_slovakbert",
+      "altoeditorclient_czert",
+      "altoeditorclient_xlmr",
+      "altoeditorclient_mbert",
+      "altoeditorclient_qwen3",
+      "altoeditorclient_te3s",
+      "altoeditorclient_e5sksmall_hybrid",
+      "altoeditorclient_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "What port does the local development server for altoEditorClient run on?",
+        "relevant_files": [
+          "submodules/altoEditorClient/README.md"
+        ],
+        "reference_answer": "The local development server for altoEditorClient runs on port 4321.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "cs",
+          "authors": [
+            "Alberto Hernandez",
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2025-03-14T09:19:16+01:00"
+        }
+      },
+      {
+        "query": "What version of Angular CLI was used to generate the altoEditorClient project?",
+        "relevant_files": [
+          "submodules/altoEditorClient/README.md"
+        ],
+        "reference_answer": "The altoEditorClient project was generated with Angular CLI version 16.2.1.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "cs",
+          "authors": [
+            "Alberto Hernandez",
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2025-03-14T09:19:16+01:00"
+        }
+      },
+      {
+        "query": "Which major version of @angular/core does altoEditorClient depend on?",
+        "relevant_files": [
+          "submodules/altoEditorClient/package.json"
+        ],
+        "reference_answer": "The altoEditorClient depends on version ^16.2.0 of @angular/core.",
+        "metadata": {
+          "file_name": "package.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2024-11-29T09:11:24+01:00"
+        }
+      },
+      {
+        "query": "What version range of rxjs does altoEditorClient use?",
+        "relevant_files": [
+          "submodules/altoEditorClient/package.json"
+        ],
+        "reference_answer": "AltoEditorClient uses RxJS version range \"~7.8.0\".",
+        "metadata": {
+          "file_name": "package.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2024-11-29T09:11:24+01:00"
+        }
+      },
+      {
+        "query": "Which target URL does the dev proxy forward /api requests to?",
+        "relevant_files": [
+          "submodules/altoEditorClient/proxy.conf.json"
+        ],
+        "reference_answer": "The dev proxy forwards /api requests to the target URL \"https://altoeditor.inovatika.dev\".",
+        "metadata": {
+          "file_name": "proxy.conf.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2024-11-29T09:11:24+01:00"
+        }
+      },
+      {
+        "query": "What target does the proxy config use for Keycloak auth realm requests?",
+        "relevant_files": [
+          "submodules/altoEditorClient/proxy.conf.json"
+        ],
+        "reference_answer": "The target for Keycloak auth realm requests in the proxy config is \"https://k7.inovatika.dev\".",
+        "metadata": {
+          "file_name": "proxy.conf.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2024-11-29T09:11:24+01:00"
+        }
+      },
+      {
+        "query": "What is the latest git tag recorded for altoEditorClient?",
+        "relevant_files": [
+          "submodules/altoEditorClient/git-info.json"
+        ],
+        "reference_answer": "The latest git tag recorded for altoEditorClient is v1.4.9.",
+        "metadata": {
+          "file_name": "git-info.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2024-11-29T09:11:24+01:00"
+        }
+      },
+      {
+        "query": "What is the default language configured in altoEditorClient's default config file?",
+        "relevant_files": [
+          "submodules/altoEditorClient/src/assets/config.json"
+        ],
+        "reference_answer": "The default language configured in altoEditorClient's default config file is \"cs\".",
+        "metadata": {
+          "file_name": "config.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2025-04-17T14:33:30+02:00"
+        }
+      },
+      {
+        "query": "What is the default auth base URL configured in altoEditorClient?",
+        "relevant_files": [
+          "submodules/altoEditorClient/src/assets/config.json"
+        ],
+        "reference_answer": "The default auth base URL configured in altoEditorClient is \"https://k7.inovatika.dev/search/api/client/v7.0\".",
+        "metadata": {
+          "file_name": "config.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2025-04-17T14:33:30+02:00"
+        }
+      },
+      {
+        "query": "What ECMAScript target does altoEditorClient's TypeScript compiler use?",
+        "relevant_files": [
+          "submodules/altoEditorClient/tsconfig.json"
+        ],
+        "reference_answer": "The altoEditorClient's TypeScript compiler uses the ECMAScript target \"ES2022\".",
+        "metadata": {
+          "file_name": "tsconfig.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2024-11-29T09:11:24+01:00"
+        }
+      },
+      {
+        "query": "In altoEditorClient, under what condition does the AuthInterceptor emit a 'token_expired' event on the interceptresponse EventEmitter instead of attaching the Authorization header to the request?",
+        "relevant_files": [
+          "submodules/altoEditorClient/src/app/auth-interceptor.ts"
+        ],
+        "reference_answer": "The AuthInterceptor emits a 'token_expired' event on the interceptresponse EventEmitter when the `AuthService.tokenDeadline` is less than the current date, indicating that the token has expired.",
+        "metadata": {
+          "file_name": "auth-interceptor.ts",
+          "file_type": ".ts",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2025-04-17T14:33:30+02:00"
+        }
+      },
+      {
+        "query": "What does the Utils.getElementByPos method in altoEditorClient return when no ALTO word element matches the given HPOS and VPOS attribute values?",
+        "relevant_files": [
+          "submodules/altoEditorClient/src/app/shared/utils.ts"
+        ],
+        "reference_answer": "The `Utils.getElementByPos` method returns `null` when no ALTO word element matches the given HPOS and VPOS attribute values.",
+        "metadata": {
+          "file_name": "utils.ts",
+          "file_type": ".ts",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2026-02-25T16:26:37+01:00"
+        }
+      },
+      {
+        "query": "What two string values does the BATCH_TYPES enum define in altoEditorClient's shared constants.ts file?",
+        "relevant_files": [
+          "submodules/altoEditorClient/src/app/shared/constants.ts"
+        ],
+        "reference_answer": "The BATCH_TYPES enum in altoEditorClient's shared constants.ts file defines the two string values: \"MULTIPLE\" and \"SINGLE\".",
+        "metadata": {
+          "file_name": "constants.ts",
+          "file_type": ".ts",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2024-11-29T09:11:24+01:00"
+        }
+      },
+      {
+        "query": "In altoEditorClient's NavbarComponent, what happens once the countdown to AuthService.tokenDeadline reaches zero or below?",
+        "relevant_files": [
+          "submodules/altoEditorClient/src/app/components/navbar/navbar.component.ts"
+        ],
+        "reference_answer": "Once the countdown to `AuthService.tokenDeadline` reaches zero or below in `NavbarComponent`, the component sets the token hours, minutes, and seconds to zero and then redirects the user to the '/login' page.",
+        "metadata": {
+          "file_name": "navbar.component.ts",
+          "file_type": ".ts",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2024-11-29T09:11:24+01:00",
+          "modified_at": "2024-11-29T09:45:22+01:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "alto-processing",
+    "collections": [
+      "alto_processing_slovakbert",
+      "alto_processing_czert",
+      "alto_processing_xlmr",
+      "alto_processing_mbert",
+      "alto_processing_qwen3",
+      "alto_processing_te3s",
+      "alto_processing_e5sksmall_hybrid",
+      "alto_processing_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "What port does the alto-processing app listen on by default?",
+        "relevant_files": [
+          "submodules/alto-processing/start.sh"
+        ],
+        "reference_answer": "The alto-processing app listens on port 8080 by default.",
+        "metadata": {
+          "file_name": "start.sh",
+          "file_type": ".sh",
+          "language": "en",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-11-18T14:49:08+01:00",
+          "modified_at": "2025-12-02T16:06:09+01:00"
+        }
+      },
+      {
+        "query": "What version of FastAPI does alto-processing require?",
+        "relevant_files": [
+          "submodules/alto-processing/requirements.txt"
+        ],
+        "reference_answer": "alto-processing requires FastAPI version 0.121.2.",
+        "metadata": {
+          "file_name": "requirements.txt",
+          "file_type": ".txt",
+          "language": "en",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-09-23T14:57:07+02:00",
+          "modified_at": "2026-01-05T12:43:32+01:00"
+        }
+      },
+      {
+        "query": "What version of the openai Python package is pinned in alto-processing?",
+        "relevant_files": [
+          "submodules/alto-processing/requirements.txt"
+        ],
+        "reference_answer": "The version of the openai Python package pinned in alto-processing is 2.8.1.",
+        "metadata": {
+          "file_name": "requirements.txt",
+          "file_type": ".txt",
+          "language": "en",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-09-23T14:57:07+02:00",
+          "modified_at": "2026-01-05T12:43:32+01:00"
+        }
+      },
+      {
+        "query": "What license is declared for alto-processing's Node package?",
+        "relevant_files": [
+          "submodules/alto-processing/package.json"
+        ],
+        "reference_answer": "The license declared for alto-processing's Node package is \"ISC\".",
+        "metadata": {
+          "file_name": "package.json",
+          "file_type": ".json",
+          "language": "cs",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-09-23T14:57:07+02:00",
+          "modified_at": "2025-11-18T14:49:08+01:00"
+        }
+      },
+      {
+        "query": "What is the configured default LLM model for alto-processing?",
+        "relevant_files": [
+          "submodules/alto-processing/config/models.json"
+        ],
+        "reference_answer": "The configured default LLM model for alto-processing is \"openrouter/openai/gpt-4o-mini.\"",
+        "metadata": {
+          "file_name": "models.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-11-10T13:27:05+01:00",
+          "modified_at": "2026-01-05T14:51:54+01:00"
+        }
+      },
+      {
+        "query": "What is the API base URL for the openrouter provider in alto-processing?",
+        "relevant_files": [
+          "submodules/alto-processing/config/providers.json"
+        ],
+        "reference_answer": "The API base URL for the openrouter provider in alto-processing is https://openrouter.ai/api/v1.",
+        "metadata": {
+          "file_name": "providers.json",
+          "file_type": ".json",
+          "language": "fr",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-12-10T13:07:32+01:00",
+          "modified_at": "2025-12-10T13:07:32+01:00"
+        }
+      },
+      {
+        "query": "Which alto-processing provider has API base https://chat.ai.e-infra.cz/api, and does it support the responses API?",
+        "relevant_files": [
+          "submodules/alto-processing/config/providers.json"
+        ],
+        "reference_answer": "The alto-processing provider with API base https://chat.ai.e-infra.cz/api is \"cerit,\" and it does not support the responses API.",
+        "metadata": {
+          "file_name": "providers.json",
+          "file_type": ".json",
+          "language": "fr",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-12-10T13:07:32+01:00",
+          "modified_at": "2025-12-10T13:07:32+01:00"
+        }
+      },
+      {
+        "query": "What URL is the alto-processing app reachable at after local manual startup?",
+        "relevant_files": [
+          "submodules/alto-processing/README.md"
+        ],
+        "reference_answer": "The alto-processing app is reachable at `http://localhost:8080/` after local manual startup.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "cs",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-09-23T14:57:07+02:00",
+          "modified_at": "2026-04-09T12:44:37+02:00"
+        }
+      },
+      {
+        "query": "What single command starts alto-processing in Docker?",
+        "relevant_files": [
+          "submodules/alto-processing/README.md"
+        ],
+        "reference_answer": "The single command to start alto-processing in Docker is: \n```bash\ndocker compose up --build\n```",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "cs",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-09-23T14:57:07+02:00",
+          "modified_at": "2026-04-09T12:44:37+02:00"
+        }
+      },
+      {
+        "query": "What integer value represents the \"merge\" page-linking decision in alto-processing?",
+        "relevant_files": [
+          "submodules/alto-processing/README.md"
+        ],
+        "reference_answer": "The integer value representing the \"merge\" page-linking decision in alto-processing is `2`.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "cs",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-09-23T14:57:07+02:00",
+          "modified_at": "2026-04-09T12:44:37+02:00"
+        }
+      },
+      {
+        "query": "In alto-processing's TokenAuthMiddleware, which request paths are always allowed through without a valid auth cookie or bearer token?",
+        "relevant_files": [
+          "submodules/alto-processing/app/middleware/auth.py"
+        ],
+        "reference_answer": "In alto-processing's TokenAuthMiddleware, the request paths that are always allowed through without a valid auth cookie or bearer token are `\"/auth\"`, `\"/auth/\"`, `\"/healthz\"`, and `\"/favicon.ico\"`. Additionally, any path that starts with `\"/static\"` is also allowed.",
+        "metadata": {
+          "file_name": "auth.py",
+          "file_type": ".py",
+          "language": "en",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-12-02T13:48:55+01:00",
+          "modified_at": "2025-12-02T16:06:09+01:00"
+        }
+      },
+      {
+        "query": "In alto-processing's agent diff application logic, what happens to a document block whose type is 'note' when a diff tries to change or remove it?",
+        "relevant_files": [
+          "submodules/alto-processing/app/core/agent_runner.py"
+        ],
+        "reference_answer": "The provided content does not specify what happens to a document block of type 'note' when a diff tries to change or remove it in alto-processing's agent diff application logic.",
+        "metadata": {
+          "file_name": "agent_runner.py",
+          "file_type": ".py",
+          "language": "en",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-11-18T14:49:08+01:00",
+          "modified_at": "2026-01-05T14:51:54+01:00"
+        }
+      },
+      {
+        "query": "When alto-processing automatically selects a book's cover page, which page type string has the highest priority in the selection order?",
+        "relevant_files": [
+          "submodules/alto-processing/app/routers/api.py"
+        ],
+        "reference_answer": "The page type string with the highest priority in the selection order for a book's cover page is \"frontcover.\"",
+        "metadata": {
+          "file_name": "api.py",
+          "file_type": ".py",
+          "language": "en",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-11-18T14:49:08+01:00",
+          "modified_at": "2026-01-07T15:42:54+01:00"
+        }
+      },
+      {
+        "query": "In alto-processing's AltoProcessor._detect_api_version, what Kramerius API version is returned as the fallback when the base URL doesn't match the v7.0 client API pattern?",
+        "relevant_files": [
+          "submodules/alto-processing/app/core/main_processor.py"
+        ],
+        "reference_answer": "In the `AltoProcessor._detect_api_version`, the fallback Kramerius API version returned when the base URL doesn't match the v7.0 client API pattern is \"k5\".",
+        "metadata": {
+          "file_name": "main_processor.py",
+          "file_type": ".py",
+          "language": "cs",
+          "authors": [
+            "Aleš Chudárek"
+          ],
+          "created_at": "2025-11-18T14:49:08+01:00",
+          "modified_at": "2026-04-09T12:44:37+02:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "ASJournals",
+    "collections": [
+      "asjournals_slovakbert",
+      "asjournals_czert",
+      "asjournals_xlmr",
+      "asjournals_mbert",
+      "asjournals_qwen3",
+      "asjournals_te3s",
+      "asjournals_e5sksmall_hybrid",
+      "asjournals_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "Under what license is the AS Journals application distributed?",
+        "relevant_files": [
+          "submodules/ASJournals/README.md"
+        ],
+        "reference_answer": "The AS Journals application is distributed under the GNU GPLv3 license.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "cs",
+          "authors": [
+            "kerschfilip",
+            "Pavel Kocourek"
+          ],
+          "created_at": "2022-01-03T17:03:25+01:00",
+          "modified_at": "2025-07-29T10:03:15+02:00"
+        }
+      },
+      {
+        "query": "Which digital library system does AS Journals connect to for article data?",
+        "relevant_files": [
+          "submodules/ASJournals/README.md"
+        ],
+        "reference_answer": "AS Journals connects to the digital library Kramerius for article data.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "cs",
+          "authors": [
+            "kerschfilip",
+            "Pavel Kocourek"
+          ],
+          "created_at": "2022-01-03T17:03:25+01:00",
+          "modified_at": "2025-07-29T10:03:15+02:00"
+        }
+      },
+      {
+        "query": "Which version of Angular CLI was used to generate the AS Journals client project?",
+        "relevant_files": [
+          "submodules/ASJournals/searchapp/src/main/client/README.md"
+        ],
+        "reference_answer": "The AS Journals client project was generated with Angular CLI version 16.2.1.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "en",
+          "authors": [
+            "albertoh",
+            "Alberto Hernandez"
+          ],
+          "created_at": "2019-07-23T18:34:32+02:00",
+          "modified_at": "2023-10-17T15:06:15+02:00"
+        }
+      },
+      {
+        "query": "What version of @angular/animations does the AS Journals searchapp client use?",
+        "relevant_files": [
+          "submodules/ASJournals/searchapp/src/main/client/package.json"
+        ],
+        "reference_answer": "The AS Journals searchapp client uses version ^16.2.0 of @angular/animations.",
+        "metadata": {
+          "file_name": "package.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "albertoh",
+            "Petr Kudela",
+            "Alberto Hernandez"
+          ],
+          "created_at": "2021-11-10T16:09:02+01:00",
+          "modified_at": "2025-02-18T12:08:39+01:00"
+        }
+      },
+      {
+        "query": "What version of TinyMCE is bundled with AS Journals?",
+        "relevant_files": [
+          "submodules/ASJournals/searchapp/src/main/webapp/tinymce/package.json"
+        ],
+        "reference_answer": "The version of TinyMCE bundled with AS Journals is 6.7.0.",
+        "metadata": {
+          "file_name": "package.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "Petr Kudela"
+          ],
+          "created_at": "2021-11-18T11:24:32+01:00",
+          "modified_at": "2024-12-10T14:40:25+01:00"
+        }
+      },
+      {
+        "query": "On what date was TinyMCE version 6.7.0 released?",
+        "relevant_files": [
+          "submodules/ASJournals/searchapp/src/main/webapp/tinymce/CHANGELOG.md"
+        ],
+        "reference_answer": "TinyMCE version 6.7.0 was released on August 30, 2023.",
+        "metadata": {
+          "file_name": "CHANGELOG.md",
+          "file_type": ".md",
+          "language": "en",
+          "authors": [
+            "Petr Kudela"
+          ],
+          "created_at": "2021-11-18T11:24:32+01:00",
+          "modified_at": "2023-11-06T11:09:42+01:00"
+        }
+      },
+      {
+        "query": "What is the ISSN of the journal \"Právník\" in the AS Journals magazines list?",
+        "relevant_files": [
+          "submodules/ASJournals/solr9/magazines/magazines.json"
+        ],
+        "reference_answer": "The ISSN of the journal \"Právník\" is 1210-8510.",
+        "metadata": {
+          "file_name": "magazines.json",
+          "file_type": ".json",
+          "language": "cs",
+          "authors": [
+            "albertoh",
+            "Alberto Hernandez",
+            "alberto.a.hernandez"
+          ],
+          "created_at": "2019-10-10T10:19:16+02:00",
+          "modified_at": "2024-05-28T15:15:46+02:00"
+        }
+      },
+      {
+        "query": "What is the default Solr host URL in the AS Journals server configuration?",
+        "relevant_files": [
+          "submodules/ASJournals/searchapp/src/main/resources/cz/incad/k5journals/searchapp/server_config.json"
+        ],
+        "reference_answer": "The default Solr host URL in the AS Journals server configuration is \"http://localhost:8983/solr/\".",
+        "metadata": {
+          "file_name": "server_config.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "albertoh",
+            "Alberto Hernandez"
+          ],
+          "created_at": "2019-07-23T18:34:32+02:00",
+          "modified_at": "2025-06-06T16:37:24+02:00"
+        }
+      },
+      {
+        "query": "Which facet fields are used to filter the journal list on the AS Journals portal?",
+        "relevant_files": [
+          "submodules/ASJournals/searchapp/src/main/client/src/assets/config.json"
+        ],
+        "reference_answer": "The facet fields used to filter the journal list on the AS Journals portal are \"pristup,\" \"oblast,\" \"vydavatel,\" and \"keyword.\"",
+        "metadata": {
+          "file_name": "config.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "albertoh",
+            "Petr Kudela",
+            "Alberto Hernandez"
+          ],
+          "created_at": "2019-07-23T18:34:32+02:00",
+          "modified_at": "2024-07-22T09:03:24+02:00"
+        }
+      },
+      {
+        "query": "Which Solr cores does the AS Journals IndexerK7 class index data into?",
+        "relevant_files": [
+          "submodules/ASJournals/searchapp/src/main/java/cz/incad/k5journals/searchapp/IndexerK7.java"
+        ],
+        "reference_answer": "The AS Journals IndexerK7 class indexes data into the \"journal\" and \"views\" Solr cores.",
+        "metadata": {
+          "file_name": "IndexerK7.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "albertoh",
+            "Alberto Hernandez"
+          ],
+          "created_at": "2019-07-23T18:34:32+02:00",
+          "modified_at": "2024-11-25T16:02:09+01:00"
+        }
+      },
+      {
+        "query": "What time format does the formatInterval method in AS Journals' FormatUtils class produce when converting a duration given in milliseconds?",
+        "relevant_files": [
+          "submodules/ASJournals/searchapp/src/main/java/cz/incad/FormatUtils.java"
+        ],
+        "reference_answer": "The formatInterval method in AS Journals' FormatUtils class produces a time format of \"HH:mm:ss\" when converting a duration given in milliseconds.",
+        "metadata": {
+          "file_name": "FormatUtils.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "Alberto Hernandez"
+          ],
+          "created_at": "2019-07-23T18:34:32+02:00",
+          "modified_at": "2019-07-23T18:34:32+02:00"
+        }
+      },
+      {
+        "query": "In the AS Journals Angular client, which route does AuthGuard's checkLogin method navigate an unauthenticated user to, and what does it preserve when doing so?",
+        "relevant_files": [
+          "submodules/ASJournals/searchapp/src/main/client/src/app/services/auth-guard.ts"
+        ],
+        "reference_answer": "In the AS Journals Angular client, AuthGuard's checkLogin method navigates an unauthenticated user to the 'prihlaseni' route and preserves the query parameters when doing so.",
+        "metadata": {
+          "file_name": "auth-guard.ts",
+          "file_type": ".ts",
+          "language": "en",
+          "authors": [
+            "albertoh",
+            "Alberto Hernandez"
+          ],
+          "created_at": "2019-07-23T18:34:32+02:00",
+          "modified_at": "2023-10-20T14:57:14+02:00"
+        }
+      },
+      {
+        "query": "In the AS Journals Searcher class, what Solr sort field does getMagazines use when the request's lang parameter is set to something other than 'cs'?",
+        "relevant_files": [
+          "submodules/ASJournals/searchapp/src/main/java/cz/incad/k5journals/searchapp/Searcher.java"
+        ],
+        "reference_answer": "In the `getMagazines` method, when the request's `lang` parameter is set to something other than 'cs', the Solr sort field used is `\"title_\" + lang`.",
+        "metadata": {
+          "file_name": "Searcher.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "albertoh"
+          ],
+          "created_at": "2023-12-11T15:38:09+01:00",
+          "modified_at": "2025-09-02T11:09:19+02:00"
+        }
+      },
+      {
+        "query": "How does the removeDiacritics method in AS Journals' Utils class strip diacritical marks from a string?",
+        "relevant_files": [
+          "submodules/ASJournals/searchapp/src/main/client/src/app/services/utils.ts"
+        ],
+        "reference_answer": "The provided file content does not include information about a method named `removeDiacritics` or how it would strip diacritical marks from a string. Therefore, I cannot provide an answer to this question based on the given material.",
+        "metadata": {
+          "file_name": "utils.ts",
+          "file_type": ".ts",
+          "language": "en",
+          "authors": [
+            "albertoh",
+            "Petr Kudela",
+            "Alberto Hernandez"
+          ],
+          "created_at": "2019-07-23T18:34:32+02:00",
+          "modified_at": "2025-09-24T07:59:40+02:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "avm-server",
+    "collections": [
+      "avm_server_slovakbert",
+      "avm_server_czert",
+      "avm_server_xlmr",
+      "avm_server_mbert",
+      "avm_server_qwen3",
+      "avm_server_te3s",
+      "avm_server_e5sksmall_hybrid",
+      "avm_server_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "What license does the AVM Server project use?",
+        "relevant_files": [
+          "submodules/avm-server/README.md"
+        ],
+        "reference_answer": "The AVM Server project uses the EUPL-1.2 license.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-02-16T16:36:36+01:00",
+          "modified_at": "2024-11-18T10:23:30+01:00"
+        }
+      },
+      {
+        "query": "What condition does DeleteExpiredDocumentsJob use to select documents for deletion?",
+        "relevant_files": [
+          "submodules/avm-server/app/jobs/delete_expired_documents_job.rb"
+        ],
+        "reference_answer": "DeleteExpiredDocumentsJob selects documents for deletion based on the condition that their created_at timestamp is older than 24 hours from the current time.",
+        "metadata": {
+          "file_name": "delete_expired_documents_job.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-04-22T07:36:42+02:00",
+          "modified_at": "2024-04-22T07:36:42+02:00"
+        }
+      },
+      {
+        "query": "What background job removes expired authentication tokens in AVM Server?",
+        "relevant_files": [
+          "submodules/avm-server/app/jobs/delete_expired_tokens_job.rb"
+        ],
+        "reference_answer": "The background job that removes expired authentication tokens in AVM Server is the `DeleteExpiredTokensJob`.",
+        "metadata": {
+          "file_name": "delete_expired_tokens_job.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-04-22T07:36:42+02:00",
+          "modified_at": "2024-04-22T07:36:42+02:00"
+        }
+      },
+      {
+        "query": "What does the POST /documents endpoint do in the AVM Server API?",
+        "relevant_files": [
+          "submodules/avm-server/public/openapi.yaml"
+        ],
+        "reference_answer": "The POST /documents endpoint allows a client app to upload a document along with certain parameters to the server, which then encrypts the document using the provided EncryptionKey and stores it on disk.",
+        "metadata": {
+          "file_name": "openapi.yaml",
+          "file_type": ".yaml",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-02-19T14:43:45+01:00",
+          "modified_at": "2024-10-22T15:24:40+02:00"
+        }
+      },
+      {
+        "query": "What is the AVM Server API version declared in its OpenAPI spec?",
+        "relevant_files": [
+          "submodules/avm-server/public/openapi.yaml"
+        ],
+        "reference_answer": "The AVM Server API version declared in its OpenAPI spec is '0.4.0'.",
+        "metadata": {
+          "file_name": "openapi.yaml",
+          "file_type": ".yaml",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-02-19T14:43:45+01:00",
+          "modified_at": "2024-10-22T15:24:40+02:00"
+        }
+      },
+      {
+        "query": "What error does Document#decrypt_content raise when the encryption key is invalid?",
+        "relevant_files": [
+          "submodules/avm-server/app/models/document.rb"
+        ],
+        "reference_answer": "The error raised by `Document#decrypt_content` when the encryption key is invalid is `AvmBadEncryptionKeyError`.",
+        "metadata": {
+          "file_name": "document.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-02-19T10:21:06+01:00",
+          "modified_at": "2024-11-27T16:18:38+01:00"
+        }
+      },
+      {
+        "query": "Which device notification platforms does AVM Server's Device model support?",
+        "relevant_files": [
+          "submodules/avm-server/app/models/device.rb"
+        ],
+        "reference_answer": "The AVM Server's Device model supports the device notification platforms 'ios', 'android', and 'ntfy'.",
+        "metadata": {
+          "file_name": "device.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-04-17T20:01:46+02:00",
+          "modified_at": "2024-06-14T09:38:10+02:00"
+        }
+      },
+      {
+        "query": "Which origins are allowed by AVM Server's CORS configuration?",
+        "relevant_files": [
+          "submodules/avm-server/config/initializers/cors.rb"
+        ],
+        "reference_answer": "The AVM Server's CORS configuration allows requests from all origins, indicated by the wildcard symbol \"*\".",
+        "metadata": {
+          "file_name": "cors.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-02-16T16:36:36+01:00",
+          "modified_at": "2024-02-19T14:55:52+01:00"
+        }
+      },
+      {
+        "query": "What member routes are defined for the documents resource in AVM Server?",
+        "relevant_files": [
+          "submodules/avm-server/config/routes.rb"
+        ],
+        "reference_answer": "The member routes defined for the documents resource in AVM Server are: \n- GET 'visualization'\n- POST 'datatosign'\n- POST 'sign'\n- GET 'parameters'\n- GET 'validate'",
+        "metadata": {
+          "file_name": "routes.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-02-16T16:36:36+01:00",
+          "modified_at": "2024-11-18T10:23:30+01:00"
+        }
+      },
+      {
+        "query": "What does the AVM Server root path redirect to by default?",
+        "relevant_files": [
+          "submodules/avm-server/config/routes.rb"
+        ],
+        "reference_answer": "By default, the AVM Server root path redirects to \"/api/v1/\" as specified in the routes configuration file.",
+        "metadata": {
+          "file_name": "routes.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-02-16T16:36:36+01:00",
+          "modified_at": "2024-11-18T10:23:30+01:00"
+        }
+      },
+      {
+        "query": "What does AVM Server's Token.write method return when the create call fails because the key/namespace pair already exists?",
+        "relevant_files": [
+          "submodules/avm-server/app/models/token.rb"
+        ],
+        "reference_answer": "The `Token.write` method returns `nil` when the create call fails because the key/namespace pair already exists.",
+        "metadata": {
+          "file_name": "token.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-04-22T07:36:42+02:00",
+          "modified_at": "2024-04-22T07:36:42+02:00"
+        }
+      },
+      {
+        "query": "How does AVM Server's Integration model retry parsing a public_key value that fails as a raw OpenSSL EC key?",
+        "relevant_files": [
+          "submodules/avm-server/app/models/integration.rb"
+        ],
+        "reference_answer": "The AVM Server's Integration model retries parsing a public_key value by first attempting to create an OpenSSL EC key directly from the public_key. If that fails, it then tries to parse the public_key as a PEM-encoded key by wrapping it with \"-----BEGIN PUBLIC KEY-----\" and \"-----END PUBLIC KEY-----\". If both attempts fail, it adds an error message related to the public_key.",
+        "metadata": {
+          "file_name": "integration.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-04-17T20:01:46+02:00",
+          "modified_at": "2024-06-14T09:02:30+02:00"
+        }
+      },
+      {
+        "query": "Under what condition does AVM Server's DocumentsController show action respond with HTTP status 304 instead of returning the document?",
+        "relevant_files": [
+          "submodules/avm-server/app/controllers/api/v1/documents_controller.rb"
+        ],
+        "reference_answer": "The AVM Server's DocumentsController show action responds with HTTP status 304 when the `HTTP_IF_MODIFIED_SINCE` header is present and the parsed modified time is greater than or equal to the document's `last_signed_at` timestamp.",
+        "metadata": {
+          "file_name": "documents_controller.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-02-19T10:21:06+01:00",
+          "modified_at": "2025-12-17T13:12:45+01:00"
+        }
+      },
+      {
+        "query": "What TTL does AVM Server's FcmNotifier set on Android push notifications when prompting a device to sign a document?",
+        "relevant_files": [
+          "submodules/avm-server/app/lib/fcm_notifier.rb"
+        ],
+        "reference_answer": "The AVM Server's FcmNotifier sets a TTL of \"300s\" on Android push notifications when prompting a device to sign a document.",
+        "metadata": {
+          "file_name": "fcm_notifier.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2024-04-17T20:01:46+02:00",
+          "modified_at": "2024-04-17T20:18:55+02:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "govbox-pro",
+    "collections": [
+      "govbox_pro_slovakbert",
+      "govbox_pro_czert",
+      "govbox_pro_xlmr",
+      "govbox_pro_mbert",
+      "govbox_pro_qwen3",
+      "govbox_pro_te3s",
+      "govbox_pro_e5sksmall_hybrid",
+      "govbox_pro_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "Which environment variable sets administrator emails in GovBox Pro?",
+        "relevant_files": [
+          "submodules/govbox-pro/configuration.md"
+        ],
+        "reference_answer": "The environment variable that sets administrator emails in GovBox Pro is `SITE_ADMIN_EMAILS`.",
+        "metadata": {
+          "file_name": "configuration.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "Marek Ceľuch",
+            "luciajanikova"
+          ],
+          "created_at": "2023-05-10T15:21:46+02:00",
+          "modified_at": "2023-06-28T16:51:29+02:00"
+        }
+      },
+      {
+        "query": "Under which license is GovBox Pro distributed?",
+        "relevant_files": [
+          "submodules/govbox-pro/README.md"
+        ],
+        "reference_answer": "GovBox Pro is distributed under the EUPL v1.2 license.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "Miroslav Hettes",
+            "Jan Suchal",
+            "luciajanikova"
+          ],
+          "created_at": "2023-02-27T12:27:59+01:00",
+          "modified_at": "2026-03-28T16:44:26+01:00"
+        }
+      },
+      {
+        "query": "Which company authored GovBox Pro?",
+        "relevant_files": [
+          "submodules/govbox-pro/README.md"
+        ],
+        "reference_answer": "GovBox Pro was authored by Solver IT, s.r.o. in collaboration with the civic association Slovensko.Digital.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "Miroslav Hettes",
+            "Jan Suchal",
+            "luciajanikova"
+          ],
+          "created_at": "2023-02-27T12:27:59+01:00",
+          "modified_at": "2026-03-28T16:44:26+01:00"
+        }
+      },
+      {
+        "query": "What command creates a local env file for GovBox Pro development?",
+        "relevant_files": [
+          "submodules/govbox-pro/DEVELOPER.md"
+        ],
+        "reference_answer": "The command to create a local env file for GovBox Pro development is:\n\n```console\ncp .env .env.local\n```",
+        "metadata": {
+          "file_name": "DEVELOPER.md",
+          "file_type": ".md",
+          "language": "en",
+          "authors": [
+            "Miroslav Hettes",
+            "Jozef Steinhübl",
+            "Matúš Ferech",
+            "Jan Suchal"
+          ],
+          "created_at": "2023-12-18T22:40:40+01:00",
+          "modified_at": "2026-03-28T14:57:27+01:00"
+        }
+      },
+      {
+        "query": "What command starts the local database for GovBox Pro?",
+        "relevant_files": [
+          "submodules/govbox-pro/DEVELOPER.md"
+        ],
+        "reference_answer": "To start the local database for GovBox Pro, use the command `docker-compose up`.",
+        "metadata": {
+          "file_name": "DEVELOPER.md",
+          "file_type": ".md",
+          "language": "en",
+          "authors": [
+            "Miroslav Hettes",
+            "Jozef Steinhübl",
+            "Matúš Ferech",
+            "Jan Suchal"
+          ],
+          "created_at": "2023-12-18T22:40:40+01:00",
+          "modified_at": "2026-03-28T14:57:27+01:00"
+        }
+      },
+      {
+        "query": "Which library does GovBox Pro use for asynchronous job processing?",
+        "relevant_files": [
+          "submodules/govbox-pro/DEVELOPER.md"
+        ],
+        "reference_answer": "GovBox Pro uses the Good Jobs library for asynchronous job processing.",
+        "metadata": {
+          "file_name": "DEVELOPER.md",
+          "file_type": ".md",
+          "language": "en",
+          "authors": [
+            "Miroslav Hettes",
+            "Jozef Steinhübl",
+            "Matúš Ferech",
+            "Jan Suchal"
+          ],
+          "created_at": "2023-12-18T22:40:40+01:00",
+          "modified_at": "2026-03-28T14:57:27+01:00"
+        }
+      },
+      {
+        "query": "What does the failing_jobs health-check action query for in GovBox Pro?",
+        "relevant_files": [
+          "submodules/govbox-pro/app/controllers/health_check_controller.rb"
+        ],
+        "reference_answer": "The failing_jobs health-check action queries for discarded jobs from the GoodJob framework to determine if there are any failed jobs in GovBox Pro. If there are any failed jobs, it returns a status of service unavailable; otherwise, it returns ok.",
+        "metadata": {
+          "file_name": "health_check_controller.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Jan Suchal",
+            "stage-rl"
+          ],
+          "created_at": "2023-11-28T09:01:26+01:00",
+          "modified_at": "2025-06-21T11:59:01+02:00"
+        }
+      },
+      {
+        "query": "What is the name and version of GovBox Pro's Helm chart?",
+        "relevant_files": [
+          "submodules/govbox-pro/chart/Chart.yaml"
+        ],
+        "reference_answer": "The name of GovBox Pro's Helm chart is \"auto-deploy-app\" and its version is 2.26.0.",
+        "metadata": {
+          "file_name": "Chart.yaml",
+          "file_type": ".yaml",
+          "language": "fr",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2023-05-27T16:42:04+02:00",
+          "modified_at": "2023-05-27T16:42:04+02:00"
+        }
+      },
+      {
+        "query": "What is the default replica count in GovBox Pro's Helm chart values?",
+        "relevant_files": [
+          "submodules/govbox-pro/chart/values.yaml"
+        ],
+        "reference_answer": "The default replica count in GovBox Pro's Helm chart values is 1.",
+        "metadata": {
+          "file_name": "values.yaml",
+          "file_type": ".yaml",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch"
+          ],
+          "created_at": "2023-05-27T16:42:04+02:00",
+          "modified_at": "2023-05-27T16:42:04+02:00"
+        }
+      },
+      {
+        "query": "What command does GovBox Pro's npm build script run for its JS assets?",
+        "relevant_files": [
+          "submodules/govbox-pro/package.json"
+        ],
+        "reference_answer": "GovBox Pro's npm build script runs the command: `esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds --public-path=assets`.",
+        "metadata": {
+          "file_name": "package.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "luciajanikova",
+            "Jan Suchal",
+            "Lukáš Janík",
+            "stage-rl"
+          ],
+          "created_at": "2023-06-01T08:57:51+02:00",
+          "modified_at": "2024-10-22T14:32:09+02:00"
+        }
+      },
+      {
+        "query": "How does the Filter model in GovBox Pro determine the position value assigned to a newly created filter?",
+        "relevant_files": [
+          "submodules/govbox-pro/app/models/filter.rb"
+        ],
+        "reference_answer": "The Filter model in GovBox Pro determines the position value for a newly created filter by setting it to one more than the maximum position currently assigned to other filters associated with the same tenant, or to 1 if no filters exist.",
+        "metadata": {
+          "file_name": "filter.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch",
+            "Jan Suchal",
+            "Jozef Steinhübl",
+            "luciajanikova",
+            "stage-rl",
+            "Miroslav Hettes"
+          ],
+          "created_at": "2023-09-26T17:53:58+02:00",
+          "modified_at": "2026-03-20T10:37:27+01:00"
+        }
+      },
+      {
+        "query": "In GovBox Pro, what does the Automation::Rule#conditions_met? method check before the rule's actions are run for an event?",
+        "relevant_files": [
+          "submodules/govbox-pro/app/models/automation/rule.rb"
+        ],
+        "reference_answer": "The `Automation::Rule#conditions_met?` method checks if all the associated conditions for the rule are satisfied by the given object (`thing`). If any condition is not satisfied, it returns false; otherwise, it returns true.",
+        "metadata": {
+          "file_name": "rule.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "luciajanikova",
+            "Marek Ceľuch",
+            "stage-rl",
+            "Miroslav Hettes",
+            "Jan Suchal"
+          ],
+          "created_at": "2023-05-18T23:27:46+02:00",
+          "modified_at": "2025-11-07T11:00:11+01:00"
+        }
+      },
+      {
+        "query": "What three conditions does the authorizable_delivery_notification? method check on a Message in GovBox Pro?",
+        "relevant_files": [
+          "submodules/govbox-pro/app/models/message.rb"
+        ],
+        "reference_answer": "The `authorizable_delivery_notification?` method checks if the `metadata[\"delivery_notification\"]` is present, if `metadata[\"authorized\"]` is not true, and if the current time is before the `delivery_period_end_at` specified in `metadata[\"delivery_notification\"]`.",
+        "metadata": {
+          "file_name": "message.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "luciajanikova",
+            "Miroslav Hettes",
+            "Jozef Steinhübl",
+            "Jan Suchal",
+            "stage-rl"
+          ],
+          "created_at": "2023-05-18T23:27:46+02:00",
+          "modified_at": "2026-04-21T10:18:40+02:00"
+        }
+      },
+      {
+        "query": "How does the official_name method on the Box model in GovBox Pro extract a box's display name from its stored name?",
+        "relevant_files": [
+          "submodules/govbox-pro/app/models/box.rb"
+        ],
+        "reference_answer": "The `official_name` method extracts a box's display name by using a regular expression to match and capture a specific portion of the stored `name`, returning that captured group if found; otherwise, it defaults to returning the `name` itself.",
+        "metadata": {
+          "file_name": "box.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "luciajanikova",
+            "Tomáš Drga",
+            "Richard Lences",
+            "Miroslav Hettes",
+            "Marek Ceľuch",
+            "stage-rl",
+            "Jan Suchal"
+          ],
+          "created_at": "2023-05-18T23:27:46+02:00",
+          "modified_at": "2026-02-06T15:45:46+01:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "kramerius",
+    "collections": [
+      "kramerius_slovakbert",
+      "kramerius_czert",
+      "kramerius_xlmr",
+      "kramerius_mbert",
+      "kramerius_qwen3",
+      "kramerius_te3s",
+      "kramerius_e5sksmall_hybrid",
+      "kramerius_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "Under what license is Kramerius distributed?",
+        "relevant_files": [
+          "submodules/kramerius/LICENSE.md"
+        ],
+        "reference_answer": "Kramerius is distributed under the GNU General Public License, Version 3.",
+        "metadata": {
+          "file_name": "LICENSE.md",
+          "file_type": ".md",
+          "language": "en",
+          "authors": [
+            "vlahoda"
+          ],
+          "created_at": "2013-12-18T13:45:56+01:00",
+          "modified_at": "2013-12-18T13:45:56+01:00"
+        }
+      },
+      {
+        "query": "Who is the main development coordinator of Kramerius?",
+        "relevant_files": [
+          "submodules/kramerius/README.md"
+        ],
+        "reference_answer": "The main development coordinator of Kramerius is Martin Lhoták from the Library of the Czech Academy of Sciences.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "cs",
+          "authors": [
+            "Martin Lhotak",
+            "Pavel Šťastný",
+            "Pavel Kocourek",
+            "Vladimír Lahoda",
+            "The Gitter Badger",
+            "pavels",
+            "vlahoda",
+            "Jan Skopal",
+            "MLhotak",
+            "slapakovai"
+          ],
+          "created_at": "2013-12-18T13:45:56+01:00",
+          "modified_at": "2025-11-15T00:20:37+01:00"
+        }
+      },
+      {
+        "query": "How do you build the search.war file in Kramerius?",
+        "relevant_files": [
+          "submodules/kramerius/BUILD-README.txt"
+        ],
+        "reference_answer": "To build the search.war file in Kramerius, you should run the following command: `./gradlew :search:clean :search:build`.",
+        "metadata": {
+          "file_name": "BUILD-README.txt",
+          "file_type": ".txt",
+          "language": "en",
+          "authors": [
+            "vlahoda",
+            "Martin Řehánek",
+            "pavels",
+            "pavel.stastny@gmail.com"
+          ],
+          "created_at": "2014-07-04T10:43:32+02:00",
+          "modified_at": "2025-02-27T10:48:08+01:00"
+        }
+      },
+      {
+        "query": "How do you build and run the search-index module in Kramerius?",
+        "relevant_files": [
+          "submodules/kramerius/processes/search-index/BUILD-README.txt"
+        ],
+        "reference_answer": "To build and run the search-index module in Kramerius, use the command `./gradlew search-index:clean search-index:build` to build the jar with dependencies, and then run it with `./gradlew search-index:run --args \"ARGUMENTS\"` where you replace `\"ARGUMENTS\"` with your specific arguments, such as `\"build_solr_passord_hash myLogin myPassword\"`. For tests, use `./gradlew search-index:test`.",
+        "metadata": {
+          "file_name": "BUILD-README.txt",
+          "file_type": ".txt",
+          "language": "en",
+          "authors": [
+            "ppodsednik",
+            "Martin Řehánek"
+          ],
+          "created_at": "2020-09-08T13:42:54+02:00",
+          "modified_at": "2025-10-06T11:19:49+02:00"
+        }
+      },
+      {
+        "query": "What does the oai4solr7 OAI plugin replace in Kramerius?",
+        "relevant_files": [
+          "submodules/kramerius/installation/oai4solr7/README.md"
+        ],
+        "reference_answer": "The oai4solr7 OAI plugin replaces the default implementation of the OAI-PMH repository for Fedora in Kramerius.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "cs",
+          "authors": [
+            "vlahoda",
+            "MartinRumanek",
+            "pavels",
+            "alberto"
+          ],
+          "created_at": "2016-07-20T11:31:51+02:00",
+          "modified_at": "2019-12-05T14:50:16+01:00"
+        }
+      },
+      {
+        "query": "How many UUIDs are listed in Kramerius's dnnt.csv file?",
+        "relevant_files": [
+          "submodules/kramerius/installation/csv/dnnt.csv"
+        ],
+        "reference_answer": "There are three UUIDs listed in Kramerius's dnnt.csv file.",
+        "metadata": {
+          "file_name": "dnnt.csv",
+          "file_type": ".csv",
+          "language": "cy",
+          "authors": [
+            "Stastny"
+          ],
+          "created_at": "2019-01-11T13:34:49+01:00",
+          "modified_at": "2019-01-11T13:34:49+01:00"
+        }
+      },
+      {
+        "query": "Which directory takes precedence if the solr7x search config and the installation search directory differ in Kramerius?",
+        "relevant_files": [
+          "submodules/kramerius/installation/solr-7.x_8x/info.txt"
+        ],
+        "reference_answer": "If the solr7x search config and the installation search directory differ, the directory at search-index/src/main/resources/solr_core/solr7x/search takes precedence.",
+        "metadata": {
+          "file_name": "info.txt",
+          "file_type": ".txt",
+          "language": "en",
+          "authors": [
+            "pavel-stastny",
+            "Martin Řehánek"
+          ],
+          "created_at": "2022-04-04T14:35:40+02:00",
+          "modified_at": "2023-09-15T11:10:23+02:00"
+        }
+      },
+      {
+        "query": "What is the purpose of the SolrAccess interface in Kramerius?",
+        "relevant_files": [
+          "submodules/kramerius/shared/common/src/main/java/cz/incad/kramerius/SolrAccess.java"
+        ],
+        "reference_answer": "The purpose of the SolrAccess interface in Kramerius is to provide a structured access point for retrieving and working with SOLR data, specifically enabling operations such as fetching documents by their identifiers, checking existence, and obtaining various metadata paths related to the documents.",
+        "metadata": {
+          "file_name": "SolrAccess.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "pavel-stastny",
+            "Martin Řehánek",
+            "pavels",
+            "Pavel Stastny",
+            "albertoh",
+            "pokorsky"
+          ],
+          "created_at": "2010-10-11T15:51:39+00:00",
+          "modified_at": "2025-04-22T06:48:26+02:00"
+        }
+      },
+      {
+        "query": "What REST path is Kramerius's EndpointFolders class mapped to?",
+        "relevant_files": [
+          "submodules/kramerius/folders/src/main/java/cz/inovatika/folders/jersey/EndpointFolders.java"
+        ],
+        "reference_answer": "The REST path for Kramerius's `EndpointFolders` class is mapped to `/client/v7.0/folders`.",
+        "metadata": {
+          "file_name": "EndpointFolders.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "Martin Řehánek",
+            "pavel-stastny"
+          ],
+          "created_at": "2023-09-05T07:50:58+02:00",
+          "modified_at": "2023-09-28T13:37:34+02:00"
+        }
+      },
+      {
+        "query": "What configuration name constant does Kramerius's JAXBPlugin Gradle plugin define?",
+        "relevant_files": [
+          "submodules/kramerius/buildSrc/src/main/groovy/org/gradle/JAXBPlugin.groovy"
+        ],
+        "reference_answer": "The configuration name constant defined by Kramerius's JAXBPlugin Gradle plugin is `XJC_CONFIGURATION_NAME`, which is set to \"xjc\".",
+        "metadata": {
+          "file_name": "JAXBPlugin.groovy",
+          "file_type": ".groovy",
+          "language": "en",
+          "authors": [
+            "pavel-stastny",
+            "vlahoda",
+            "pavel.stastny@gmail.com"
+          ],
+          "created_at": "2014-01-03T14:43:45+01:00",
+          "modified_at": "2022-09-22T08:49:23+02:00"
+        }
+      },
+      {
+        "query": "In Kramerius's DeepZoomFullImageScaleFactor enum, what is the smallest allowed scale factor value for a full image, and what enum constant represents it?",
+        "relevant_files": [
+          "submodules/kramerius/shared/common/src/main/java/cz/incad/kramerius/imaging/DeepZoomFullImageScaleFactor.java"
+        ],
+        "reference_answer": "The smallest allowed scale factor value for a full image in Kramerius's DeepZoomFullImageScaleFactor enum is 0.3, represented by the enum constant THIRTY_PER.",
+        "metadata": {
+          "file_name": "DeepZoomFullImageScaleFactor.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "pavels",
+            "pavel-stastny"
+          ],
+          "created_at": "2010-10-22T18:42:40+00:00",
+          "modified_at": "2017-12-04T11:01:28+01:00"
+        }
+      },
+      {
+        "query": "What REST path does Kramerius's admin WorkModeResource class map to, and what HTTP methods does it expose for reading and updating the work mode?",
+        "relevant_files": [
+          "submodules/kramerius/rest/src/main/java/cz/incad/kramerius/rest/apiNew/admin/v70/WorkModeResource.java"
+        ],
+        "reference_answer": "Kramerius's admin WorkModeResource class maps to the REST path `/admin/v7.0/workmode`. It exposes the HTTP GET method for reading the work mode status and the HTTP PUT method for updating the work mode.",
+        "metadata": {
+          "file_name": "WorkModeResource.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "ppodsednik"
+          ],
+          "created_at": "2025-04-17T13:45:12+02:00",
+          "modified_at": "2025-04-30T10:49:54+02:00"
+        }
+      },
+      {
+        "query": "In Kramerius's SDNNTCheckUtils class, which fedora object models are listed in SKIPPING_MODELS so that dostupnost/license checks against Solr are skipped for them?",
+        "relevant_files": [
+          "submodules/kramerius/processes/sdnnt/src/main/java/cz/inovatika/sdnnt/utils/SDNNTCheckUtils.java"
+        ],
+        "reference_answer": "In the SDNNTCheckUtils class, the fedora object models listed in SKIPPING_MODELS are \"periodical\" and \"monograph\".",
+        "metadata": {
+          "file_name": "SDNNTCheckUtils.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "pavel-stastny"
+          ],
+          "created_at": "2023-04-13T16:59:10+02:00",
+          "modified_at": "2023-04-13T16:59:10+02:00"
+        }
+      },
+      {
+        "query": "In Kramerius's FolderDatabase class, what SQL ORDER BY clause does the getFolders(String userId) method use to sort a user's folders?",
+        "relevant_files": [
+          "submodules/kramerius/folders/src/main/java/cz/inovatika/folders/db/FolderDatabase.java"
+        ],
+        "reference_answer": "The `getFolders(String userId)` method in Kramerius's `FolderDatabase` class uses the SQL ORDER BY clause: `ORDER BY folder.updated_at DESC, folder.name ASC` to sort a user's folders.",
+        "metadata": {
+          "file_name": "FolderDatabase.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "ppodsednik",
+            "pavel-stastny"
+          ],
+          "created_at": "2023-09-05T07:50:58+02:00",
+          "modified_at": "2025-12-18T11:56:14+01:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "kramerius-docker-compose",
+    "collections": [
+      "kramerius_docker_compose_slovakbert",
+      "kramerius_docker_compose_czert",
+      "kramerius_docker_compose_xlmr",
+      "kramerius_docker_compose_mbert",
+      "kramerius_docker_compose_qwen3",
+      "kramerius_docker_compose_te3s",
+      "kramerius_docker_compose_e5sksmall_hybrid",
+      "kramerius_docker_compose_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "Which services does the kramerius-docker-compose deployment start?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/README.md"
+        ],
+        "reference_answer": "The kramerius-docker-compose deployment starts the following services: Eduid keycloak, IIP server, Solr version 9.X, the core of Krameria, and auxiliary PostgreSQL databases (for both the core and Keycloak).",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "cs",
+          "authors": [
+            "Petr Kudela",
+            "Pavel Šťastný"
+          ],
+          "created_at": "2024-04-09T08:55:07+02:00",
+          "modified_at": "2025-11-12T11:54:12+01:00"
+        }
+      },
+      {
+        "query": "What version is recorded for the Kramerius secured-channel image?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/channel/version.txt"
+        ],
+        "reference_answer": "The version recorded for the Kramerius secured-channel image is 1.0.5.",
+        "metadata": {
+          "file_name": "version.txt",
+          "file_type": ".txt",
+          "language": "unknown",
+          "authors": [
+            "Petr Kudela"
+          ],
+          "created_at": "2025-07-02T16:28:12+02:00",
+          "modified_at": "2025-07-02T16:28:12+02:00"
+        }
+      },
+      {
+        "query": "What CDK_HOSTNAME and port mapping does the Linux run-image script use?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/channel/run-image.sh"
+        ],
+        "reference_answer": "The Linux run-image script sets the CDK_HOSTNAME to \"kramerius-cdk.uk.tul.cz\" and maps port 443 on the host to port 443 in the container.",
+        "metadata": {
+          "file_name": "run-image.sh",
+          "file_type": ".sh",
+          "language": "en",
+          "authors": [
+            "Petr Kudela"
+          ],
+          "created_at": "2025-07-02T16:28:12+02:00",
+          "modified_at": "2025-07-02T16:28:12+02:00"
+        }
+      },
+      {
+        "query": "What CDK_HOSTNAME value does the Windows run-image batch script use?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/channel/run-image.bat"
+        ],
+        "reference_answer": "The Windows run-image batch script uses the CDK_HOSTNAME value of \"happy.int\".",
+        "metadata": {
+          "file_name": "run-image.bat",
+          "file_type": ".bat",
+          "language": "en",
+          "authors": [
+            "pavel-stastny"
+          ],
+          "created_at": "2024-05-10T10:39:52+02:00",
+          "modified_at": "2025-07-07T12:35:10+02:00"
+        }
+      },
+      {
+        "query": "What is the default Kramerius API URL used by the NKP log generation script?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/scripts/generateLogs.sh"
+        ],
+        "reference_answer": "The default Kramerius API URL used by the NKP log generation script is \"localhost:8088\".",
+        "metadata": {
+          "file_name": "generateLogs.sh",
+          "file_type": ".sh",
+          "language": "en",
+          "authors": [
+            "pavel-stastny"
+          ],
+          "created_at": "2024-06-07T07:19:49+02:00",
+          "modified_at": "2024-06-07T07:19:49+02:00"
+        }
+      },
+      {
+        "query": "Which process defid does the SDNNT sync script trigger?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/scripts/sdnnt_sync.sh"
+        ],
+        "reference_answer": "The SDNNT sync script triggers the process with the definition ID \"sdnnt-sync.\"",
+        "metadata": {
+          "file_name": "sdnnt_sync.sh",
+          "file_type": ".sh",
+          "language": "en",
+          "authors": [
+            "pavel-stastny"
+          ],
+          "created_at": "2024-06-07T07:19:49+02:00",
+          "modified_at": "2024-06-07T07:19:49+02:00"
+        }
+      },
+      {
+        "query": "Which API endpoint does the SDNNT apply script query?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/scripts/sdnnt_apply.sh"
+        ],
+        "reference_answer": "The SDNNT apply script queries the API endpoint `localhost:8088/search/api/admin/v7.0/sdnnt/sync/batches`.",
+        "metadata": {
+          "file_name": "sdnnt_apply.sh",
+          "file_type": ".sh",
+          "language": "en",
+          "authors": [
+            "pavel-stastny"
+          ],
+          "created_at": "2024-06-07T07:19:49+02:00",
+          "modified_at": "2024-06-07T07:19:49+02:00"
+        }
+      },
+      {
+        "query": "Which subdirectories does the channel's Apache startup script create under the ssl directory?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/channel/start-apache.sh"
+        ],
+        "reference_answer": "The Apache startup script creates the following subdirectories under the ssl directory: `client`, `certs`, `ca`, `zip`, and `scripts`.",
+        "metadata": {
+          "file_name": "start-apache.sh",
+          "file_type": ".sh",
+          "language": "en",
+          "authors": [
+            "pavel-stastny",
+            "Petr Kudela"
+          ],
+          "created_at": "2024-05-10T10:39:52+02:00",
+          "modified_at": "2025-07-07T12:14:26+02:00"
+        }
+      },
+      {
+        "query": "What is the Keycloak client resource id configured for Kramerius in the docker-compose setup?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/mnt/import/.kramerius4/keycloak.json"
+        ],
+        "reference_answer": "The Keycloak client resource id configured for Kramerius in the docker-compose setup is \"krameriusClient.\"",
+        "metadata": {
+          "file_name": "keycloak.json",
+          "file_type": ".json",
+          "language": "ca",
+          "authors": [
+            "Petr Kudela",
+            "pavel-stastny"
+          ],
+          "created_at": "2024-04-09T08:53:05+02:00",
+          "modified_at": "2024-04-15T16:30:54+02:00"
+        }
+      },
+      {
+        "query": "What is the access token lifespan configured in the Kramerius Keycloak realm export?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/_app/realm-export.json"
+        ],
+        "reference_answer": "The access token lifespan configured in the Kramerius Keycloak realm export is 300 seconds.",
+        "metadata": {
+          "file_name": "realm-export.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "Petr Kudela"
+          ],
+          "created_at": "2024-04-17T10:26:08+02:00",
+          "modified_at": "2024-04-17T10:26:08+02:00"
+        }
+      },
+      {
+        "query": "What Docker image name and version source does the channel's build-channel.sh script use to build the kramerius-secured-channel image in the kramerius-docker-compose project?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/channel/build-channel.sh"
+        ],
+        "reference_answer": "The Docker image name is `ceskaexpedice/kramerius-secured-channel`, and the version is sourced from the `version.txt` file.",
+        "metadata": {
+          "file_name": "build-channel.sh",
+          "file_type": ".sh",
+          "language": "en",
+          "authors": [
+            "Petr Kudela"
+          ],
+          "created_at": "2025-07-02T16:28:12+02:00",
+          "modified_at": "2025-07-02T16:28:12+02:00"
+        }
+      },
+      {
+        "query": "Which client certificate and key files does the channel's test_certificate.sh script pass to curl when testing the CDK hostname connection in the kramerius-docker-compose project?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/channel/baked/scripts/test_certificate.sh"
+        ],
+        "reference_answer": "The test_certificate.sh script passes the client certificate file `../client/ceskadigitalniknihovna.cz.crt` and the client key file `../client/ceskadigitalniknihovna.cz.key` to curl when testing the CDK hostname connection.",
+        "metadata": {
+          "file_name": "test_certificate.sh",
+          "file_type": ".sh",
+          "language": "en",
+          "authors": [
+            "Petr Kudela",
+            "pavel-stastny"
+          ],
+          "created_at": "2024-05-10T10:39:52+02:00",
+          "modified_at": "2025-07-02T16:28:12+02:00"
+        }
+      },
+      {
+        "query": "Which API endpoint path does the channel's test_user.sh script query against the CDK hostname in the kramerius-docker-compose project?",
+        "relevant_files": [
+          "submodules/kramerius-docker-compose/channel/baked/scripts/test_user.sh"
+        ],
+        "reference_answer": "The channel's test_user.sh script queries against the API endpoint path `/search/api/cdk/v7.0/forward/user`.",
+        "metadata": {
+          "file_name": "test_user.sh",
+          "file_type": ".sh",
+          "language": "en",
+          "authors": [
+            "Petr Kudela",
+            "pavel-stastny"
+          ],
+          "created_at": "2024-05-10T10:39:52+02:00",
+          "modified_at": "2025-07-02T16:28:12+02:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "navody.digital",
+    "collections": [
+      "navody.digital_slovakbert",
+      "navody.digital_czert",
+      "navody.digital_xlmr",
+      "navody.digital_mbert",
+      "navody.digital_qwen3",
+      "navody.digital_te3s",
+      "navody.digital_e5sksmall_hybrid",
+      "navody.digital_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "What command starts the Návody.digital app locally?",
+        "relevant_files": [
+          "submodules/navody.digital/README.md"
+        ],
+        "reference_answer": "The command to start the Návody.digital app locally is `bin/rails s`.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "Marek Ceľuch",
+            "Miroslav Hettes",
+            "Ján Bočínec",
+            "Marek Vigaš",
+            "Pavol Zbell",
+            "Daniel Husar",
+            "Tomas Valent",
+            "HanaBene",
+            "Jano Suchal",
+            "Ernest Walzel"
+          ],
+          "created_at": "2018-11-28T11:21:03+01:00",
+          "modified_at": "2025-07-23T10:54:57+02:00"
+        }
+      },
+      {
+        "query": "What command runs before deployment on Dokku for Návody.digital?",
+        "relevant_files": [
+          "submodules/navody.digital/app.json"
+        ],
+        "reference_answer": "The command that runs before deployment on Dokku for Návody.digital is `bundle exec rails assets:precompile db:migrate`.",
+        "metadata": {
+          "file_name": "app.json",
+          "file_type": ".json",
+          "language": "ca",
+          "authors": [
+            "luciajanikova",
+            "jsuchal"
+          ],
+          "created_at": "2018-12-01T11:03:51+01:00",
+          "modified_at": "2021-09-30T22:39:11+02:00"
+        }
+      },
+      {
+        "query": "Which JS library provides the anti-bot captcha functionality in Návody.digital's frontend?",
+        "relevant_files": [
+          "submodules/navody.digital/package.json"
+        ],
+        "reference_answer": "The JS library that provides the anti-bot captcha functionality in Návody.digital's frontend is \"altcha\".",
+        "metadata": {
+          "file_name": "package.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "Tomáš Drga",
+            "Ahmed Al Hafoudh",
+            "luciajanikova",
+            "Lucia Janíková",
+            "Jano Suchal",
+            "Ernest Walzel"
+          ],
+          "created_at": "2018-11-28T15:06:40+01:00",
+          "modified_at": "2025-07-28T13:15:02+02:00"
+        }
+      },
+      {
+        "query": "What does Návody.digital's health check endpoint verify before reporting the app as healthy?",
+        "relevant_files": [
+          "submodules/navody.digital/app/controllers/health_controller.rb"
+        ],
+        "reference_answer": "Návody.digital's health check endpoint verifies the health of database connections by executing a simple query ('SELECT 1') and checks if all databases return a status of \"ok\" before reporting the app as healthy.",
+        "metadata": {
+          "file_name": "health_controller.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Tomáš Drga",
+            "Ernest Walzel"
+          ],
+          "created_at": "2018-11-29T13:15:07+01:00",
+          "modified_at": "2024-01-29T12:46:35+01:00"
+        }
+      },
+      {
+        "query": "What are the two valid types of a Task in Návody.digital?",
+        "relevant_files": [
+          "submodules/navody.digital/app/models/task.rb"
+        ],
+        "reference_answer": "The two valid types of a Task in Návody.digital are SimpleTask and ExternalLinkTask.",
+        "metadata": {
+          "file_name": "task.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "michal-rohacek",
+            "jsuchal",
+            "Jakub Daubner",
+            "marosj",
+            "Miroslav Hettes",
+            "Ahmed Al Hafoudh",
+            "Michal Barla"
+          ],
+          "created_at": "2018-12-01T11:40:54+01:00",
+          "modified_at": "2021-03-24T11:55:45+01:00"
+        }
+      },
+      {
+        "query": "What are the possible publication statuses of a Journey in Návody.digital?",
+        "relevant_files": [
+          "submodules/navody.digital/app/models/journey.rb"
+        ],
+        "reference_answer": "The possible publication statuses of a Journey in Návody.digital are DRAFT, URL_ONLY, BLANK, and PUBLISHED.",
+        "metadata": {
+          "file_name": "journey.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Michal Barla",
+            "Miroslav Hettes",
+            "Marek Ceľuch",
+            "Marek Zofota",
+            "Jano Suchal",
+            "maros.zeleny",
+            "jsuchal",
+            "michalrohacek256",
+            "marosj",
+            "Martin Ciz",
+            "Ernest Walzel",
+            "Ahmed Al Hafoudh"
+          ],
+          "created_at": "2018-12-01T11:40:54+01:00",
+          "modified_at": "2025-10-11T09:59:51+02:00"
+        }
+      },
+      {
+        "query": "How does Návody.digital's search feature process a user's query before searching?",
+        "relevant_files": [
+          "submodules/navody.digital/app/controllers/searches_controller.rb"
+        ],
+        "reference_answer": "Návody.digital's search feature processes a user's query by first transliterating the query using the `Transliterator.transliterate` method before performing the search on the `Document` model.",
+        "metadata": {
+          "file_name": "searches_controller.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Jano Suchal",
+            "Michal Barla",
+            "Martin Ciz",
+            "Ernest Walzel",
+            "jsuchal"
+          ],
+          "created_at": "2018-12-01T15:47:24+01:00",
+          "modified_at": "2020-09-19T14:49:46+02:00"
+        }
+      },
+      {
+        "query": "Where does user feedback get sent when submitted through Návody.digital's feedback form?",
+        "relevant_files": [
+          "submodules/navody.digital/app/controllers/feedbacks_controller.rb"
+        ],
+        "reference_answer": "User feedback submitted through Návody.digital's feedback form gets sent to a Google Forms URL.",
+        "metadata": {
+          "file_name": "feedbacks_controller.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "michalrohacek256",
+            "Ernest Walzel"
+          ],
+          "created_at": "2019-04-18T17:01:15+02:00",
+          "modified_at": "2020-05-29T20:05:16+02:00"
+        }
+      },
+      {
+        "query": "What does Návody.digital's devcontainer post-create command script do?",
+        "relevant_files": [
+          "submodules/navody.digital/.devcontainer/postCreateCommand.sh"
+        ],
+        "reference_answer": "The `post-createCommand.sh` script for Návody.digital starts the PostgreSQL server, creates a user and their database using a SQL script, installs Ruby gems with Bundler, installs JavaScript packages with Yarn, runs a setup script, and sets the Node environment to development.",
+        "metadata": {
+          "file_name": "postCreateCommand.sh",
+          "file_type": ".sh",
+          "language": "en",
+          "authors": [
+            "Marek Vigaš",
+            "Marek Ceľuch"
+          ],
+          "created_at": "2022-04-06T10:15:31+02:00",
+          "modified_at": "2022-04-22T13:45:44+02:00"
+        }
+      },
+      {
+        "query": "What format and delimiter does Návody.digital's countries reference dataset use?",
+        "relevant_files": [
+          "submodules/navody.digital/db/data/countries.csv"
+        ],
+        "reference_answer": "The countries reference dataset from Návody.digital uses the CSV format with a pipe (`|`) as the delimiter.",
+        "metadata": {
+          "file_name": "countries.csv",
+          "file_type": ".csv",
+          "language": "sk",
+          "authors": [
+            "luciajanikova"
+          ],
+          "created_at": "2022-08-31T09:55:43+02:00",
+          "modified_at": "2022-08-31T09:55:43+02:00"
+        }
+      },
+      {
+        "query": "How does Návody.digital's DeadlineResolver decide whether to add a year to a recurring deadline's due date?",
+        "relevant_files": [
+          "submodules/navody.digital/app/lib/deadline_resolver.rb"
+        ],
+        "reference_answer": "Návody.digital's DeadlineResolver adds a year to a recurring deadline's due date if the event is not a one-time event and if the current date is more than 182 days past the due date.",
+        "metadata": {
+          "file_name": "deadline_resolver.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Michal Barla"
+          ],
+          "created_at": "2023-01-18T10:54:28+01:00",
+          "modified_at": "2023-01-18T10:54:28+01:00"
+        }
+      },
+      {
+        "query": "What happens when a user completes or undoes a task through Návody.digital's TasksController?",
+        "relevant_files": [
+          "submodules/navody.digital/app/controllers/tasks_controller.rb"
+        ],
+        "reference_answer": "When a user completes a task through Návody.digital's TasksController, the `complete_task!` method is called on their user journey after finding the corresponding task, and the user is redirected to the appropriate step. When a user undoes a task, the `undo_task!` method is called similarly, and the user is also redirected. Both actions can respond with HTML or JavaScript, updating the user interface accordingly.",
+        "metadata": {
+          "file_name": "tasks_controller.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Jano Suchal"
+          ],
+          "created_at": "2019-04-12T13:03:48+02:00",
+          "modified_at": "2019-04-12T13:03:48+02:00"
+        }
+      },
+      {
+        "query": "What job does Návody.digital's ScheduleLawCheckJob queue for each law record?",
+        "relevant_files": [
+          "submodules/navody.digital/app/jobs/legal/schedule_law_check_job.rb"
+        ],
+        "reference_answer": "Návody.digital's ScheduleLawCheckJob queues the LawVersionsListJob for each law record.",
+        "metadata": {
+          "file_name": "schedule_law_check_job.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Michal Barla",
+            "Miroslav Hettes"
+          ],
+          "created_at": "2023-03-25T19:44:10+01:00",
+          "modified_at": "2023-03-25T20:30:54+01:00"
+        }
+      },
+      {
+        "query": "Which background job metrics does Návody.digital's StatsReporter send to CloudWatch every quarter hour?",
+        "relevant_files": [
+          "submodules/navody.digital/app/services/stats_reporter.rb"
+        ],
+        "reference_answer": "Návody.digital's StatsReporter sends the following background job metrics to CloudWatch every quarter hour: \"JobsCount\", \"FailedJobsCount\", and \"StuckJobsCount\".",
+        "metadata": {
+          "file_name": "stats_reporter.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch",
+            "DevTomii"
+          ],
+          "created_at": "2023-06-27T16:50:55+02:00",
+          "modified_at": "2025-04-28T13:16:51+02:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "navody-frontend",
+    "collections": [
+      "navody_frontend_slovakbert",
+      "navody_frontend_czert",
+      "navody_frontend_xlmr",
+      "navody_frontend_mbert",
+      "navody_frontend_qwen3",
+      "navody_frontend_te3s",
+      "navody_frontend_e5sksmall_hybrid",
+      "navody_frontend_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "Who holds the copyright stated in navody-frontend's LICENSE, and what year?",
+        "relevant_files": [
+          "submodules/navody-frontend/LICENSE.txt"
+        ],
+        "reference_answer": "The copyright stated in navody-frontend's LICENSE is held by Crown Copyright (Government Digital Service) for the year 2017.",
+        "metadata": {
+          "file_name": "LICENSE.txt",
+          "file_type": ".txt",
+          "language": "en",
+          "authors": [
+            "Gemma Leigh"
+          ],
+          "created_at": "2017-05-16T15:54:51+01:00",
+          "modified_at": "2017-05-16T15:54:51+01:00"
+        }
+      },
+      {
+        "query": "What are the main and sass entry-point files declared in navody-frontend's published package?",
+        "relevant_files": [
+          "submodules/navody-frontend/package/package.json"
+        ],
+        "reference_answer": "The main entry-point file declared in navody-frontend's published package is \"govuk/all.js,\" and the sass entry-point file is \"govuk/all.scss.\"",
+        "metadata": {
+          "file_name": "package.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "Matúš",
+            "Hanna Laakso",
+            "Oliver Byford",
+            "Vanita Barrett",
+            "Nick Colley",
+            "Ernest Walzel",
+            "Alistair Laing",
+            "“Filip",
+            "igloosi",
+            "Jani Kraner",
+            "Hanna",
+            "alex-ju"
+          ],
+          "created_at": "2018-04-27T14:09:09+01:00",
+          "modified_at": "2021-04-16T11:59:43+02:00"
+        }
+      },
+      {
+        "query": "What is the name field value in navody-frontend's root package.json?",
+        "relevant_files": [
+          "submodules/navody-frontend/package.json"
+        ],
+        "reference_answer": "The name field value in navody-frontend's root package.json is \"navody-digital-repository\".",
+        "metadata": {
+          "file_name": "package.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "dependabot[bot]",
+            "Vanita Barrett",
+            "Kevin Dew",
+            "Oliver Byford",
+            "Colin Rotherham",
+            "Nick Colley",
+            "Emma Lewis",
+            "Alistair Laing",
+            "Hanna Laakso",
+            "Marek Zofota",
+            "“Filip",
+            "Jani Kraner",
+            "igloosi",
+            "Alex",
+            "alex-ju",
+            "Gemma Leigh"
+          ],
+          "created_at": "2017-05-18T12:49:04+01:00",
+          "modified_at": "2021-02-08T22:01:40+00:00"
+        }
+      },
+      {
+        "query": "What exact Node.js engine version does navody-frontend's root package.json specify?",
+        "relevant_files": [
+          "submodules/navody-frontend/package.json"
+        ],
+        "reference_answer": "The exact Node.js engine version specified in navody-frontend's root package.json is \"12.13.1\".",
+        "metadata": {
+          "file_name": "package.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "dependabot[bot]",
+            "Vanita Barrett",
+            "Kevin Dew",
+            "Oliver Byford",
+            "Colin Rotherham",
+            "Nick Colley",
+            "Emma Lewis",
+            "Alistair Laing",
+            "Hanna Laakso",
+            "Marek Zofota",
+            "“Filip",
+            "Jani Kraner",
+            "igloosi",
+            "Alex",
+            "alex-ju",
+            "Gemma Leigh"
+          ],
+          "created_at": "2017-05-18T12:49:04+01:00",
+          "modified_at": "2021-02-08T22:01:40+00:00"
+        }
+      },
+      {
+        "query": "Whose Code of Conduct does navody-frontend follow?",
+        "relevant_files": [
+          "submodules/navody-frontend/CODE_OF_CONDUCT.md"
+        ],
+        "reference_answer": "The navody-frontend follows the 'alphagov' Github organisation's Code of Conduct.",
+        "metadata": {
+          "file_name": "CODE_OF_CONDUCT.md",
+          "file_type": ".md",
+          "language": "en",
+          "authors": [
+            "Ian James",
+            "Nick Colley"
+          ],
+          "created_at": "2018-03-12T13:37:25+00:00",
+          "modified_at": "2020-02-21T16:20:04+00:00"
+        }
+      },
+      {
+        "query": "What indentation and whitespace convention does navody-frontend's CONTRIBUTING.md specify?",
+        "relevant_files": [
+          "submodules/navody-frontend/CONTRIBUTING.md"
+        ],
+        "reference_answer": "The indentation and whitespace convention specified in navody-frontend's CONTRIBUTING.md is to use 2-space, soft-tabs only, with no trailing whitespace.",
+        "metadata": {
+          "file_name": "CONTRIBUTING.md",
+          "file_type": ".md",
+          "language": "en",
+          "authors": [
+            "Mark Green",
+            "Hanna Laakso",
+            "amyhupe",
+            "Nick Colley",
+            "Oliver Byford",
+            "Jani Kraner",
+            "Hanna",
+            "Gemma Leigh"
+          ],
+          "created_at": "2017-05-16T15:54:51+01:00",
+          "modified_at": "2020-04-09T09:16:01+01:00"
+        }
+      },
+      {
+        "query": "What new feature was introduced in navody-frontend version 3.11.0?",
+        "relevant_files": [
+          "submodules/navody-frontend/CHANGELOG.md"
+        ],
+        "reference_answer": "In navody-frontend version 3.11.0, new features introduced include the ability for users to accept or reject cookies with a cookie banner, the option to group buttons and links visually, and the ability to change the style of table captions using specific classes.",
+        "metadata": {
+          "file_name": "CHANGELOG.md",
+          "file_type": ".md",
+          "language": "en",
+          "authors": [
+            "Charlotte Downs",
+            "Oliver Byford",
+            "EoinShaughnessy",
+            "Frankie Roberto",
+            "Chris Hill-Scott",
+            "Andy Mantell",
+            "Vanita Barrett",
+            "Eoin Shaughnessy",
+            "Jonathan Schmid",
+            "Hanna Laakso",
+            "Mark Green",
+            "Deborah Chua",
+            "rorywilsonros",
+            "Chris Thomas",
+            "Adam Silver",
+            "Paul Hayes",
+            "Nick Colley",
+            "Emma Lewis",
+            "Mat Carey",
+            "DebsDee",
+            "Dave House",
+            "Colin Oakley",
+            "m-green",
+            "Alex Jurubita",
+            "Alistair Laing",
+            "Paul Massey",
+            "Colin Rotherham",
+            "Niall Molloy",
+            "Thomas Leese",
+            "Dan Boscaro",
+            "Malcolm Butler",
+            "Sushmith Bhatta",
+            "Andy Sellick",
+            "igloosi",
+            "Jon Heslop",
+            "David Way",
+            "Kevin Dew",
+            "Malcolm Hire",
+            "Graham Veal",
+            "Jani Kraner",
+            "alex-ju",
+            "Hanna",
+            "Bevan Loon",
+            "Alex Robinson",
+            "Alex",
+            "Joe Lanman",
+            "Peter Hartshorn",
+            "Gemma Leigh"
+          ],
+          "created_at": "2017-05-16T15:54:51+01:00",
+          "modified_at": "2021-03-03T09:46:03+00:00"
+        }
+      },
+      {
+        "query": "What component was introduced in navody-frontend version 3.10.0?",
+        "relevant_files": [
+          "submodules/navody-frontend/CHANGELOG.md"
+        ],
+        "reference_answer": "In navody-frontend version 3.10.0, the introduced components are the notification banner component and the ability to customize the input mode in the date component.",
+        "metadata": {
+          "file_name": "CHANGELOG.md",
+          "file_type": ".md",
+          "language": "en",
+          "authors": [
+            "Charlotte Downs",
+            "Oliver Byford",
+            "EoinShaughnessy",
+            "Frankie Roberto",
+            "Chris Hill-Scott",
+            "Andy Mantell",
+            "Vanita Barrett",
+            "Eoin Shaughnessy",
+            "Jonathan Schmid",
+            "Hanna Laakso",
+            "Mark Green",
+            "Deborah Chua",
+            "rorywilsonros",
+            "Chris Thomas",
+            "Adam Silver",
+            "Paul Hayes",
+            "Nick Colley",
+            "Emma Lewis",
+            "Mat Carey",
+            "DebsDee",
+            "Dave House",
+            "Colin Oakley",
+            "m-green",
+            "Alex Jurubita",
+            "Alistair Laing",
+            "Paul Massey",
+            "Colin Rotherham",
+            "Niall Molloy",
+            "Thomas Leese",
+            "Dan Boscaro",
+            "Malcolm Butler",
+            "Sushmith Bhatta",
+            "Andy Sellick",
+            "igloosi",
+            "Jon Heslop",
+            "David Way",
+            "Kevin Dew",
+            "Malcolm Hire",
+            "Graham Veal",
+            "Jani Kraner",
+            "alex-ju",
+            "Hanna",
+            "Bevan Loon",
+            "Alex Robinson",
+            "Alex",
+            "Joe Lanman",
+            "Peter Hartshorn",
+            "Gemma Leigh"
+          ],
+          "created_at": "2017-05-16T15:54:51+01:00",
+          "modified_at": "2021-03-03T09:46:03+00:00"
+        }
+      },
+      {
+        "query": "Which Heroku buildpack is declared in navody-frontend's app.json?",
+        "relevant_files": [
+          "submodules/navody-frontend/app.json"
+        ],
+        "reference_answer": "The Heroku buildpack declared in navody-frontend's app.json is \"heroku/nodejs\".",
+        "metadata": {
+          "file_name": "app.json",
+          "file_type": ".json",
+          "language": "en",
+          "authors": [
+            "Oliver Byford",
+            "“Filip",
+            "Gemma Leigh"
+          ],
+          "created_at": "2017-06-15T15:34:49+01:00",
+          "modified_at": "2020-12-23T10:17:36+00:00"
+        }
+      },
+      {
+        "query": "What does navody-frontend's bin/check-nvmrc.js script do when the running Node major version doesn't match .nvmrc?",
+        "relevant_files": [
+          "submodules/navody-frontend/bin/check-nvmrc.js"
+        ],
+        "reference_answer": "The `navody-frontend's bin/check-nvmrc.js` script checks the running Node major version against the version specified in the `.nvmrc` file. If the major version doesn't match, it outputs a warning and suggests installing the correct Node version using nvm, and it exits with a failure code. If the major version matches but the exact version does not, it issues a warning but still exits successfully.",
+        "metadata": {
+          "file_name": "check-nvmrc.js",
+          "file_type": ".js",
+          "language": "en",
+          "authors": [
+            "Nick Colley"
+          ],
+          "created_at": "2018-01-24T18:09:27+00:00",
+          "modified_at": "2018-12-03T15:29:38+00:00"
+        }
+      },
+      {
+        "query": "In navody-frontend's tools/_px-to-rem.scss, what calculation does the govuk-px-to-rem function perform to convert a pixel value into rems?",
+        "relevant_files": [
+          "submodules/navody-frontend/src/govuk/tools/_px-to-rem.scss"
+        ],
+        "reference_answer": "The `govuk-px-to-rem` function converts a pixel value to rems by taking the pixel value, ensuring it has a pixel unit if it is unitless, and then dividing it by the `$govuk-root-font-size` before multiplying by `1rem`.",
+        "metadata": {
+          "file_name": "_px-to-rem.scss",
+          "file_type": ".scss",
+          "language": "en",
+          "authors": [
+            "Oliver Byford",
+            "Alistair Laing"
+          ],
+          "created_at": "2018-07-02T09:25:08+01:00",
+          "modified_at": "2020-05-18T09:50:15+01:00"
+        }
+      },
+      {
+        "query": "In navody-frontend's helpers/_shape-arrow.scss, what approximation value does the private _govuk-equilateral-height function use for the square root of three, and what clip-path polygon does the govuk-shape-arrow mixin apply when the direction is 'up'?",
+        "relevant_files": [
+          "submodules/navody-frontend/src/govuk/helpers/_shape-arrow.scss"
+        ],
+        "reference_answer": "The private `_govuk-equilateral-height` function uses 1.732 as an approximation for the square root of three. When the direction is 'up', the `govuk-shape-arrow` mixin applies a clip-path polygon of `polygon(50% 0%, 0% 100%, 100% 100%)`.",
+        "metadata": {
+          "file_name": "_shape-arrow.scss",
+          "file_type": ".scss",
+          "language": "en",
+          "authors": [
+            "Oliver Byford",
+            "Alistair Laing",
+            "igloosi",
+            "Jani Kraner",
+            "alex-ju"
+          ],
+          "created_at": "2017-12-13T14:35:22+00:00",
+          "modified_at": "2020-03-30T14:05:03+01:00"
+        }
+      },
+      {
+        "query": "In navody-frontend's helpers/_focused.scss, what box-shadow value does the govuk-focused-text mixin apply and what does it do to the element's text-decoration?",
+        "relevant_files": [
+          "submodules/navody-frontend/src/govuk/helpers/_focused.scss"
+        ],
+        "reference_answer": "The `govuk-focused-text` mixin applies a box-shadow value of `0 -2px $govuk-focus-colour, 0 4px $govuk-focus-text-colour` to the element, and it sets the element's text-decoration to `none` to hide the default underline when the link is focused.",
+        "metadata": {
+          "file_name": "_focused.scss",
+          "file_type": ".scss",
+          "language": "en",
+          "authors": [
+            "Oliver Byford",
+            "Nick Colley",
+            "Alistair Laing",
+            "Jani Kraner"
+          ],
+          "created_at": "2018-01-05T13:59:07+00:00",
+          "modified_at": "2020-03-30T14:05:03+01:00"
+        }
+      },
+      {
+        "query": "In navody-frontend's character-count.js, how often does the handleFocus method poll for textarea value changes via setInterval, and what does handleBlur do with that interval?",
+        "relevant_files": [
+          "submodules/navody-frontend/src/govuk/components/character-count/character-count.js"
+        ],
+        "reference_answer": "The `handleFocus` method in `navody-frontend's character-count.js` polls for textarea value changes every 1000 milliseconds (1 second) via `setInterval`. The `handleBlur` method clears this interval, stopping the polling when the textarea loses focus.",
+        "metadata": {
+          "file_name": "character-count.js",
+          "file_type": ".js",
+          "language": "en",
+          "authors": [
+            "Oliver Byford",
+            "Vanita Barrett",
+            "Hanna Laakso",
+            "Alistair Laing",
+            "Nick Colley",
+            "Alex Jurubita",
+            "Alex",
+            "Hanna",
+            "alex-ju"
+          ],
+          "created_at": "2018-06-27T18:06:55+01:00",
+          "modified_at": "2020-12-18T13:46:39+00:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "poc-iam",
+    "collections": [
+      "poc_iam_slovakbert",
+      "poc_iam_czert",
+      "poc_iam_xlmr",
+      "poc_iam_mbert",
+      "poc_iam_qwen3",
+      "poc_iam_te3s",
+      "poc_iam_e5sksmall_hybrid",
+      "poc_iam_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "What is the purpose of the poc-iam project?",
+        "relevant_files": [
+          "submodules/poc-iam/README.md"
+        ],
+        "reference_answer": "The purpose of the poc-iam project is to provide a sample implementation of an IAM Security Token Service (STS) that is compatible with the current IAM system-to-system integration (SAML 2.0) on the ÚPVS portal, utilizing reliable open-source technologies and facilitating modern CI/CD deployment.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "Jano Suchal",
+            "Jan Suchal"
+          ],
+          "created_at": "2026-02-03T13:03:07+01:00",
+          "modified_at": "2026-02-03T19:11:25+01:00"
+        }
+      },
+      {
+        "query": "What is the high-level architecture of poc-iam's STS service?",
+        "relevant_files": [
+          "submodules/poc-iam/README.md"
+        ],
+        "reference_answer": "The high-level architecture of poc-iam's STS service consists of a Spring Boot application with Apache CXF for handling WS-Trust and WS-Security. It validates signed SOAP requests, verifies certificates via Redis, and returns SAML assertions. Main components include STSApp (entry point), STSConfiguration (configuration), AddUPVSSamlAssertionsHandler (handling SAML attributes), and RedisCertValidator (certificates verification).",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "Jano Suchal",
+            "Jan Suchal"
+          ],
+          "created_at": "2026-02-03T13:03:07+01:00",
+          "modified_at": "2026-02-03T19:11:25+01:00"
+        }
+      },
+      {
+        "query": "What are the main components of poc-iam's STS application?",
+        "relevant_files": [
+          "submodules/poc-iam/README.md"
+        ],
+        "reference_answer": "The main components of poc-iam's STS application include STSApp (entry point), STSConfiguration (configuration), AddUPVSSamlAssertionsHandler (SAML attributes), and RedisCertValidator (certificates).",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "Jano Suchal",
+            "Jan Suchal"
+          ],
+          "created_at": "2026-02-03T13:03:07+01:00",
+          "modified_at": "2026-02-03T19:11:25+01:00"
+        }
+      },
+      {
+        "query": "What security limitations does poc-iam's README disclose for this proof-of-concept?",
+        "relevant_files": [
+          "submodules/poc-iam/README.md"
+        ],
+        "reference_answer": "The README for poc-iam discloses several security limitations, including hardcoded passwords (keystore password is \"changeit\"), disabled timestamp strictness for debugging, hardcoded test data in SAML attributes, and a replay cache that is not suitable for multi-instance deployment.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "Jano Suchal",
+            "Jan Suchal"
+          ],
+          "created_at": "2026-02-03T13:03:07+01:00",
+          "modified_at": "2026-02-03T19:11:25+01:00"
+        }
+      },
+      {
+        "query": "What does the STSApp class do in poc-iam?",
+        "relevant_files": [
+          "submodules/poc-iam/src/main/java/digital/slovensko/poc/migalotros/STSApp.java"
+        ],
+        "reference_answer": "The STSApp class serves as the main entry point for the application, initializing and running the Spring Boot application using the SpringApplicationBuilder.",
+        "metadata": {
+          "file_name": "STSApp.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "Michal Sabo",
+            "Jan Suchal"
+          ],
+          "created_at": "2026-02-02T09:32:42+01:00",
+          "modified_at": "2026-02-03T16:31:42+01:00"
+        }
+      },
+      {
+        "query": "How does RedisCertValidator validate a client certificate in poc-iam?",
+        "relevant_files": [
+          "submodules/poc-iam/src/main/java/digital/slovensko/poc/migalotros/RedisCertValidator.java"
+        ],
+        "reference_answer": "RedisCertValidator validates a client certificate by checking its public key digest against a Redis allowlist. It computes the SHA-256 digest of the certificate's public key and compares it with entries in Redis; if the digest is not found, the certificate is considered untrusted and an exception is thrown.",
+        "metadata": {
+          "file_name": "RedisCertValidator.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "Jan Suchal",
+            "Michal Sabo"
+          ],
+          "created_at": "2026-02-03T13:03:07+01:00",
+          "modified_at": "2026-02-03T19:09:36+01:00"
+        }
+      },
+      {
+        "query": "What does AddUPVSSamlAssertionsHandler add to a SAML assertion in poc-iam?",
+        "relevant_files": [
+          "submodules/poc-iam/src/main/java/digital/slovensko/poc/migalotros/AddUPVSSamlAssertionsHandler.java"
+        ],
+        "reference_answer": "The `AddUPVSSamlAssertionsHandler` adds several custom attributes to a SAML assertion, including attributes related to the actor and subject, such as \"Actor.FormattedName\", \"Subject.Email\", and a multi-value \"Roles\" attribute, among others. These attributes enrich the SAML assertion with identity and role information relevant to the UPVS system.",
+        "metadata": {
+          "file_name": "AddUPVSSamlAssertionsHandler.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "Jan Suchal"
+          ],
+          "created_at": "2026-02-03T11:03:20+01:00",
+          "modified_at": "2026-02-03T11:03:20+01:00"
+        }
+      },
+      {
+        "query": "What is the hardcoded keystore password in poc-iam's STSConfiguration?",
+        "relevant_files": [
+          "submodules/poc-iam/src/main/java/digital/slovensko/poc/migalotros/STSConfiguration.java"
+        ],
+        "reference_answer": "The hardcoded keystore password in poc-iam's STSConfiguration is \"changeit\".",
+        "metadata": {
+          "file_name": "STSConfiguration.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "Michal Sabo",
+            "Jan Suchal"
+          ],
+          "created_at": "2026-02-02T21:45:03+01:00",
+          "modified_at": "2026-02-03T16:31:42+01:00"
+        }
+      },
+      {
+        "query": "At what endpoint path is poc-iam's STS service published?",
+        "relevant_files": [
+          "submodules/poc-iam/src/main/java/digital/slovensko/poc/migalotros/STSConfiguration.java"
+        ],
+        "reference_answer": "The STS service for poc-iam is published at the endpoint path \"/STS\".",
+        "metadata": {
+          "file_name": "STSConfiguration.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "Michal Sabo",
+            "Jan Suchal"
+          ],
+          "created_at": "2026-02-02T21:45:03+01:00",
+          "modified_at": "2026-02-03T16:31:42+01:00"
+        }
+      },
+      {
+        "query": "What issuer value does poc-iam's STS use for issued tokens?",
+        "relevant_files": [
+          "submodules/poc-iam/src/main/java/digital/slovensko/poc/migalotros/STSConfiguration.java"
+        ],
+        "reference_answer": "The issuer value that poc-iam's STS uses for issued tokens is \"iamsts.upvsfix.local\".",
+        "metadata": {
+          "file_name": "STSConfiguration.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "Michal Sabo",
+            "Jan Suchal"
+          ],
+          "created_at": "2026-02-02T21:45:03+01:00",
+          "modified_at": "2026-02-03T16:31:42+01:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "slovensko-sk-api",
+    "collections": [
+      "slovensko_sk_api_slovakbert",
+      "slovensko_sk_api_czert",
+      "slovensko_sk_api_xlmr",
+      "slovensko_sk_api_mbert",
+      "slovensko_sk_api_qwen3",
+      "slovensko_sk_api_te3s",
+      "slovensko_sk_api_e5sksmall_hybrid",
+      "slovensko_sk_api_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "What is the slovensko.sk API component and what services does it provide?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/README.md"
+        ],
+        "reference_answer": "The slovensko.sk API is a proxy REST API component for the services of the Slovak government's central portal (ÚPVS), distributed as a Docker container. It provides services such as eID login, retrieving information about the logged-in user, submitting applications on behalf of the user or authorized legal entities, managing eDesk, maintaining long-term archival data, using the central official board, electronic sealing services, and verifying electronic signatures.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "Marek Ceľuch",
+            "luciajanikova",
+            "Pavol Zbell",
+            "Jano Suchal",
+            "jsuchal"
+          ],
+          "created_at": "2018-10-17T12:15:17+02:00",
+          "modified_at": "2022-06-01T23:16:58+02:00"
+        }
+      },
+      {
+        "query": "What steps are required to install and start the slovensko.sk API component?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/INSTALL.md"
+        ],
+        "reference_answer": "To install and start the slovensko.sk API component, follow these steps:\n\n1. Set up a directory containing the modified `docker-compose.yml`, an `.env` file with appropriate environment variables, and all required security files based on the modified `.env`.\n2. If needed, add necessary services and environment variables to support eForm synchronization or authentication options as outlined in the installation guide.\n3. Initialize the database with the command: `docker-compose run web bundle exec rails db:create db:migrate`.\n4. Start the component using: `docker-compose up`.\n5. Check the status of the running component on port 3000 with: `curl localhost:3000/health`.",
+        "metadata": {
+          "file_name": "INSTALL.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "luciajanikova",
+            "Marek Ceľuch",
+            "jsuchal",
+            "Pavol Zbell",
+            "Jano Suchal"
+          ],
+          "created_at": "2018-10-18T17:10:09+02:00",
+          "modified_at": "2026-02-26T13:11:19+01:00"
+        }
+      },
+      {
+        "query": "How do you check the health status of a running slovensko.sk API instance?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/INSTALL.md"
+        ],
+        "reference_answer": "To check the health status of a running slovensko.sk API instance, you can use the following command: \n\n```\ncurl localhost:3000/health\n```",
+        "metadata": {
+          "file_name": "INSTALL.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "luciajanikova",
+            "Marek Ceľuch",
+            "jsuchal",
+            "Pavol Zbell",
+            "Jano Suchal"
+          ],
+          "created_at": "2018-10-18T17:10:09+02:00",
+          "modified_at": "2026-02-26T13:11:19+01:00"
+        }
+      },
+      {
+        "query": "What does the /login endpoint do in the slovensko.sk API?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/public/openapi.yaml"
+        ],
+        "reference_answer": "The `/login` endpoint in the slovensko.sk API allows a user to authenticate using eID or SAML assertion, providing an OBO (On-Behalf-Of) token for accessing user data or calling other interfaces on behalf of the authenticated user. Upon successful login, users are redirected to a specified callback URL.",
+        "metadata": {
+          "file_name": "openapi.yaml",
+          "file_type": ".yaml",
+          "language": "sk",
+          "authors": [
+            "luciajanikova",
+            "Marek Ceľuch",
+            "jsuchal",
+            "Pavol Zbell",
+            "Jano Suchal",
+            "Ernest Walzel"
+          ],
+          "created_at": "2018-12-06T20:53:30+01:00",
+          "modified_at": "2026-02-26T13:11:19+01:00"
+        }
+      },
+      {
+        "query": "Which endpoint is used to add a timestamp to a document in the slovensko.sk API's CEP service?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/public/openapi.yaml"
+        ],
+        "reference_answer": "The provided content does not specify which endpoint is used to add a timestamp to a document in the slovensko.sk API's CEP service.",
+        "metadata": {
+          "file_name": "openapi.yaml",
+          "file_type": ".yaml",
+          "language": "sk",
+          "authors": [
+            "luciajanikova",
+            "Marek Ceľuch",
+            "jsuchal",
+            "Pavol Zbell",
+            "Jano Suchal",
+            "Ernest Walzel"
+          ],
+          "created_at": "2018-12-06T20:53:30+01:00",
+          "modified_at": "2026-02-26T13:11:19+01:00"
+        }
+      },
+      {
+        "query": "What does the /api/cuet/documents/publish_document endpoint do in the slovensko.sk API?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/public/openapi.yaml"
+        ],
+        "reference_answer": "The `/api/cuet/documents/publish_document` endpoint in the slovensko.sk API allows the publishing of documents on the central official board, an action available only for public administration entities (OVM).",
+        "metadata": {
+          "file_name": "openapi.yaml",
+          "file_type": ".yaml",
+          "language": "sk",
+          "authors": [
+            "luciajanikova",
+            "Marek Ceľuch",
+            "jsuchal",
+            "Pavol Zbell",
+            "Jano Suchal",
+            "Ernest Walzel"
+          ],
+          "created_at": "2018-12-06T20:53:30+01:00",
+          "modified_at": "2026-02-26T13:11:19+01:00"
+        }
+      },
+      {
+        "query": "What checks does the /health endpoint perform on the slovensko.sk API component?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/app/controllers/health_controller.rb"
+        ],
+        "reference_answer": "The /health endpoint on the slovensko.sk API component performs several checks including the status of environment variables, PostgreSQL and Redis connections, API authenticators, eForm synchronization certificates and tasks, and SSO certificates and response times. Each check returns a status of 'pass', 'warn', or 'fail' based on its outcome, which is then used to determine the overall health status of the API.",
+        "metadata": {
+          "file_name": "health_controller.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "luciajanikova",
+            "Marek Ceľuch",
+            "jsuchal",
+            "Pavol Zbell"
+          ],
+          "created_at": "2018-10-17T18:30:16+02:00",
+          "modified_at": "2026-02-26T13:11:19+01:00"
+        }
+      },
+      {
+        "query": "What is the maximum token expiration window enforced by slovensko.sk API's ApiTokenAuthenticator?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/app/services/api_token_authenticator.rb"
+        ],
+        "reference_answer": "The maximum token expiration window enforced by the slovensko.sk API's ApiTokenAuthenticator is 5 minutes.",
+        "metadata": {
+          "file_name": "api_token_authenticator.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "luciajanikova",
+            "jsuchal",
+            "Pavol Zbell"
+          ],
+          "created_at": "2018-11-22T23:23:43+01:00",
+          "modified_at": "2025-09-24T13:08:46+02:00"
+        }
+      },
+      {
+        "query": "What does the DownloadFormTemplatesJob background job do in the slovensko.sk API?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/app/jobs/download_form_templates_job.rb"
+        ],
+        "reference_answer": "The DownloadFormTemplatesJob background job fetches all form template IDs from the eform service and schedules the DownloadFormTemplateJob for any templates that do not already exist in the database, unless the job is forced to run.",
+        "metadata": {
+          "file_name": "download_form_templates_job.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Pavol Zbell"
+          ],
+          "created_at": "2019-01-21T12:58:08+01:00",
+          "modified_at": "2021-01-21T23:12:07+01:00"
+        }
+      },
+      {
+        "query": "What does the signatures_info method of CepSigner determine in the slovensko.sk API?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/app/services/cep_signer.rb"
+        ],
+        "reference_answer": "The `signatures_info` method of the `CepSigner` class determines the type and form of a signature in the slovensko.sk API by creating a request and calling a specific service with the provided content.",
+        "metadata": {
+          "file_name": "cep_signer.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "luciajanikova"
+          ],
+          "created_at": "2022-08-18T12:52:20+02:00",
+          "modified_at": "2022-08-18T12:52:20+02:00"
+        }
+      },
+      {
+        "query": "What are the default and valid per_page range values enforced by the Pagination concern in the slovensko.sk API?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/app/controllers/concerns/pagination.rb"
+        ],
+        "reference_answer": "The default value for `per_page` is 50, and the valid range for `per_page` is between 10 and 100.",
+        "metadata": {
+          "file_name": "pagination.rb",
+          "file_type": ".rb",
+          "language": "fr",
+          "authors": [
+            "Pavol Zbell"
+          ],
+          "created_at": "2021-01-21T23:12:07+01:00",
+          "modified_at": "2021-01-21T23:12:07+01:00"
+        }
+      },
+      {
+        "query": "How long is the token expiration window set by OboTokenAuthenticator's generate_long_lasting_token method in the slovensko.sk API?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/app/services/obo_token_authenticator.rb"
+        ],
+        "reference_answer": "The token expiration window set by the OboTokenAuthenticator's `generate_long_lasting_token` method in the slovensko.sk API is 120 minutes.",
+        "metadata": {
+          "file_name": "obo_token_authenticator.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "luciajanikova",
+            "jsuchal",
+            "Pavol Zbell",
+            "Jano Suchal"
+          ],
+          "created_at": "2018-11-22T00:48:56+01:00",
+          "modified_at": "2025-08-25T11:51:57+02:00"
+        }
+      },
+      {
+        "query": "What validation does EdeskMessageParser perform on the Object element of an ED_DELIVERY_NOTIFICATION message in the slovensko.sk API?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/app/services/edesk_message_parser.rb"
+        ],
+        "reference_answer": "The `EdeskMessageParser` performs validation on the `Object` element by ensuring that each required attribute is correctly assigned and matches the expected format, such as raising a `ParseError` if any unexpected attribute is encountered or if the `Id`, `Class`, `Name`, `Description`, `Encoding`, `MimeType`, or `IsSigned` attributes do not meet the specified conditions. Additionally, for `ED_DELIVERY_NOTIFICATION` messages, it checks that there is exactly one child element and that its name is `DeliveryReportNotification`.",
+        "metadata": {
+          "file_name": "edesk_message_parser.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "luciajanikova"
+          ],
+          "created_at": "2023-09-11T23:33:00+02:00",
+          "modified_at": "2024-03-18T15:19:16+01:00"
+        }
+      },
+      {
+        "query": "What keystore type does the KeyStore class in the slovensko.sk API use by default when loading a Java keystore?",
+        "relevant_files": [
+          "submodules/slovensko-sk-api/lib/keystore.rb"
+        ],
+        "reference_answer": "The KeyStore class in the slovensko.sk API uses 'JKS' as the default keystore type when loading a Java keystore.",
+        "metadata": {
+          "file_name": "keystore.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Pavol Zbell"
+          ],
+          "created_at": "2018-11-21T23:47:24+01:00",
+          "modified_at": "2021-01-21T23:12:07+01:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "slovensko-sk-login",
+    "collections": [
+      "slovensko_sk_login_slovakbert",
+      "slovensko_sk_login_czert",
+      "slovensko_sk_login_xlmr",
+      "slovensko_sk_login_mbert",
+      "slovensko_sk_login_qwen3",
+      "slovensko_sk_login_te3s",
+      "slovensko_sk_login_e5sksmall_hybrid",
+      "slovensko_sk_login_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "Which programming languages and frameworks have sample slovensko.sk login implementations in this repo?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/README.md"
+        ],
+        "reference_answer": "The repository contains sample login implementations for the following programming languages and frameworks: Ruby on Rails, Java Tomcat with Onelogin SAML Toolkit, ASP.NET Core, Node.js with @node-saml/node-saml, plain PHP, and PHP with Laravel.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "Juraj Jendek",
+            "Jano Suchal",
+            "Lucia Vladovičová",
+            "Jan Suchal",
+            "luciajanikova",
+            "Rastislav Rehák"
+          ],
+          "created_at": "2024-11-05T10:17:47+01:00",
+          "modified_at": "2025-02-05T11:34:29+01:00"
+        }
+      },
+      {
+        "query": "What host and port do the slovensko-sk-login example Service Provider implementations run on by default?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/README.md"
+        ],
+        "reference_answer": "The slovensko-sk-login example Service Provider implementations run on `127.0.0.1` and the default port is `3001`, accessible via `https://127.0.0.1:3001/`.",
+        "metadata": {
+          "file_name": "README.md",
+          "file_type": ".md",
+          "language": "sk",
+          "authors": [
+            "Juraj Jendek",
+            "Jano Suchal",
+            "Lucia Vladovičová",
+            "Jan Suchal",
+            "luciajanikova",
+            "Rastislav Rehák"
+          ],
+          "created_at": "2024-11-05T10:17:47+01:00",
+          "modified_at": "2025-02-05T11:34:29+01:00"
+        }
+      },
+      {
+        "query": "How does the plain PHP slovensko-sk-login example configure SAML message signing and encryption requirements?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/php/index.php"
+        ],
+        "reference_answer": "The plain PHP slovensko-sk-login example configures SAML message signing and encryption requirements by setting parameters in the `$settings` array, specifically under the `'security'` key. It specifies that authentication and logout requests/responses must be signed (`'authnRequestsSigned'`, `'logoutRequestSigned'`, `'logoutResponseSigned'`), asserts that assertions must be signed and could be encrypted (`'wantAssertionsSigned'`, `'wantAssertionsEncrypted'`), and also indicates that the metadata should be signed (`'metadataSigned'`, `'signMetadata'`). Additionally, it outlines the hashing and signing algorithms to be used.",
+        "metadata": {
+          "file_name": "index.php",
+          "file_type": ".php",
+          "language": "en",
+          "authors": [
+            "odziomkova-brackets"
+          ],
+          "created_at": "2024-12-03T10:17:20+01:00",
+          "modified_at": "2024-12-03T10:17:20+01:00"
+        }
+      },
+      {
+        "query": "How does the Laravel slovensko-sk-login example handle SAML tenants during login?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/laravel/app/Http/Controllers/SamlAuthController.php"
+        ],
+        "reference_answer": "The Laravel slovensko-sk-login example handles SAML tenants during login by utilizing a single tenant in the demo due to metadata being registered without tenant IDs. To support multiple tenants, it mentions that metadata for each tenant needs to be registered, and the artisan command `saml2:create-tenant` can provide the necessary URLs with tenant UUIDs. During login, the controller fetches the first tenant, checks for its existence, and uses it to authenticate the user through SAML, facilitating redirect URLs based on tenant configurations.",
+        "metadata": {
+          "file_name": "SamlAuthController.php",
+          "file_type": ".php",
+          "language": "en",
+          "authors": [
+            "odziomkova-brackets"
+          ],
+          "created_at": "2024-12-03T10:17:20+01:00",
+          "modified_at": "2024-12-03T10:17:20+01:00"
+        }
+      },
+      {
+        "query": "What is the session timeout duration used in the Ruby on Rails slovensko-sk-login example?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/ruby-on-rails/app/controllers/upvs_controller.rb"
+        ],
+        "reference_answer": "The session timeout duration used in the Ruby on Rails slovensko-sk-login example is 20 minutes.",
+        "metadata": {
+          "file_name": "upvs_controller.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "luciajanikova",
+            "Jan Suchal"
+          ],
+          "created_at": "2024-10-29T17:30:25+01:00",
+          "modified_at": "2024-11-11T13:19:48+01:00"
+        }
+      },
+      {
+        "query": "What path prefix does the Ruby on Rails slovensko-sk-login example use for its SAML OmniAuth routes?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/ruby-on-rails/config/initializers/omniauth.rb"
+        ],
+        "reference_answer": "The Ruby on Rails slovensko-sk-login example uses the path prefix \"/auth\" for its SAML OmniAuth routes.",
+        "metadata": {
+          "file_name": "omniauth.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Jan Suchal",
+            "luciajanikova"
+          ],
+          "created_at": "2024-10-29T17:30:25+01:00",
+          "modified_at": "2024-11-08T21:16:21+01:00"
+        }
+      },
+      {
+        "query": "How does the Java OneLogin slovensko-sk-login example's login servlet initiate SAML login?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/java-onelogin/src/main/java/com/archimetes/cgpcon/websso/LoginServlet.java"
+        ],
+        "reference_answer": "The Java OneLogin slovensko-sk-login example's login servlet initiates SAML login by creating an `Auth` object using settings loaded from `Settings.loadSettings()`, and then calling `auth.login()` or `auth.login(redir)` depending on whether a redirect parameter is provided.",
+        "metadata": {
+          "file_name": "LoginServlet.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch",
+            "Rastislav Rehák"
+          ],
+          "created_at": "2024-11-10T21:26:51+01:00",
+          "modified_at": "2024-11-22T10:45:49+01:00"
+        }
+      },
+      {
+        "query": "Where does the Java OneLogin slovensko-sk-login example load its SAML configuration properties from?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/java-onelogin/src/main/java/com/archimetes/cgpcon/websso/Settings.java"
+        ],
+        "reference_answer": "The Java OneLogin slovensko-sk-login example loads its SAML configuration properties from a file located at \"catalina.base/conf/webssodemo.saml.properties\".",
+        "metadata": {
+          "file_name": "Settings.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch",
+            "Rastislav Rehák"
+          ],
+          "created_at": "2024-11-10T21:26:51+01:00",
+          "modified_at": "2024-11-22T10:45:49+01:00"
+        }
+      },
+      {
+        "query": "How does the ASP.NET Core slovensko-sk-login example's Login page trigger SAML authentication?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/asp-net-core/RazorPages/Pages/Login.cshtml.cs"
+        ],
+        "reference_answer": "The Login page in the ASP.NET Core slovensko-sk-login example triggers SAML authentication by calling the `Challenge` method with authentication properties that set the redirect URI, using `Saml2Defaults.Scheme`.",
+        "metadata": {
+          "file_name": "Login.cshtml.cs",
+          "file_type": ".cs",
+          "language": "en",
+          "authors": [
+            "Patrik Švikruha"
+          ],
+          "created_at": "2024-12-20T16:31:20+01:00",
+          "modified_at": "2024-12-20T16:31:20+01:00"
+        }
+      },
+      {
+        "query": "What SAML request signing behavior does the ASP.NET Core slovensko-sk-login example enforce?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/asp-net-core/RazorPages/Program.cs"
+        ],
+        "reference_answer": "The ASP.NET Core slovensko-sk-login example enforces that SAML requests are always signed by setting `sharedOptions.SPOptions.AuthenticateRequestSigningBehavior` to `SigningBehavior.Always`.",
+        "metadata": {
+          "file_name": "Program.cs",
+          "file_type": ".cs",
+          "language": "en",
+          "authors": [
+            "Patrik Švikruha"
+          ],
+          "created_at": "2024-12-20T16:31:20+01:00",
+          "modified_at": "2024-12-20T16:31:20+01:00"
+        }
+      },
+      {
+        "query": "What digest algorithm does the ts-node-saml-minimal slovensko-sk-login example configure for SAML signing, and why does it avoid upgrading to SHA-512?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/ts-node-saml-minimal/src/saml.ts"
+        ],
+        "reference_answer": "The `ts-node-saml-minimal` example configures the digest algorithm for SAML signing as SHA-256, and it avoids upgrading to SHA-512 because UPVS is not supporting it at the time of writing.",
+        "metadata": {
+          "file_name": "saml.ts",
+          "file_type": ".ts",
+          "language": "en",
+          "authors": [
+            "pomali"
+          ],
+          "created_at": "2024-11-28T08:57:55+01:00",
+          "modified_at": "2024-11-28T08:57:55+01:00"
+        }
+      },
+      {
+        "query": "How does the Java OneLogin slovensko-sk-login example's SingleLogoutServiceServlet process an incoming SAML single logout request from the identity provider?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/java-onelogin/src/main/java/com/archimetes/cgpcon/websso/SingleLogoutServiceServlet.java"
+        ],
+        "reference_answer": "The `SingleLogoutServiceServlet` processes an incoming SAML single logout request by creating an `Auth` object with the loaded settings, then calling `auth.processSLO()` to handle the logout process. It captures any errors that occur during the process, setting a \"logoutSuccess\" status if there are no errors, and ultimately forwards the request to the index page with the relevant status and errors.",
+        "metadata": {
+          "file_name": "SingleLogoutServiceServlet.java",
+          "file_type": ".java",
+          "language": "en",
+          "authors": [
+            "Marek Ceľuch",
+            "Rastislav Rehák"
+          ],
+          "created_at": "2024-11-10T21:26:51+01:00",
+          "modified_at": "2024-11-22T10:45:49+01:00"
+        }
+      },
+      {
+        "query": "How does the Laravel slovensko-sk-login example's ResolveTenant middleware determine and bootstrap the SAML tenant for an incoming request?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/laravel/app/Http/Middleware/ResolveTenant.php"
+        ],
+        "reference_answer": "The ResolveTenant middleware determines and boots the SAML tenant for an incoming request by first attempting to resolve the tenant based on a UUID from the request's route. If the tenant exists and is not marked as deleted, it is then passed to the OneLoginBuilder for bootstrapping, and the tenant's UUID is flashed to the session. If the tenant cannot be found or is trashed, it logs the appropriate debug information.",
+        "metadata": {
+          "file_name": "ResolveTenant.php",
+          "file_type": ".php",
+          "language": "en",
+          "authors": [
+            "odziomkova-brackets"
+          ],
+          "created_at": "2024-12-03T10:17:20+01:00",
+          "modified_at": "2024-12-03T10:17:20+01:00"
+        }
+      },
+      {
+        "query": "What timestamp validations does the Ruby on Rails slovensko-sk-login example perform when parsing subject and actor information out of a UPVS SAML response?",
+        "relevant_files": [
+          "submodules/slovensko-sk-login/ruby-on-rails/app/models/upvs.rb"
+        ],
+        "reference_answer": "The Ruby on Rails slovensko-sk-login example performs the following timestamp validations when parsing subject and actor information from a UPVS SAML response: it raises an `ArgumentError` if the \"not_on_or_after\" timestamp (exp) is less than or equal to the current time, if the \"not_before\" timestamp (nbf) is greater than the current time, or if the \"IssueInstant\" timestamp (iat) is greater than the \"not_before\" timestamp (nbf).",
+        "metadata": {
+          "file_name": "upvs.rb",
+          "file_type": ".rb",
+          "language": "en",
+          "authors": [
+            "Jan Suchal",
+            "luciajanikova"
+          ],
+          "created_at": "2024-10-29T17:30:25+01:00",
+          "modified_at": "2024-11-08T21:16:21+01:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "sprava-o-stave-egovernmentu",
+    "collections": [
+      "sprava_o_stave_egovernmentu_slovakbert",
+      "sprava_o_stave_egovernmentu_czert",
+      "sprava_o_stave_egovernmentu_xlmr",
+      "sprava_o_stave_egovernmentu_mbert",
+      "sprava_o_stave_egovernmentu_qwen3",
+      "sprava_o_stave_egovernmentu_te3s",
+      "sprava_o_stave_egovernmentu_e5sksmall_hybrid",
+      "sprava_o_stave_egovernmentu_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "Which eGovernment program is rated \"Zlyháva\" on all four evaluation criteria?",
+        "relevant_files": [
+          "submodules/sprava-o-stave-egovernmentu/programy-egovernmentu.html"
+        ],
+        "reference_answer": "The eGovernment program rated \"Zlyháva\" on all four evaluation criteria is \"Strategické riadenie.\"",
+        "metadata": {
+          "file_name": "programy-egovernmentu.html",
+          "file_type": ".html",
+          "language": "sk",
+          "authors": [
+            "Tomáš Drga",
+            "luciajanikova"
+          ],
+          "created_at": "2022-01-31T21:22:42+01:00",
+          "modified_at": "2025-11-12T16:21:07+01:00"
+        }
+      },
+      {
+        "query": "How is the \"Transparentnosť projektov\" program rated in the eGovernment report?",
+        "relevant_files": [
+          "submodules/sprava-o-stave-egovernmentu/programy-egovernmentu.html"
+        ],
+        "reference_answer": "The \"Transparentnosť projektov\" program is rated as having the goal in order, the solution in order, but the plan and progress are rated as problematic.",
+        "metadata": {
+          "file_name": "programy-egovernmentu.html",
+          "file_type": ".html",
+          "language": "sk",
+          "authors": [
+            "Tomáš Drga",
+            "luciajanikova"
+          ],
+          "created_at": "2022-01-31T21:22:42+01:00",
+          "modified_at": "2025-11-12T16:21:07+01:00"
+        }
+      },
+      {
+        "query": "Which eGovernment programs does the report evaluate?",
+        "relevant_files": [
+          "submodules/sprava-o-stave-egovernmentu/programy-egovernmentu.html"
+        ],
+        "reference_answer": "The report evaluates several eGovernment programs, including: Strategic Management, Project Transparency, Small Authorities, Life Situations, Service Design, Authentication and Authorization, Electronic Forms, Open API, Issue Management, One Time and Enough, My Data, Open Data, and Public Procurement IT.",
+        "metadata": {
+          "file_name": "programy-egovernmentu.html",
+          "file_type": ".html",
+          "language": "sk",
+          "authors": [
+            "Tomáš Drga",
+            "luciajanikova"
+          ],
+          "created_at": "2022-01-31T21:22:42+01:00",
+          "modified_at": "2025-11-12T16:21:07+01:00"
+        }
+      },
+      {
+        "query": "What four criteria and rating states are used to evaluate each eGovernment program in the report?",
+        "relevant_files": [
+          "submodules/sprava-o-stave-egovernmentu/programy-egovernmentu.html"
+        ],
+        "reference_answer": "The four criteria used to evaluate each eGovernment program are: 1) Cieľ (Goal), 2) Riešenie (Solution), 3) Plán (Plan), and 4) Progres (Progress). Each of these criteria can be rated as either \"V poriadku\" (In order), \"Zlyháva\" (Failing), or \"Problémy\" (Problems).",
+        "metadata": {
+          "file_name": "programy-egovernmentu.html",
+          "file_type": ".html",
+          "language": "sk",
+          "authors": [
+            "Tomáš Drga",
+            "luciajanikova"
+          ],
+          "created_at": "2022-01-31T21:22:42+01:00",
+          "modified_at": "2025-11-12T16:21:07+01:00"
+        }
+      },
+      {
+        "query": "How does the report rate the \"My Data\" eGovernment program?",
+        "relevant_files": [
+          "submodules/sprava-o-stave-egovernmentu/index.html"
+        ],
+        "reference_answer": "The report rates the \"My Data\" eGovernment program as having problems in its goal and resolution, with a failing plan and no progress.",
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "sk",
+          "authors": [
+            "Tomáš Drga",
+            "luciajanikova"
+          ],
+          "created_at": "2022-01-31T21:22:42+01:00",
+          "modified_at": "2025-11-12T16:21:07+01:00"
+        }
+      },
+      {
+        "query": "Which two projects funded the creation of the eGovernment report?",
+        "relevant_files": [
+          "submodules/sprava-o-stave-egovernmentu/index.html"
+        ],
+        "reference_answer": "The provided content does not contain information about which two projects funded the creation of the eGovernment report.",
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "sk",
+          "authors": [
+            "Tomáš Drga",
+            "luciajanikova"
+          ],
+          "created_at": "2022-01-31T21:22:42+01:00",
+          "modified_at": "2025-11-12T16:21:07+01:00"
+        }
+      },
+      {
+        "query": "What is the registered address and IČO of Slovensko.Digital?",
+        "relevant_files": [
+          "submodules/sprava-o-stave-egovernmentu/index.html"
+        ],
+        "reference_answer": "The provided content does not contain the registered address or IČO of Slovensko.Digital.",
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "sk",
+          "authors": [
+            "Tomáš Drga",
+            "luciajanikova"
+          ],
+          "created_at": "2022-01-31T21:22:42+01:00",
+          "modified_at": "2025-11-12T16:21:07+01:00"
+        }
+      },
+      {
+        "query": "Which prior years' eGovernment reports are linked besides 2025?",
+        "relevant_files": [
+          "submodules/sprava-o-stave-egovernmentu/index.html"
+        ],
+        "reference_answer": "The provided content does not mention any prior years' eGovernment reports linked to the 2025 report.",
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "sk",
+          "authors": [
+            "Tomáš Drga",
+            "luciajanikova"
+          ],
+          "created_at": "2022-01-31T21:22:42+01:00",
+          "modified_at": "2025-11-12T16:21:07+01:00"
+        }
+      },
+      {
+        "query": "What are the eGovernment report site's brand color hex codes and CSS framework?",
+        "relevant_files": [
+          "submodules/sprava-o-stave-egovernmentu/styleguide.html"
+        ],
+        "reference_answer": "The eGovernment report site's brand color hex codes are not mentioned in the provided content. However, it utilizes the Foundation for Sites CSS framework.",
+        "metadata": {
+          "file_name": "styleguide.html",
+          "file_type": ".html",
+          "language": "en",
+          "authors": [
+            "luciajanikova"
+          ],
+          "created_at": "2022-01-31T21:22:42+01:00",
+          "modified_at": "2022-01-31T21:22:42+01:00"
+        }
+      },
+      {
+        "query": "What typeface is used for headings on the eGovernment report site, and how many cells can a nested grid-x hold?",
+        "relevant_files": [
+          "submodules/sprava-o-stave-egovernmentu/styleguide.html"
+        ],
+        "reference_answer": "The typeface used for headings on the eGovernment report site is Helvetica Neue. A nested grid-x can hold up to 12 cells.",
+        "metadata": {
+          "file_name": "styleguide.html",
+          "file_type": ".html",
+          "language": "en",
+          "authors": [
+            "luciajanikova"
+          ],
+          "created_at": "2022-01-31T21:22:42+01:00",
+          "modified_at": "2022-01-31T21:22:42+01:00"
+        }
+      }
+    ]
+  },
+  {
+    "project": "www.slovensko.wtf",
+    "collections": [
+      "www.slovensko.wtf_slovakbert",
+      "www.slovensko.wtf_czert",
+      "www.slovensko.wtf_xlmr",
+      "www.slovensko.wtf_mbert",
+      "www.slovensko.wtf_qwen3",
+      "www.slovensko.wtf_te3s",
+      "www.slovensko.wtf_e5sksmall_hybrid",
+      "www.slovensko.wtf_simcsecz_hybrid"
+    ],
+    "queries": [
+      {
+        "query": "What is the title of the www.slovensko.wtf index page?",
+        "relevant_files": [
+          "submodules/www.slovensko.wtf/index.html"
+        ],
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "unknown",
+          "authors": [
+            "Jano Suchal",
+            "Rado Buransky"
+          ],
+          "created_at": "2015-11-01T18:04:58+01:00",
+          "modified_at": "2025-02-11T14:39:10+01:00"
+        }
+      },
+      {
+        "query": "How much has Slovakia spent on informatization since 2007, according to www.slovensko.wtf?",
+        "relevant_files": [
+          "submodules/www.slovensko.wtf/index.html"
+        ],
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "unknown",
+          "authors": [
+            "Jano Suchal",
+            "Rado Buransky"
+          ],
+          "created_at": "2015-11-01T18:04:58+01:00",
+          "modified_at": "2025-02-11T14:39:10+01:00"
+        }
+      },
+      {
+        "query": "What is the Open Graph site name declared on www.slovensko.wtf?",
+        "relevant_files": [
+          "submodules/www.slovensko.wtf/index.html"
+        ],
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "unknown",
+          "authors": [
+            "Jano Suchal",
+            "Rado Buransky"
+          ],
+          "created_at": "2015-11-01T18:04:58+01:00",
+          "modified_at": "2025-02-11T14:39:10+01:00"
+        }
+      },
+      {
+        "query": "What canonical URL is declared via og:url on www.slovensko.wtf?",
+        "relevant_files": [
+          "submodules/www.slovensko.wtf/index.html"
+        ],
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "unknown",
+          "authors": [
+            "Jano Suchal",
+            "Rado Buransky"
+          ],
+          "created_at": "2015-11-01T18:04:58+01:00",
+          "modified_at": "2025-02-11T14:39:10+01:00"
+        }
+      },
+      {
+        "query": "What YouTube video ID does the www.slovensko.wtf page embed?",
+        "relevant_files": [
+          "submodules/www.slovensko.wtf/index.html"
+        ],
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "unknown",
+          "authors": [
+            "Jano Suchal",
+            "Rado Buransky"
+          ],
+          "created_at": "2015-11-01T18:04:58+01:00",
+          "modified_at": "2025-02-11T14:39:10+01:00"
+        }
+      },
+      {
+        "query": "Where does www.slovensko.wtf redirect the user after the embedded video finishes?",
+        "relevant_files": [
+          "submodules/www.slovensko.wtf/index.html"
+        ],
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "unknown",
+          "authors": [
+            "Jano Suchal",
+            "Rado Buransky"
+          ],
+          "created_at": "2015-11-01T18:04:58+01:00",
+          "modified_at": "2025-02-11T14:39:10+01:00"
+        }
+      },
+      {
+        "query": "What Google Analytics tracking ID is configured on www.slovensko.wtf?",
+        "relevant_files": [
+          "submodules/www.slovensko.wtf/index.html"
+        ],
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "unknown",
+          "authors": [
+            "Jano Suchal",
+            "Rado Buransky"
+          ],
+          "created_at": "2015-11-01T18:04:58+01:00",
+          "modified_at": "2025-02-11T14:39:10+01:00"
+        }
+      },
+      {
+        "query": "What language attribute is set on the html element of www.slovensko.wtf?",
+        "relevant_files": [
+          "submodules/www.slovensko.wtf/index.html"
+        ],
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "unknown",
+          "authors": [
+            "Jano Suchal",
+            "Rado Buransky"
+          ],
+          "created_at": "2015-11-01T18:04:58+01:00",
+          "modified_at": "2025-02-11T14:39:10+01:00"
+        }
+      },
+      {
+        "query": "What favicon file does www.slovensko.wtf's index.html reference?",
+        "relevant_files": [
+          "submodules/www.slovensko.wtf/index.html"
+        ],
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "unknown",
+          "authors": [
+            "Jano Suchal",
+            "Rado Buransky"
+          ],
+          "created_at": "2015-11-01T18:04:58+01:00",
+          "modified_at": "2025-02-11T14:39:10+01:00"
+        }
+      },
+      {
+        "query": "What image URL is used for social-sharing previews of www.slovensko.wtf?",
+        "relevant_files": [
+          "submodules/www.slovensko.wtf/index.html"
+        ],
+        "metadata": {
+          "file_name": "index.html",
+          "file_type": ".html",
+          "language": "unknown",
+          "authors": [
+            "Jano Suchal",
+            "Rado Buransky"
+          ],
+          "created_at": "2015-11-01T18:04:58+01:00",
+          "modified_at": "2025-02-11T14:39:10+01:00"
+        }
+      }
+    ]
+  }
+]

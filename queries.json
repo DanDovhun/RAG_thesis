@@ -7,7 +7,9 @@
       "altoeditorclient_xlmr",
       "altoeditorclient_mbert",
       "altoeditorclient_qwen3",
-      "altoeditorclient_te3s"
+      "altoeditorclient_te3s",
+      "altoeditorclient_e5sksmall_hybrid",
+      "altoeditorclient_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -118,7 +120,9 @@
       "alto_processing_xlmr",
       "alto_processing_mbert",
       "alto_processing_qwen3",
-      "alto_processing_te3s"
+      "alto_processing_te3s",
+      "alto_processing_e5sksmall_hybrid",
+      "alto_processing_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -229,7 +233,9 @@
       "asjournals_xlmr",
       "asjournals_mbert",
       "asjournals_qwen3",
-      "asjournals_te3s"
+      "asjournals_te3s",
+      "asjournals_e5sksmall_hybrid",
+      "asjournals_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -340,7 +346,9 @@
       "avm_server_xlmr",
       "avm_server_mbert",
       "avm_server_qwen3",
-      "avm_server_te3s"
+      "avm_server_te3s",
+      "avm_server_e5sksmall_hybrid",
+      "avm_server_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -451,7 +459,9 @@
       "govbox_pro_xlmr",
       "govbox_pro_mbert",
       "govbox_pro_qwen3",
-      "govbox_pro_te3s"
+      "govbox_pro_te3s",
+      "govbox_pro_e5sksmall_hybrid",
+      "govbox_pro_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -562,7 +572,9 @@
       "kramerius_xlmr",
       "kramerius_mbert",
       "kramerius_qwen3",
-      "kramerius_te3s"
+      "kramerius_te3s",
+      "kramerius_e5sksmall_hybrid",
+      "kramerius_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -673,7 +685,9 @@
       "kramerius_docker_compose_xlmr",
       "kramerius_docker_compose_mbert",
       "kramerius_docker_compose_qwen3",
-      "kramerius_docker_compose_te3s"
+      "kramerius_docker_compose_te3s",
+      "kramerius_docker_compose_e5sksmall_hybrid",
+      "kramerius_docker_compose_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -777,7 +791,9 @@
       "navody.digital_xlmr",
       "navody.digital_mbert",
       "navody.digital_qwen3",
-      "navody.digital_te3s"
+      "navody.digital_te3s",
+      "navody.digital_e5sksmall_hybrid",
+      "navody.digital_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -888,7 +904,9 @@
       "navody_frontend_xlmr",
       "navody_frontend_mbert",
       "navody_frontend_qwen3",
-      "navody_frontend_te3s"
+      "navody_frontend_te3s",
+      "navody_frontend_e5sksmall_hybrid",
+      "navody_frontend_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -999,7 +1017,9 @@
       "poc_iam_xlmr",
       "poc_iam_mbert",
       "poc_iam_qwen3",
-      "poc_iam_te3s"
+      "poc_iam_te3s",
+      "poc_iam_e5sksmall_hybrid",
+      "poc_iam_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -1082,7 +1102,9 @@
       "slovensko_sk_api_xlmr",
       "slovensko_sk_api_mbert",
       "slovensko_sk_api_qwen3",
-      "slovensko_sk_api_te3s"
+      "slovensko_sk_api_te3s",
+      "slovensko_sk_api_e5sksmall_hybrid",
+      "slovensko_sk_api_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -1193,7 +1215,9 @@
       "slovensko_sk_login_xlmr",
       "slovensko_sk_login_mbert",
       "slovensko_sk_login_qwen3",
-      "slovensko_sk_login_te3s"
+      "slovensko_sk_login_te3s",
+      "slovensko_sk_login_e5sksmall_hybrid",
+      "slovensko_sk_login_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -1304,7 +1328,9 @@
       "sprava_o_stave_egovernmentu_xlmr",
       "sprava_o_stave_egovernmentu_mbert",
       "sprava_o_stave_egovernmentu_qwen3",
-      "sprava_o_stave_egovernmentu_te3s"
+      "sprava_o_stave_egovernmentu_te3s",
+      "sprava_o_stave_egovernmentu_e5sksmall_hybrid",
+      "sprava_o_stave_egovernmentu_simcsecz_hybrid"
     ],
     "queries": [
       {
@@ -1387,7 +1413,9 @@
       "www.slovensko.wtf_xlmr",
       "www.slovensko.wtf_mbert",
       "www.slovensko.wtf_qwen3",
-      "www.slovensko.wtf_te3s"
+      "www.slovensko.wtf_te3s",
+      "www.slovensko.wtf_e5sksmall_hybrid",
+      "www.slovensko.wtf_simcsecz_hybrid"
     ],
     "queries": [
       {

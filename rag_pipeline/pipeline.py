@@ -56,6 +56,8 @@ EMBEDDING_DIMS = {
     "UWB-AIR/Czert-B-base-cased": 768,
     "FacebookAI/xlm-roberta-base": 768,
     "google-bert/bert-base-multilingual-cased": 768,
+    "slovak-nlp/e5-sk-small": 384,
+    "Seznam/simcse-small-e-czech": 256,
     "Qwen/Qwen3-Embedding-0.6B": 1024,
     "naver/splade-v3": 768,
     "text-embedding-3-small": 1536,
@@ -441,6 +443,8 @@ class RAGPipeline:
         alias = collection[len(prefix):]
         if alias.endswith("_en"):
             alias = alias[: -len("_en")]
+        if alias.endswith("_hybrid"):
+            alias = alias[: -len("_hybrid")]
         return self._alias_to_cfg.get(alias)
 
     def search_dense(self, collection: str, model_name: str, query: str, top_k: int) -> list[dict]:
