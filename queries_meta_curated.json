@@ -9,7 +9,9 @@
       "altoeditorclient_qwen3",
       "altoeditorclient_te3s",
       "altoeditorclient_e5sksmall_hybrid",
-      "altoeditorclient_simcsecz_hybrid"
+      "altoeditorclient_simcsecz_hybrid",
+      "altoeditorclient_bm25_hybrid",
+      "altoeditorclient_splade_hybrid"
     ],
     "queries": [
       {
@@ -236,7 +238,9 @@
       "alto_processing_qwen3",
       "alto_processing_te3s",
       "alto_processing_e5sksmall_hybrid",
-      "alto_processing_simcsecz_hybrid"
+      "alto_processing_simcsecz_hybrid",
+      "alto_processing_bm25_hybrid",
+      "alto_processing_splade_hybrid"
     ],
     "queries": [
       {
@@ -461,7 +465,9 @@
       "asjournals_qwen3",
       "asjournals_te3s",
       "asjournals_e5sksmall_hybrid",
-      "asjournals_simcsecz_hybrid"
+      "asjournals_simcsecz_hybrid",
+      "asjournals_bm25_hybrid",
+      "asjournals_splade_hybrid"
     ],
     "queries": [
       {
@@ -700,7 +706,9 @@
       "avm_server_qwen3",
       "avm_server_te3s",
       "avm_server_e5sksmall_hybrid",
-      "avm_server_simcsecz_hybrid"
+      "avm_server_simcsecz_hybrid",
+      "avm_server_bm25_hybrid",
+      "avm_server_splade_hybrid"
     ],
     "queries": [
       {
@@ -925,7 +933,9 @@
       "govbox_pro_qwen3",
       "govbox_pro_te3s",
       "govbox_pro_e5sksmall_hybrid",
-      "govbox_pro_simcsecz_hybrid"
+      "govbox_pro_simcsecz_hybrid",
+      "govbox_pro_bm25_hybrid",
+      "govbox_pro_splade_hybrid"
     ],
     "queries": [
       {
@@ -1187,7 +1197,9 @@
       "kramerius_qwen3",
       "kramerius_te3s",
       "kramerius_e5sksmall_hybrid",
-      "kramerius_simcsecz_hybrid"
+      "kramerius_simcsecz_hybrid",
+      "kramerius_bm25_hybrid",
+      "kramerius_splade_hybrid"
     ],
     "queries": [
       {
@@ -1439,7 +1451,9 @@
       "kramerius_docker_compose_qwen3",
       "kramerius_docker_compose_te3s",
       "kramerius_docker_compose_e5sksmall_hybrid",
-      "kramerius_docker_compose_simcsecz_hybrid"
+      "kramerius_docker_compose_simcsecz_hybrid",
+      "kramerius_docker_compose_bm25_hybrid",
+      "kramerius_docker_compose_splade_hybrid"
     ],
     "queries": [
       {
@@ -1654,7 +1668,9 @@
       "navody.digital_qwen3",
       "navody.digital_te3s",
       "navody.digital_e5sksmall_hybrid",
-      "navody.digital_simcsecz_hybrid"
+      "navody.digital_simcsecz_hybrid",
+      "navody.digital_bm25_hybrid",
+      "navody.digital_splade_hybrid"
     ],
     "queries": [
       {
@@ -1920,7 +1936,9 @@
       "navody_frontend_qwen3",
       "navody_frontend_te3s",
       "navody_frontend_e5sksmall_hybrid",
-      "navody_frontend_simcsecz_hybrid"
+      "navody_frontend_simcsecz_hybrid",
+      "navody_frontend_bm25_hybrid",
+      "navody_frontend_splade_hybrid"
     ],
     "queries": [
       {
@@ -2306,7 +2324,9 @@
       "poc_iam_qwen3",
       "poc_iam_te3s",
       "poc_iam_e5sksmall_hybrid",
-      "poc_iam_simcsecz_hybrid"
+      "poc_iam_simcsecz_hybrid",
+      "poc_iam_bm25_hybrid",
+      "poc_iam_splade_hybrid"
     ],
     "queries": [
       {
@@ -2480,7 +2500,9 @@
       "slovensko_sk_api_qwen3",
       "slovensko_sk_api_te3s",
       "slovensko_sk_api_e5sksmall_hybrid",
-      "slovensko_sk_api_simcsecz_hybrid"
+      "slovensko_sk_api_simcsecz_hybrid",
+      "slovensko_sk_api_bm25_hybrid",
+      "slovensko_sk_api_splade_hybrid"
     ],
     "queries": [
       {
@@ -2740,7 +2762,9 @@
       "slovensko_sk_login_qwen3",
       "slovensko_sk_login_te3s",
       "slovensko_sk_login_e5sksmall_hybrid",
-      "slovensko_sk_login_simcsecz_hybrid"
+      "slovensko_sk_login_simcsecz_hybrid",
+      "slovensko_sk_login_bm25_hybrid",
+      "slovensko_sk_login_splade_hybrid"
     ],
     "queries": [
       {
@@ -2981,7 +3005,9 @@
       "sprava_o_stave_egovernmentu_qwen3",
       "sprava_o_stave_egovernmentu_te3s",
       "sprava_o_stave_egovernmentu_e5sksmall_hybrid",
-      "sprava_o_stave_egovernmentu_simcsecz_hybrid"
+      "sprava_o_stave_egovernmentu_simcsecz_hybrid",
+      "sprava_o_stave_egovernmentu_bm25_hybrid",
+      "sprava_o_stave_egovernmentu_splade_hybrid"
     ],
     "queries": [
       {
@@ -3154,7 +3180,9 @@
       "www.slovensko.wtf_qwen3",
       "www.slovensko.wtf_te3s",
       "www.slovensko.wtf_e5sksmall_hybrid",
-      "www.slovensko.wtf_simcsecz_hybrid"
+      "www.slovensko.wtf_simcsecz_hybrid",
+      "www.slovensko.wtf_bm25_hybrid",
+      "www.slovensko.wtf_splade_hybrid"
     ],
     "queries": [
       {

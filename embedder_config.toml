@@ -35,7 +35,7 @@ coll_alias  = "xlmr"
 model_id    = "FacebookAI/xlm-roberta-base"
 language    = "multilingual"
 source      = "huggingface"
-enabled     = false
+enabled     = true
 notes       = "Cross-lingual transfer baseline for cs/sk; Ulčar et al. (2021) — typologically similar language transfer outperforms English transfer"
 
 [[dense]]
@@ -44,7 +44,7 @@ coll_alias  = "mbert"
 model_id    = "google-bert/bert-base-multilingual-cased"
 language    = "multilingual"
 source      = "huggingface"
-enabled     = false
+enabled     = true
 notes       = "Multilingual BERT baseline"
 
 # ---------------------------------------------------------------------------
@@ -57,7 +57,7 @@ coll_alias  = "qwen3"
 model_id    = "Qwen/Qwen3-Embedding-0.6B"
 language    = "en"
 source      = "huggingface"
-enabled     = false
+enabled     = true
 batch_size  = 4
 notes       = "Applied to EN machine-translated versions of cs/sk documents"
 
@@ -67,17 +67,17 @@ coll_alias  = "te3s"
 model_id    = "text-embedding-3-small"
 language    = "en"
 source      = "openai"
-enabled     = false
+enabled     = true
 notes       = "Applied to EN machine-translated versions of cs/sk documents"
 
-#[[dense]]
-#name        = "text-embedding-3-large"
-#coll_alias  = "te3l"
-#model_id    = "text-embedding-3-large"
-#language    = "en"
-#source      = "openai"
-#enabled     = false
-#notes       = "Larger OpenAI variant; enable if budget allows"
+[[dense]]
+name        = "text-embedding-3-large"
+coll_alias  = "te3l"
+model_id    = "text-embedding-3-large"
+language    = "en"
+source      = "openai"
+enabled     = true
+notes       = "Larger OpenAI variant; enable if budget allows"
 
 # ---------------------------------------------------------------------------
 # Sparse vectorisers
@@ -98,7 +98,7 @@ coll_alias  = "bm25"
 model_id    = "bm25"
 language    = "language-agnostic"
 source      = "haystack"
-enabled     = false
+enabled     = true
 notes       = "Lexical baseline; language-agnostic token matching"
 
 # ---------------------------------------------------------------------------
@@ -110,4 +110,4 @@ notes       = "Lexical baseline; language-agnostic token matching"
 engine    = "Helsinki-NLP"
 languages = ["cs", "sk"]
 target    = "en"
-enabled   = true
+enabled   = false

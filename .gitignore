@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# GPU cross-process lock for run_metadata_queries.py
+.gpu.lock
+
 # C extensions
 *.so
 
@@ -209,3 +212,4 @@ __marimo__/
 .clj-kondo
 .claude
 models
+translations
