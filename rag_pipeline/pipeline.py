@@ -17,7 +17,9 @@ import toml
 import torch
 from haystack import Document
 from haystack.components.converters import HTMLToDocument, PyPDFToDocument, TextFileToDocument
-from haystack.components.embedders import SentenceTransformersDocumentEmbedder
+from haystack_integrations.components.embedders.sentence_transformers import (
+    SentenceTransformersDocumentEmbedder,
+)
 from haystack.components.preprocessors import DocumentSplitter
 from haystack.document_stores.errors import DocumentStoreError
 from haystack.document_stores.types import DuplicatePolicy

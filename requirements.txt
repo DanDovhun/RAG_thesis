@@ -5,6 +5,7 @@ sentence_transformers
 toml
 python-dotenv
 haystack-ai
+sentence-transformers-haystack
 pgvector-haystack
 qdrant-haystack
 ollama-haystack
