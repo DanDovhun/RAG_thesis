@@ -260,6 +260,26 @@ def _get_ragas_metrics() -> tuple[LLMContextPrecisionWithReference, LLMContextRe
     return _context_precision_metric, _context_recall_metric
 
 
+# Some source files (e.g. a synonym/word list with no natural split points, a
+# minified JS bundle) end up indexed as a single oversized chunk instead of being
+# broken up by the normal chunker. Left uncapped, one such chunk landing in the
+# top-k is enough to blow past gpt-4o-mini's 128k-token context on its own (seen:
+# a single 415k-character chunk -> a 353k-token request). Cap each retrieved
+# chunk's text before handing it to the RAGAS judge so one outlier chunk can only
+# ever cost this much of the judge's context budget, not the whole thing.
+_RAGAS_CONTEXT_MAX_CHARS = 8000
+
+
+def _cap_context(text: str) -> str:
+    if len(text) <= _RAGAS_CONTEXT_MAX_CHARS:
+        return text
+    log.warning(
+        "Retrieved chunk is %d chars — truncating to %d chars before RAGAS scoring",
+        len(text), _RAGAS_CONTEXT_MAX_CHARS,
+    )
+    return text[:_RAGAS_CONTEXT_MAX_CHARS]
+
+
 async def _score_llm_metrics(sample: SingleTurnSample) -> tuple[float, float]:
     precision_metric, recall_metric = _get_ragas_metrics()
     return await asyncio.gather(
@@ -287,7 +307,7 @@ def evaluate_context_metrics(query: str, hits: list[dict], reference_answer: str
     Both are None when there are no hits, no reference_answer, or no LLM is configured
     (missing OPENAI_KEY/OPENAI_API_KEY).
     """
-    retrieved = [hit["content"] for hit in hits if hit.get("content")]
+    retrieved = [_cap_context(hit["content"]) for hit in hits if hit.get("content")]
     if not retrieved or not reference_answer:
         return {"context_precision": None, "context_recall": None}
     if _get_ragas_llm() is None:
@@ -443,6 +463,10 @@ class RAGPipeline:
         if not collection.startswith(prefix):
             return None
         alias = collection[len(prefix):]
+        for bucket_suffix in ("_code", "_prose", "_config"):
+            if alias.endswith(bucket_suffix):
+                alias = alias[: -len(bucket_suffix)]
+                break
         if alias.endswith("_en"):
             alias = alias[: -len("_en")]
         if alias.endswith("_hybrid"):
