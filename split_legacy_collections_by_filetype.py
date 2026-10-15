@@ -40,7 +40,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from qdrant_client import QdrantClient
-from qdrant_client.models import PointStruct
 
 from rag_pipeline import QDRANT_URL
 

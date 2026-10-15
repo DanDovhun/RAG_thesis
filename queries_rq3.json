@@ -2,12 +2,6 @@
   {
     "project": "altoEditorClient",
     "collections": [
-      "altoeditorclient_slovakbert_code",
-      "altoeditorclient_slovakbert_prose",
-      "altoeditorclient_slovakbert_config",
-      "altoeditorclient_czert_code",
-      "altoeditorclient_czert_prose",
-      "altoeditorclient_czert_config",
       "altoeditorclient_xlmr_code",
       "altoeditorclient_xlmr_prose",
       "altoeditorclient_xlmr_config",
@@ -131,12 +125,6 @@
   {
     "project": "alto-processing",
     "collections": [
-      "alto_processing_slovakbert_code",
-      "alto_processing_slovakbert_prose",
-      "alto_processing_slovakbert_config",
-      "alto_processing_czert_code",
-      "alto_processing_czert_prose",
-      "alto_processing_czert_config",
       "alto_processing_xlmr_code",
       "alto_processing_xlmr_prose",
       "alto_processing_xlmr_config",
@@ -260,12 +248,6 @@
   {
     "project": "ASJournals",
     "collections": [
-      "asjournals_slovakbert_code",
-      "asjournals_slovakbert_prose",
-      "asjournals_slovakbert_config",
-      "asjournals_czert_code",
-      "asjournals_czert_prose",
-      "asjournals_czert_config",
       "asjournals_xlmr_code",
       "asjournals_xlmr_prose",
       "asjournals_xlmr_config",
@@ -389,12 +371,6 @@
   {
     "project": "avm-server",
     "collections": [
-      "avm_server_slovakbert_code",
-      "avm_server_slovakbert_prose",
-      "avm_server_slovakbert_config",
-      "avm_server_czert_code",
-      "avm_server_czert_prose",
-      "avm_server_czert_config",
       "avm_server_xlmr_code",
       "avm_server_xlmr_prose",
       "avm_server_xlmr_config",
@@ -518,12 +494,6 @@
   {
     "project": "govbox-pro",
     "collections": [
-      "govbox_pro_slovakbert_code",
-      "govbox_pro_slovakbert_prose",
-      "govbox_pro_slovakbert_config",
-      "govbox_pro_czert_code",
-      "govbox_pro_czert_prose",
-      "govbox_pro_czert_config",
       "govbox_pro_xlmr_code",
       "govbox_pro_xlmr_prose",
       "govbox_pro_xlmr_config",
@@ -647,12 +617,6 @@
   {
     "project": "kramerius",
     "collections": [
-      "kramerius_slovakbert_code",
-      "kramerius_slovakbert_prose",
-      "kramerius_slovakbert_config",
-      "kramerius_czert_code",
-      "kramerius_czert_prose",
-      "kramerius_czert_config",
       "kramerius_xlmr_code",
       "kramerius_xlmr_prose",
       "kramerius_xlmr_config",
@@ -776,12 +740,6 @@
   {
     "project": "kramerius-docker-compose",
     "collections": [
-      "kramerius_docker_compose_slovakbert_code",
-      "kramerius_docker_compose_slovakbert_prose",
-      "kramerius_docker_compose_slovakbert_config",
-      "kramerius_docker_compose_czert_code",
-      "kramerius_docker_compose_czert_prose",
-      "kramerius_docker_compose_czert_config",
       "kramerius_docker_compose_xlmr_code",
       "kramerius_docker_compose_xlmr_prose",
       "kramerius_docker_compose_xlmr_config",
@@ -898,12 +856,6 @@
   {
     "project": "navody.digital",
     "collections": [
-      "navody.digital_slovakbert_code",
-      "navody.digital_slovakbert_prose",
-      "navody.digital_slovakbert_config",
-      "navody.digital_czert_code",
-      "navody.digital_czert_prose",
-      "navody.digital_czert_config",
       "navody.digital_xlmr_code",
       "navody.digital_xlmr_prose",
       "navody.digital_xlmr_config",
@@ -1027,12 +979,6 @@
   {
     "project": "navody-frontend",
     "collections": [
-      "navody_frontend_slovakbert_code",
-      "navody_frontend_slovakbert_prose",
-      "navody_frontend_slovakbert_config",
-      "navody_frontend_czert_code",
-      "navody_frontend_czert_prose",
-      "navody_frontend_czert_config",
       "navody_frontend_xlmr_code",
       "navody_frontend_xlmr_prose",
       "navody_frontend_xlmr_config",
@@ -1156,12 +1102,6 @@
   {
     "project": "poc-iam",
     "collections": [
-      "poc_iam_slovakbert_code",
-      "poc_iam_slovakbert_prose",
-      "poc_iam_slovakbert_config",
-      "poc_iam_czert_code",
-      "poc_iam_czert_prose",
-      "poc_iam_czert_config",
       "poc_iam_xlmr_code",
       "poc_iam_xlmr_prose",
       "poc_iam_xlmr_config",
@@ -1257,12 +1197,6 @@
   {
     "project": "slovensko-sk-api",
     "collections": [
-      "slovensko_sk_api_slovakbert_code",
-      "slovensko_sk_api_slovakbert_prose",
-      "slovensko_sk_api_slovakbert_config",
-      "slovensko_sk_api_czert_code",
-      "slovensko_sk_api_czert_prose",
-      "slovensko_sk_api_czert_config",
       "slovensko_sk_api_xlmr_code",
       "slovensko_sk_api_xlmr_prose",
       "slovensko_sk_api_xlmr_config",
@@ -1386,12 +1320,6 @@
   {
     "project": "slovensko-sk-login",
     "collections": [
-      "slovensko_sk_login_slovakbert_code",
-      "slovensko_sk_login_slovakbert_prose",
-      "slovensko_sk_login_slovakbert_config",
-      "slovensko_sk_login_czert_code",
-      "slovensko_sk_login_czert_prose",
-      "slovensko_sk_login_czert_config",
       "slovensko_sk_login_xlmr_code",
       "slovensko_sk_login_xlmr_prose",
       "slovensko_sk_login_xlmr_config",
@@ -1515,12 +1443,6 @@
   {
     "project": "sprava-o-stave-egovernmentu",
     "collections": [
-      "sprava_o_stave_egovernmentu_slovakbert_code",
-      "sprava_o_stave_egovernmentu_slovakbert_prose",
-      "sprava_o_stave_egovernmentu_slovakbert_config",
-      "sprava_o_stave_egovernmentu_czert_code",
-      "sprava_o_stave_egovernmentu_czert_prose",
-      "sprava_o_stave_egovernmentu_czert_config",
       "sprava_o_stave_egovernmentu_xlmr_code",
       "sprava_o_stave_egovernmentu_xlmr_prose",
       "sprava_o_stave_egovernmentu_xlmr_config",
@@ -1616,12 +1538,6 @@
   {
     "project": "www.slovensko.wtf",
     "collections": [
-      "www.slovensko.wtf_slovakbert_code",
-      "www.slovensko.wtf_slovakbert_prose",
-      "www.slovensko.wtf_slovakbert_config",
-      "www.slovensko.wtf_czert_code",
-      "www.slovensko.wtf_czert_prose",
-      "www.slovensko.wtf_czert_config",
       "www.slovensko.wtf_xlmr_code",
       "www.slovensko.wtf_xlmr_prose",
       "www.slovensko.wtf_xlmr_config",
