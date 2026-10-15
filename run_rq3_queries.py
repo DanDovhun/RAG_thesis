@@ -29,8 +29,21 @@ instead of querying Qdrant, so only the RAGAS judge is re-run. This is exact as
 long as that run used the same --top-k: each split's own top-k always contains
 everything that split can contribute to the pooled top-k.
 
+Each row also carries "query_time_s": the wall-clock time spent retrieving that
+row's hits (embedding the query, searching every split collection in Qdrant and
+pooling the results), excluding the RAGAS evaluation. The run's total retrieval
+time is the sum of these, so evaluation time between queries is not counted
+either.
+
 Writes retrieval_results/retrieval_queries_rq3_<timestamp>.json (one file per
-input queries file).
+input queries file), shaped as:
+
+    {"query_count": N, "total_query_time_s": ..., "mean_query_time_s": ...,
+     "results": [<row>, ...]}
+
+Runs rebuilt with --from-results query nothing, so their rows have no
+query_time_s and the file has only "results". Older result files are a bare
+list of rows; load_rows() accepts both.
 
 Usage:
     python3 run_rq3_queries.py [queries_rq3.json ...] [--top-k 5]
@@ -38,6 +51,7 @@ Usage:
 """
 import argparse
 import json
+import time
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
@@ -56,6 +70,14 @@ from run_metadata_queries import (
 
 DEFAULT_QUERIES_FILES = ["queries_rq3.json"]
 SPLIT_SUFFIXES = ("_code", "_prose", "_config")
+
+
+def load_rows(path: Path) -> list[dict]:
+    """Result rows from a results file, either the current {"results": [...]}
+    shape or the older bare list."""
+    with path.open(encoding="utf-8") as fh:
+        data = json.load(fh)
+    return data["results"] if isinstance(data, dict) else data
 
 
 def split_base(collection: str) -> str:
@@ -111,15 +133,15 @@ def build_tasks(entries: list[dict]) -> list[dict]:
     return tasks
 
 
-def score_task(task: dict, hits_per_collection: dict[str, list[dict]], mode: str, embedder: str | None,
-               top_k: int) -> dict:
+def score_task(task: dict, hits: list[dict], mode: str, embedder: str | None,
+               query_time_s: float | None = None) -> dict:
     project, query = task["project"], task["query"]
-    hits = merge_top_k(hits_per_collection, top_k)
     scores = evaluate_context_metrics(query, hits, task["reference_answer"])
 
     log.info(
-        "[%s/%s_split] embedder=%s %r → %d hit(s)  context_precision=%s  context_recall=%s",
+        "[%s/%s_split] embedder=%s %r → %d hit(s)  query_time=%s  context_precision=%s  context_recall=%s",
         project, task["base"], embedder, query, len(hits),
+        f"{query_time_s:.4f}s" if query_time_s is not None else "n/a",
         scores["context_precision"], scores["context_recall"],
     )
     for rank, hit in enumerate(hits, start=1):
@@ -129,7 +151,7 @@ def score_task(task: dict, hits_per_collection: dict[str, list[dict]], mode: str
             rank, hit["score"] or 0.0, hit["source_collection"], hit["file_name"], hit["chunk_index"], snippet,
         )
 
-    return {
+    result = {
         "order": task["order"],
         "project": project,
         "collection": f"{task['base']}_split",
@@ -144,6 +166,9 @@ def score_task(task: dict, hits_per_collection: dict[str, list[dict]], mode: str
         "context_precision": scores["context_precision"],
         "context_recall": scores["context_recall"],
     }
+    if query_time_s is not None:
+        result["query_time_s"] = query_time_s
+    return result
 
 
 def process_group(rag: RAGPipeline, group_tasks: list[dict], top_k: int) -> list[dict]:
@@ -151,20 +176,25 @@ def process_group(rag: RAGPipeline, group_tasks: list[dict], top_k: int) -> list
     for task in group_tasks:
         hits_per_collection = {}
         mode, embedder = "dense", None
+        # Time only retrieval (query embedding, Qdrant search, pooling); the
+        # RAGAS evaluation in score_task is deliberately left outside.
+        start = time.perf_counter()
         for collection in task["collections"]:
             hits, mode, coll_embedder = route_search(rag, task["project"], collection, task["query"], top_k)
             embedder = embedder or coll_embedder
             hits_per_collection[collection] = hits
-        results.append(score_task(task, hits_per_collection, mode, embedder, top_k))
+        hits = merge_top_k(hits_per_collection, top_k)
+        query_time_s = time.perf_counter() - start
+        results.append(score_task(task, hits, mode, embedder, query_time_s))
     return results
 
 
-def write_results(results: list[dict], out_path: Path) -> Path:
+def write_results(results: list[dict], out_path: Path, timing: dict | None = None) -> Path:
     results.sort(key=lambda r: r["order"])
     for r in results:
         del r["order"]
     with out_path.open("w", encoding="utf-8") as fh:
-        json.dump(results, fh, ensure_ascii=False, indent=2)
+        json.dump({**(timing or {}), "results": results}, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
     log.info("Saved %d result(s) to %s", len(results), out_path)
     return out_path
@@ -195,15 +225,25 @@ def run_queries_file(rag: RAGPipeline, queries_file: str, top_k: int, out_dir: P
             finally:
                 rag.unload_embedder(model_name)
 
+    total_query_time_s = sum(r["query_time_s"] for r in results)
+    timing = {
+        "query_count": len(results),
+        "total_query_time_s": total_query_time_s,
+        "mean_query_time_s": total_query_time_s / len(results) if results else None,
+    }
+    log.info(
+        "Total retrieval time for %s: %.4fs over %d quer(y/ies) (evaluation excluded)",
+        queries_file, total_query_time_s, len(results),
+    )
+
     stem = Path(queries_file).stem
     out_path = out_dir / f"retrieval_{stem}_{run_start.strftime('%Y%m%d_%H%M%S')}.json"
-    return write_results(results, out_path)
+    return write_results(results, out_path, timing)
 
 
 def rescore_from_results(results_file: Path, top_k: int, out_dir: Path) -> Path:
     """Rebuild pooled top-k rows from an earlier per-split run without querying Qdrant."""
-    with results_file.open(encoding="utf-8") as fh:
-        rows = json.load(fh)
+    rows = load_rows(results_file)
     run_start = datetime.now()
 
     tasks: dict[tuple[str, str, str], dict] = {}
@@ -230,7 +270,7 @@ def rescore_from_results(results_file: Path, top_k: int, out_dir: Path) -> Path:
         hits_by_task[key][row["collection"]] = row["hits"]
 
     results = [
-        score_task(task, hits_by_task[key], task["mode"], task["embedder"], top_k)
+        score_task(task, merge_top_k(hits_by_task[key], top_k), task["mode"], task["embedder"])
         for key, task in tasks.items()
     ]
     out_path = out_dir / f"retrieval_queries_rq3_{run_start.strftime('%Y%m%d_%H%M%S')}.json"

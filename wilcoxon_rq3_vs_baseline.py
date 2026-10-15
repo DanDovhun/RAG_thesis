@@ -67,6 +67,9 @@ def load_split_scores(path: Path, suffix: str) -> dict[str, dict[tuple, float]]:
     """metric -> {(project, query): score}, for collections ending in the given suffix."""
     with path.open() as f:
         data = json.load(f)
+    # run_rq3_queries.py writes {"results": [...], <timing>}; older runs are a bare list.
+    if isinstance(data, dict):
+        data = data["results"]
     scores: dict[str, dict[tuple, float]] = defaultdict(dict)
     zero_hit = defaultdict(int)
     for entry in data:
