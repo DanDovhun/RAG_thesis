@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -341,7 +342,14 @@ def generate_reference_answers(args) -> None:
 
 
 def run_retrieval(args) -> None:
-    """Run each project's queries against its listed collections and save the results."""
+    """Run each project's queries against its listed collections and save the results.
+
+    Each row carries "query_time_s": the wall-clock time spent retrieving its hits
+    (query embedding, Qdrant search and, in hybrid mode, rank fusion), excluding
+    the RAGAS evaluation and any one-off embedder load. The output file is
+    {"query_count", "total_query_time_s", "mean_query_time_s", "results": [...]},
+    with the total summed from the per-query times so evaluation isn't counted.
+    """
     model_configs = load_model_configs()
     rag = RAGPipeline(model_configs, dataset_dir=dataset_dir)
     entries = load_queries_config(args.queries_file)
@@ -361,6 +369,18 @@ def run_retrieval(args) -> None:
                 bm25_hits: list[dict] = []
                 dense_model_name: str | None = None
 
+                # search_dense/search_splade lazily load their embedder on first use;
+                # do that here so the model load isn't counted as query time.
+                if args.mode in ("dense", "hybrid"):
+                    cfg = rag.resolve_collection_model(project, collection)
+                    if cfg is not None and cfg["name"] not in rag.embedders:
+                        rag.load_embedder(cfg["name"])
+                if args.mode == "splade" and rag.splade_model_name and rag.splade_model_name not in rag.embedders:
+                    rag.load_embedder(rag.splade_model_name)
+
+                # Time only retrieval; the RAGAS evaluation below is deliberately
+                # left outside.
+                start = time.perf_counter()
                 if args.mode in ("dense", "hybrid"):
                     cfg = rag.resolve_collection_model(project, collection)
                     if cfg is None:
@@ -390,12 +410,13 @@ def run_retrieval(args) -> None:
                 else:
                     hits = reciprocal_rank_fusion(dense_hits, bm25_hits, args.top_k)
                     embedder = "+".join(n for n in (dense_model_name, rag.bm25_model_name) if n) or None
+                query_time_s = time.perf_counter() - start
 
                 scores = evaluate_context_metrics(query, hits, reference_answer)
 
                 log.info(
-                    "[%s/%s] embedder=%s %r → %d hit(s)  context_precision=%s  context_recall=%s",
-                    project, collection, embedder, query, len(hits),
+                    "[%s/%s] embedder=%s %r → %d hit(s)  query_time=%.4fs  context_precision=%s  context_recall=%s",
+                    project, collection, embedder, query, len(hits), query_time_s,
                     scores["context_precision"], scores["context_recall"],
                 )
                 for rank, hit in enumerate(hits, start=1):
@@ -416,13 +437,26 @@ def run_retrieval(args) -> None:
                     "hits": hits,
                     "context_precision": scores["context_precision"],
                     "context_recall": scores["context_recall"],
+                    "query_time_s": query_time_s,
                 })
+
+    total_query_time_s = sum(r["query_time_s"] for r in results)
+    log.info(
+        "Total retrieval time: %.4fs over %d quer(y/ies) (evaluation excluded)",
+        total_query_time_s, len(results),
+    )
+    output = {
+        "query_count": len(results),
+        "total_query_time_s": total_query_time_s,
+        "mean_query_time_s": total_query_time_s / len(results) if results else None,
+        "results": results,
+    }
 
     out_dir = Path("retrieval_results")
     out_dir.mkdir(exist_ok=True)
     out_path = out_dir / f"retrieval_{run_start.strftime('%Y%m%d_%H%M%S')}.json"
     with out_path.open("w", encoding="utf-8") as fh:
-        json.dump(results, fh, ensure_ascii=False, indent=2)
+        json.dump(output, fh, ensure_ascii=False, indent=2)
     log.info("Retrieval results saved to %s", out_path)
 
 

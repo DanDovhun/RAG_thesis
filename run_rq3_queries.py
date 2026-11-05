@@ -63,6 +63,7 @@ from run_metadata_queries import (
     group_key,
     load_model_configs,
     load_queries_config,
+    load_rows,
     load_translation_config,
     log,
     route_search,
@@ -70,14 +71,6 @@ from run_metadata_queries import (
 
 DEFAULT_QUERIES_FILES = ["queries_rq3.json"]
 SPLIT_SUFFIXES = ("_code", "_prose", "_config")
-
-
-def load_rows(path: Path) -> list[dict]:
-    """Result rows from a results file, either the current {"results": [...]}
-    shape or the older bare list."""
-    with path.open(encoding="utf-8") as fh:
-        data = json.load(fh)
-    return data["results"] if isinstance(data, dict) else data
 
 
 def split_base(collection: str) -> str:

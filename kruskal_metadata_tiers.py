@@ -6,15 +6,20 @@ different amount of chunk metadata embedded (curated subset, half, or full). For
 each embedder, scores are aligned by (project, query) across all three tiers, so
 the three tiers are related (paired) samples rather than independent groups.
 scipy's Friedman test -- the repeated-measures analogue of Kruskal-Wallis -- is
-used for the omnibus comparison, with pairwise Wilcoxon signed-rank tests
-(Bonferroni-corrected) as post-hoc follow-up.
+used for the omnibus comparison. When it is significant, the Conover post-hoc
+test for unreplicated blocked data (scikit-posthocs' posthoc_conover_friedman,
+Bonferroni-adjusted over the 3 tier pairs) follows up. Conover is preferred over
+Nemenyi here: it works on the same within-query ranks as the Friedman statistic
+and is more powerful, which matters with only 3 tiers and many blocks (queries).
 """
 import argparse
 import json
 from collections import defaultdict
 from pathlib import Path
 
-from scipy.stats import friedmanchisquare, wilcoxon
+import numpy as np
+import scikit_posthocs as sp
+from scipy.stats import friedmanchisquare
 
 METRICS = ["context_precision", "context_recall"]
 TIERS = ["curated", "half", "full"]
@@ -24,6 +29,9 @@ def load_scores(path: Path) -> dict[str, dict[str, dict[tuple[str, str], float]]
     """embedder -> metric -> {(project, query): score}"""
     with path.open() as f:
         data = json.load(f)
+    # run_metadata_queries.py writes {"results": [...], <timing>}; older runs are a bare list.
+    if isinstance(data, dict):
+        data = data["results"]
     scores: dict[str, dict[str, dict[tuple[str, str], float]]] = defaultdict(lambda: defaultdict(dict))
     skipped = defaultdict(int)
     for entry in data:
@@ -102,17 +110,14 @@ def main() -> None:
             )
 
             if result.pvalue <= args.alpha:
+                # rows = blocks (queries), columns = groups (tiers)
+                post_hoc = sp.posthoc_conover_friedman(np.column_stack(groups), p_adjust="bonferroni")
                 for i, tier_a in enumerate(TIERS):
-                    for tier_b in TIERS[i + 1:]:
-                        a, b = groups[TIERS.index(tier_a)], groups[TIERS.index(tier_b)]
-                        if all(x == y for x, y in zip(a, b)):
-                            print(f"    post-hoc {tier_a:<8} vs {tier_b:<8} identical, skipping")
-                            continue
-                        post_hoc = wilcoxon(a, b)
-                        bonferroni_p = min(post_hoc.pvalue * 3, 1.0)
+                    for j, tier_b in enumerate(TIERS[i + 1:], start=i + 1):
+                        bonferroni_p = post_hoc.iloc[i, j]
                         print(
-                            f"    post-hoc {tier_a:<8} vs {tier_b:<8} "
-                            f"p={post_hoc.pvalue:.4g} bonferroni_p={bonferroni_p:.4g} "
+                            f"    conover {tier_a:<8} vs {tier_b:<8} "
+                            f"bonferroni_p={bonferroni_p:.4g} "
                             f"significant: {bonferroni_p <= args.alpha}"
                         )
 

@@ -15,6 +15,10 @@ than excluded from the sample.
 
 Groups with no known baseline embedder name (slovakbert, czert) are reported
 with a note instead of being silently skipped.
+
+Within a metric, the per-embedder split-vs-merged tests form one family,
+Bonferroni-corrected (embedders skipped for missing baseline, missing overlap or
+all-zero differences don't count).
 """
 import argparse
 import json
@@ -45,7 +49,9 @@ def load_baseline_scores(paths: list[Path], embedder: str) -> dict[str, dict[tup
     data = []
     for path in paths:
         with path.open() as f:
-            data.extend(json.load(f))
+            loaded = json.load(f)
+        # main.py now writes {"results": [...], <timing>}; older runs are a bare list.
+        data.extend(loaded["results"] if isinstance(loaded, dict) else loaded)
     scores: dict[str, dict[tuple, float]] = defaultdict(dict)
     zero_hit = defaultdict(int)
     for entry in data:
@@ -112,32 +118,53 @@ def main() -> None:
     args = parse_args()
     print(f"##### {args.rq3_file} vs {', '.join(map(str, args.baseline_files))} #####")
 
+    # Run every test first so the Bonferroni family size (per metric, across
+    # embedders) is known before anything is printed.
+    tests: dict[str, dict[str, tuple]] = {}
+    for suffix, embedder in EMBEDDER_GROUPS.items():
+        if embedder is None:
+            continue
+        baseline_scores = load_baseline_scores(args.baseline_files, embedder)
+        if not baseline_scores:
+            continue
+        split_scores = load_split_scores(args.rq3_file, f"{suffix}_split")
+        tests[suffix] = {}
+        for metric in METRICS:
+            a, b = paired_samples(split_scores[metric], baseline_scores[metric])
+            testable = a and any(x != y for x, y in zip(a, b))
+            result = wilcoxon(a, b, zero_method="wilcox") if testable else None
+            tests[suffix][metric] = (a, b, result)
+    family_sizes = {
+        metric: sum(per_metric[metric][2] is not None for per_metric in tests.values())
+        for metric in METRICS
+    }
+
     for suffix, embedder in EMBEDDER_GROUPS.items():
         print(f"\n===== embedder: {embedder if embedder else suffix} =====")
         if embedder is None:
             print(f"note: no baseline embedder mapped for '{suffix}', skipping comparison")
             continue
-        baseline_scores = load_baseline_scores(args.baseline_files, embedder)
-        if not baseline_scores:
+        if suffix not in tests:
             print(f"note: no rows for '{embedder}' in the baseline file(s), skipping comparison")
             continue
-        split_scores = load_split_scores(args.rq3_file, f"{suffix}_split")
         print("\n--- pooled splits vs merged baseline ---")
         for metric in METRICS:
-            a, b = paired_samples(split_scores[metric], baseline_scores[metric])
+            a, b, result = tests[suffix][metric]
             if not a:
                 print(f"{metric:<18} n=0 no overlapping (project, query) pairs, skipping")
                 continue
-            if all(x == y for x, y in zip(a, b)):
+            if result is None:
                 print(f"{metric:<18} n={len(a):<4} all differences are zero, skipping")
                 continue
 
-            result = wilcoxon(a, b, zero_method="wilcox")
+            m = family_sizes[metric]
+            bonferroni_p = min(result.pvalue * m, 1.0)
             mean_a, mean_b = sum(a) / len(a), sum(b) / len(b)
             direction = "split" if mean_a > mean_b else "baseline"
             print(
                 f"{metric:<18} n={len(a):<4} statistic={result.statistic:>10.2f} p={result.pvalue:.4g} "
-                f"p <= 0.05: {result.pvalue <= 0.05} "
+                f"bonferroni_p(m={m})={bonferroni_p:.4g} "
+                f"bonferroni_p <= 0.05: {bonferroni_p <= 0.05} "
                 f"mean(split)={mean_a:.4f} mean(baseline)={mean_b:.4f} higher={direction}"
             )
 

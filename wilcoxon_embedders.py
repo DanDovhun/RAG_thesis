@@ -7,7 +7,8 @@ Group B (language-specific): czert-bert-base-cased, SlovakBERT
 
 For every (A, B) pair and every metric, the two embedders' per-query scores
 are aligned by (project, query) and compared with scipy's Wilcoxon
-signed-rank test.
+signed-rank test. The 8 pairs within a metric form one family, Bonferroni-corrected
+(pairs skipped for having all-zero differences don't count towards it).
 """
 import argparse
 import json
@@ -35,6 +36,9 @@ def load_scores(path: Path) -> dict[str, dict[str, dict[str, float]]]:
     """embedder -> metric -> {(project, query): score}"""
     with path.open() as f:
         data = json.load(f)
+    # Newer runs write {"results": [...], <timing>}; older runs are a bare list.
+    if isinstance(data, dict):
+        data = data["results"]
 
     scores: dict[str, dict[str, dict[str, float]]] = defaultdict(lambda: defaultdict(dict))
     skipped = defaultdict(int)
@@ -88,20 +92,26 @@ def main() -> None:
 
     for metric in METRICS:
         print(f"\n=== {metric} ===")
+        tests = []
         for general, specific in product(GENERAL_EMBEDDERS, SPECIFIC_EMBEDDERS):
             a, b = paired_samples(scores, general, specific, metric)
             diffs_nonzero = any(x != y for x, y in zip(a, b))
-            if not diffs_nonzero:
+            result = wilcoxon(a, b, zero_method="wilcox") if diffs_nonzero else None
+            tests.append((general, specific, a, b, result))
+        m = sum(result is not None for *_, result in tests)
+
+        for general, specific, a, b, result in tests:
+            if result is None:
                 print(f"{general:>28} vs {specific:<20} n={len(a):<4} all differences are zero, skipping")
                 continue
-
-            result = wilcoxon(a, b, zero_method="wilcox")
+            bonferroni_p = min(result.pvalue * m, 1.0)
             mean_a, mean_b = sum(a) / len(a), sum(b) / len(b)
             direction = general if mean_a > mean_b else specific
             print(
                 f"{general:>28} vs {specific:<20} "
                 f"n={len(a):<4} statistic={result.statistic:>10.2f} p={result.pvalue:.4g} "
-                f'p <= 0.05: {result.pvalue <= 0.05} '
+                f"bonferroni_p(m={m})={bonferroni_p:.4g} "
+                f'bonferroni_p <= 0.05: {bonferroni_p <= 0.05} '
                 f"mean({general})={mean_a:.4f} mean({specific})={mean_b:.4f} higher={direction}"
             )
 

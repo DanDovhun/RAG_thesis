@@ -15,6 +15,16 @@ Only embedders enabled in embedder_config.toml are queryable — enable whicheve
 ones the target queries files need before running. Each queries_meta_*.json
 file lists both dense and sparse (bm25_hybrid/splade_hybrid) collections per
 project, so a single run covers both.
+
+Each row also carries "query_time_s": the wall-clock time spent retrieving that
+row's hits (embedding the query and searching Qdrant), excluding the RAGAS
+evaluation. The run's total retrieval time is the sum of these, so evaluation
+time between queries is not counted either. Output files are shaped as:
+
+    {"query_count": N, "total_query_time_s": ..., "mean_query_time_s": ...,
+     "results": [<row>, ...]}
+
+Older result files are a bare list of rows; load_rows() accepts both.
 """
 import argparse
 import fcntl
@@ -22,6 +32,7 @@ import json
 import logging
 import os
 import sys
+import time
 from collections import defaultdict
 from contextlib import contextmanager
 from datetime import datetime
@@ -82,6 +93,14 @@ def load_queries_config(path: str) -> list[dict]:
         return json.load(fh)
 
 
+def load_rows(path: Path) -> list[dict]:
+    """Result rows from a results file, either the current {"results": [...]}
+    shape or the older bare list."""
+    with path.open(encoding="utf-8") as fh:
+        data = json.load(fh)
+    return data["results"] if isinstance(data, dict) else data
+
+
 def route_search(rag: RAGPipeline, project: str, collection: str, query: str, top_k: int):
     """Search `collection` with whichever backend actually produced it, inferred
     from its name. Returns (hits, mode, embedder)."""
@@ -138,12 +157,16 @@ def process_group(rag: RAGPipeline, group_tasks: list[dict], top_k: int) -> list
     results = []
     for task in group_tasks:
         project, collection, query = task["project"], task["collection"], task["query"]
+        # Time only retrieval (query embedding, Qdrant search); the RAGAS
+        # evaluation below is deliberately left outside.
+        start = time.perf_counter()
         hits, mode, embedder = route_search(rag, project, collection, query, top_k)
+        query_time_s = time.perf_counter() - start
         scores = evaluate_context_metrics(query, hits, task["reference_answer"])
 
         log.info(
-            "[%s/%s] embedder=%s %r → %d hit(s)  context_precision=%s  context_recall=%s",
-            project, collection, embedder, query, len(hits),
+            "[%s/%s] embedder=%s %r → %d hit(s)  query_time=%.4fs  context_precision=%s  context_recall=%s",
+            project, collection, embedder, query, len(hits), query_time_s,
             scores["context_precision"], scores["context_recall"],
         )
         for rank, hit in enumerate(hits, start=1):
@@ -166,6 +189,7 @@ def process_group(rag: RAGPipeline, group_tasks: list[dict], top_k: int) -> list
             "hits": hits,
             "context_precision": scores["context_precision"],
             "context_recall": scores["context_recall"],
+            "query_time_s": query_time_s,
         })
     return results
 
@@ -197,10 +221,22 @@ def run_queries_file(rag: RAGPipeline, queries_file: str, top_k: int, out_dir: P
     for r in results:
         del r["order"]
 
+    total_query_time_s = sum(r["query_time_s"] for r in results)
+    log.info(
+        "[%s] Total retrieval time: %.4fs over %d quer(y/ies) (evaluation excluded)",
+        queries_file, total_query_time_s, len(results),
+    )
+    output = {
+        "query_count": len(results),
+        "total_query_time_s": total_query_time_s,
+        "mean_query_time_s": total_query_time_s / len(results) if results else None,
+        "results": results,
+    }
+
     stem = Path(queries_file).stem
     out_path = out_dir / f"retrieval_{stem}_{run_start.strftime('%Y%m%d_%H%M%S')}.json"
     with out_path.open("w", encoding="utf-8") as fh:
-        json.dump(results, fh, ensure_ascii=False, indent=2)
+        json.dump(output, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
     log.info("[%s] Saved %d result(s) to %s", queries_file, len(results), out_path)
     return out_path
